@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { Header } from "@/components/layout/Header";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { JobseekerSidebar } from "@/components/jobseeker/JobseekerSidebar";
 
 export default async function JobseekerLayout({
   children,
@@ -14,10 +13,13 @@ export default async function JobseekerLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
-      <MobileBottomNav />
+    <div className="min-h-screen bg-muted/30">
+      <JobseekerSidebar userName={session.user.name || session.user.email || "구직자"} />
+      <main className="md:ml-60">
+        <div className="mx-auto max-w-screen-xl px-4 py-6 pt-16 md:pt-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

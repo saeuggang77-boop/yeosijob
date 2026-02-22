@@ -137,7 +137,7 @@ export default async function HomePage({ searchParams }: PageProps) {
               <p className="font-medium">이력서를 등록하고 채용 기회를 받아보세요</p>
               <p className="mt-0.5 text-sm text-muted-foreground">업소에서 직접 연락이 옵니다</p>
             </div>
-            <Link href={session ? "/my-resume" : "/login"}>
+            <Link href={session ? "/jobseeker/my-resume" : "/login"}>
               <Button size="sm">{session ? "이력서 등록하기" : "로그인하기"}</Button>
             </Link>
           </div>

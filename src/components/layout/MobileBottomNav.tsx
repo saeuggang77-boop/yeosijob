@@ -79,9 +79,9 @@ export function MobileBottomNav() {
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/jobs", label: "채용정보", icon: SearchIcon },
-      { href: "/my-resume", label: "이력서", icon: DocumentIcon },
-      { href: "/my-scraps", label: "스크랩", icon: BookmarkIcon },
-      { href: "/profile", label: "마이", icon: UserIcon },
+      { href: "/jobseeker/my-resume", label: "이력서", icon: DocumentIcon },
+      { href: "/jobseeker/scraps", label: "스크랩", icon: BookmarkIcon },
+      { href: "/jobseeker/profile", label: "마이", icon: UserIcon },
     ];
   } else {
     // Not logged in navigation

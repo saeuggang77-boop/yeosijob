@@ -22,12 +22,12 @@ export function Header() {
           </Link>
           {session?.user.role === "JOBSEEKER" && (
             <>
-              <Link href="/my-resume">
+              <Link href="/jobseeker/my-resume">
                 <Button variant="ghost" size="sm">
                   내 이력서
                 </Button>
               </Link>
-              <Link href="/my-scraps">
+              <Link href="/jobseeker/scraps">
                 <Button variant="ghost" size="sm">
                   스크랩
                 </Button>

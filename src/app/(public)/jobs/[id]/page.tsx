@@ -253,7 +253,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               <p className="font-medium">이력서를 먼저 등록해주세요</p>
               <p className="mt-0.5 text-sm text-muted-foreground">이력서를 등록하면 업소에서 직접 연락합니다</p>
             </div>
-            <Link href="/my-resume">
+            <Link href="/jobseeker/my-resume">
               <Button size="sm">등록하기</Button>
             </Link>
           </CardContent>
@@ -308,7 +308,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       {/* 하단 고정 바 (모바일) */}
       <div className="fixed bottom-[68px] left-0 right-0 border-t bg-background p-3 md:hidden">
         {session?.user?.role === "JOBSEEKER" && !hasResume ? (
-          <Link href="/my-resume">
+          <Link href="/jobseeker/my-resume">
             <Button variant="outline" className="h-12 w-full text-base">
               이력서를 먼저 등록해주세요
             </Button>

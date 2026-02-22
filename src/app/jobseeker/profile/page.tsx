@@ -57,7 +57,7 @@ export default async function ProfilePage() {
 
       <div className="space-y-4">
         {/* 내 이력서 */}
-        <Link href="/my-resume" className="block">
+        <Link href="/jobseeker/my-resume" className="block">
           <Card className="transition-shadow hover:shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export default async function ProfilePage() {
         </Link>
 
         {/* 스크랩한 공고 */}
-        <Link href="/my-scraps" className="block">
+        <Link href="/jobseeker/scraps" className="block">
           <Card className="transition-shadow hover:shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -95,7 +95,7 @@ export default async function ProfilePage() {
         </Link>
 
         {/* 내가 쓴 후기 */}
-        <Link href="/my-reviews" className="block">
+        <Link href="/jobseeker/reviews" className="block">
           <Card className="transition-shadow hover:shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

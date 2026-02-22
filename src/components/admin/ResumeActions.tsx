@@ -47,7 +47,7 @@ export function ResumeActions({ resumeId, isPublic }: ResumeActionsProps) {
       if (!response.ok) throw new Error("Failed to delete");
 
       toast.success("이력서가 삭제되었습니다");
-      router.refresh();
+      router.push("/admin/resumes");
     } catch (error) {
       toast.error("삭제에 실패했습니다");
     } finally {

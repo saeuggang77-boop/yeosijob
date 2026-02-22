@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { ResumeActions } from "@/components/admin/ResumeActions";
 
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
@@ -58,7 +59,7 @@ export default async function AdminResumesPage({ searchParams }: PageProps) {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Link
-                          href={`/resumes/${resume.id}`}
+                          href={`/admin/resumes/${resume.id}`}
                           className="truncate font-medium hover:underline"
                         >
                           {resume.nickname}
@@ -74,6 +75,7 @@ export default async function AdminResumesPage({ searchParams }: PageProps) {
                         등록일: {new Date(resume.createdAt).toLocaleDateString("ko-KR")}
                       </p>
                     </div>
+                    <ResumeActions resumeId={resume.id} isPublic={resume.isPublic} />
                   </div>
                 </CardContent>
               </Card>

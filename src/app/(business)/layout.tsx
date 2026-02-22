@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { Header } from "@/components/layout/Header";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { BusinessSidebar } from "@/components/business/BusinessSidebar";
 
 export default async function BusinessLayout({
   children,
@@ -15,10 +14,13 @@ export default async function BusinessLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
-      <MobileBottomNav />
+    <div className="min-h-screen bg-muted/30">
+      <BusinessSidebar userName={session.user.name || session.user.email || "사장님"} />
+      <main className="md:ml-60">
+        <div className="mx-auto max-w-screen-xl px-4 py-6 pt-16 md:pt-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

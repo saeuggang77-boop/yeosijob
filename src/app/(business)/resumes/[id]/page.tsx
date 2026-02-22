@@ -1,6 +1,5 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,13 +16,25 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+function maskKakao(kakaoId: string): string {
+  if (kakaoId.length <= 4) return kakaoId.slice(0, 1) + "***";
+  return kakaoId.slice(0, 4) + "*".repeat(Math.min(kakaoId.length - 4, 5));
+}
+
+function maskPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length >= 10) {
+    return digits.slice(0, 3) + "-****-" + digits.slice(-4);
+  }
+  return phone.slice(0, 3) + "****";
+}
+
 export default async function ResumeDetailPage({ params }: PageProps) {
   const session = await auth();
   if (!session || session.user.role !== "BUSINESS") redirect("/login");
 
   const { id } = await params;
 
-  // Fetch resume with user phone
   const resume = await prisma.resume.findUnique({
     where: { id },
     include: {
@@ -33,7 +44,6 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     },
   });
 
-  // Check if resume exists and is public and not expired
   if (
     !resume ||
     !resume.isPublic ||
@@ -42,97 +52,67 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Check active ads
+  // Fetch active ads to determine tier
   const activeAds = await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE" },
     select: { id: true, productId: true },
   });
 
-  if (activeAds.length === 0) {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-20 text-center">
-        <p className="text-lg font-medium">광고 등록 후 열람 가능합니다</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          게재중인 광고가 있어야 이력서를 열람할 수 있습니다
-        </p>
-        <Link href="/ads/new">
-          <Button className="mt-6">광고 등록하기</Button>
-        </Link>
-      </div>
-    );
+  const hasActiveAd = activeAds.length > 0;
+
+  // Determine best product tier
+  let bestProductId = "";
+  let bestAdId = "";
+  let dailyLimit = 0;
+  let isUnlimited = false;
+
+  if (hasActiveAd) {
+    bestProductId = activeAds.reduce((best, ad) => {
+      const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
+      const bestRank = AD_PRODUCTS[best]?.rank ?? 999;
+      return currentRank < bestRank ? ad.productId : best;
+    }, activeAds[0].productId);
+    bestAdId = activeAds.find((ad) => ad.productId === bestProductId)?.id || activeAds[0].id;
+    dailyLimit = AD_PRODUCTS[bestProductId]?.resumeViewLimit ?? 3;
+    isUnlimited = dailyLimit >= 9999;
   }
 
-  // Find best product tier (lowest rank = highest tier)
-  const bestProductId = activeAds.reduce((best, ad) => {
-    const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
-    const bestRank = AD_PRODUCTS[best]?.rank ?? 999;
-    return currentRank < bestRank ? ad.productId : best;
-  }, activeAds[0].productId);
+  // Check today's views (use $queryRaw with explicit KST midnight to avoid PrismaPg date issues)
+  let viewedResumeIds: string[] = [];
+  let alreadyViewedToday = false;
 
-  const bestAdId = activeAds.find((ad) => ad.productId === bestProductId)?.id || activeAds[0].id;
-  const dailyLimit = AD_PRODUCTS[bestProductId]?.resumeViewLimit ?? 3;
-
-  // Check today's views
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const viewedToday = await prisma.resumeViewLog.findMany({
-    where: {
-      userId: session.user.id,
-      viewedAt: { gte: today },
-    },
-    select: { resumeId: true },
-    distinct: ["resumeId"],
-  });
-
-  const viewedResumeIds = viewedToday.map((v) => v.resumeId);
-  const alreadyViewedToday = viewedResumeIds.includes(id);
-
-  // Check if limit exceeded
-  const limitExceeded = !alreadyViewedToday && viewedResumeIds.length >= dailyLimit;
-
-  if (limitExceeded) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-20">
-        <Card>
-          <CardHeader>
-            <CardTitle>이력서 열람 한도 초과</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              오늘 이력서 열람 한도({dailyLimit}건)를 초과했습니다
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              상위 등급으로 업그레이드하면 더 많이 열람할 수 있습니다
-            </p>
-            <p className="mt-4 text-sm">
-              현재 등급: <strong>{AD_PRODUCTS[bestProductId]?.name}</strong>
-            </p>
-            <div className="mt-6 flex gap-3">
-              <Link href="/resumes">
-                <Button variant="outline">목록으로</Button>
-              </Link>
-              <Link href="/ads/new">
-                <Button>상위 등급 알아보기</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+  if (hasActiveAd) {
+    // Calculate KST midnight as UTC timestamp
+    const now = new Date();
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const kstMidnightUTC = new Date(
+      Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 60 * 60 * 1000
     );
+    const cutoff = kstMidnightUTC.toISOString();
+
+    const viewedToday = await prisma.$queryRaw<{ resumeId: string }[]>`
+      SELECT DISTINCT "resumeId"
+      FROM resume_view_logs
+      WHERE "userId" = ${session.user.id}
+        AND "viewedAt" >= ${cutoff}::timestamptz
+    `;
+    viewedResumeIds = viewedToday.map((v) => v.resumeId);
+    alreadyViewedToday = viewedResumeIds.includes(id);
   }
 
-  // Log view (fire-and-forget)
-  if (!alreadyViewedToday) {
-    prisma.resumeViewLog
-      .create({
-        data: {
-          userId: session.user.id,
-          resumeId: id,
-          adId: bestAdId,
-        },
-      })
-      .catch(() => {});
+  // Determine if contact info can be viewed
+  const limitExceeded = hasActiveAd && !isUnlimited && !alreadyViewedToday && viewedResumeIds.length >= dailyLimit;
+  const canViewContact = hasActiveAd && !limitExceeded;
+
+  // Log view if allowed
+  if (canViewContact && !alreadyViewedToday) {
+    await prisma.resumeViewLog.create({
+      data: {
+        userId: session.user.id,
+        resumeId: id,
+        adId: bestAdId,
+      },
+    });
   }
 
   const experienceLabel =
@@ -151,16 +131,39 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     }
   }
 
-  const canViewContact = activeAds.length > 0;
+  // Resolve contact info (masked or real)
+  const rawPhone = resume.phone || resume.user.phone || "";
+  const rawKakao = resume.kakaoId || "";
+
+  const displayPhone = canViewContact
+    ? rawPhone ? formatPhone(rawPhone) : "미등록"
+    : rawPhone ? maskPhoneNumber(rawPhone) : "미등록";
+
+  const displayKakao = canViewContact
+    ? rawKakao
+    : rawKakao ? maskKakao(rawKakao) : "";
+
+  // Reason for restriction
+  let restrictionReason = "";
+  if (!hasActiveAd) {
+    restrictionReason = "광고 등록 후 연락처를 확인할 수 있습니다";
+  } else if (limitExceeded) {
+    restrictionReason = `오늘 열람 가능 횟수(${dailyLimit}건)를 초과했습니다. 상위 등급 광고를 이용하면 더 많은 인재를 확인할 수 있습니다`;
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link href="/resumes">
           <Button variant="ghost" size="sm">
             ← 목록으로
           </Button>
         </Link>
+        {hasActiveAd && !isUnlimited && (
+          <Badge variant={limitExceeded ? "destructive" : "secondary"}>
+            오늘 {viewedResumeIds.length + (canViewContact && !alreadyViewedToday ? 1 : 0)}/{dailyLimit}건 열람
+          </Badge>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -186,36 +189,26 @@ export default async function ResumeDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium text-muted-foreground">
-                닉네임
-              </span>
+              <span className="w-24 text-sm font-medium text-muted-foreground">닉네임</span>
               <span className="font-medium">{resume.nickname}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium text-muted-foreground">
-                성별
-              </span>
+              <span className="w-24 text-sm font-medium text-muted-foreground">성별</span>
               <span>{resume.gender}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium text-muted-foreground">
-                나이
-              </span>
+              <span className="w-24 text-sm font-medium text-muted-foreground">나이</span>
               <span>{resume.age}세</span>
             </div>
             {resume.height && (
               <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-muted-foreground">
-                  신장
-                </span>
+                <span className="w-24 text-sm font-medium text-muted-foreground">신장</span>
                 <span>{resume.height}cm</span>
               </div>
             )}
             {resume.weight && (
               <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-muted-foreground">
-                  체중
-                </span>
+                <span className="w-24 text-sm font-medium text-muted-foreground">체중</span>
                 <span>{resume.weight}kg</span>
               </div>
             )}
@@ -266,16 +259,12 @@ export default async function ResumeDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium text-muted-foreground">
-                경력
-              </span>
+              <span className="w-24 text-sm font-medium text-muted-foreground">경력</span>
               <span>{experienceLabel}</span>
             </div>
             {salaryInfo && (
               <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-muted-foreground">
-                  희망 급여
-                </span>
+                <span className="w-24 text-sm font-medium text-muted-foreground">희망 급여</span>
                 <span>{salaryInfo}</span>
               </div>
             )}
@@ -313,41 +302,37 @@ export default async function ResumeDetailPage({ params }: PageProps) {
             <CardTitle>연락처</CardTitle>
           </CardHeader>
           <CardContent>
-            {canViewContact ? (
-              <div className="space-y-3">
-                {resume.kakaoId && (
-                  <div className="flex items-center gap-3">
-                    <span className="w-24 text-sm font-medium text-muted-foreground">
-                      카카오톡
-                    </span>
-                    <span className="font-medium text-lg">{resume.kakaoId}</span>
-                  </div>
+            {restrictionReason && (
+              <div className="mb-4 rounded-md bg-orange-50 p-3 text-sm text-orange-800">
+                {restrictionReason}
+                {!hasActiveAd && (
+                  <Link href="/ads/new">
+                    <Button size="sm" className="ml-3">광고 등록하기</Button>
+                  </Link>
                 )}
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-muted-foreground">
-                    전화번호
-                  </span>
-                  <span className="font-medium text-lg">
-                    {resume.phone
-                      ? formatPhone(resume.phone)
-                      : resume.user.phone
-                      ? formatPhone(resume.user.phone)
-                      : "미등록"}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-md bg-muted p-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  광고 등록 후 연락처를 확인할 수 있습니다
-                </p>
-                <Link href="/ads/new">
-                  <Button className="mt-4" size="sm">
-                    광고 등록하기
-                  </Button>
-                </Link>
+                {limitExceeded && (
+                  <Link href="/ads/new">
+                    <Button size="sm" variant="outline" className="ml-3">상위 등급 알아보기</Button>
+                  </Link>
+                )}
               </div>
             )}
+            <div className="space-y-3">
+              {displayKakao && (
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-muted-foreground">카카오톡</span>
+                  <span className={`text-lg font-medium ${!canViewContact ? "text-muted-foreground" : ""}`}>
+                    {displayKakao}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <span className="w-24 text-sm font-medium text-muted-foreground">전화번호</span>
+                <span className={`text-lg font-medium ${!canViewContact ? "text-muted-foreground" : ""}`}>
+                  {displayPhone}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

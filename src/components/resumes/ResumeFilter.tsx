@@ -16,19 +16,19 @@ export function ResumeFilter() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const region = searchParams.get("region") || "";
-  const businessType = searchParams.get("businessType") || "";
-  const experience = searchParams.get("experience") || "";
-  const ageRange = searchParams.get("ageRange") || "";
+  const region = searchParams.get("region") || "ALL";
+  const businessType = searchParams.get("businessType") || "ALL";
+  const experience = searchParams.get("experience") || "ALL";
+  const ageRange = searchParams.get("ageRange") || "ALL";
 
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
+    if (value && value !== "ALL") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
-    params.set("page", "1"); // Reset to page 1
+    params.set("page", "1");
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -40,7 +40,7 @@ export function ResumeFilter() {
           <SelectValue placeholder="전체 지역" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">전체</SelectItem>
+          <SelectItem value="ALL">전체</SelectItem>
           {Object.entries(REGIONS).map(([key, { label }]) => (
             <SelectItem key={key} value={key}>
               {label}
@@ -58,7 +58,7 @@ export function ResumeFilter() {
           <SelectValue placeholder="전체 업종" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">전체</SelectItem>
+          <SelectItem value="ALL">전체</SelectItem>
           {Object.entries(BUSINESS_TYPES).map(([key, { label }]) => (
             <SelectItem key={key} value={key}>
               {label}
@@ -76,7 +76,7 @@ export function ResumeFilter() {
           <SelectValue placeholder="전체 경력" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">전체</SelectItem>
+          <SelectItem value="ALL">전체</SelectItem>
           <SelectItem value="BEGINNER">초보</SelectItem>
           <SelectItem value="EXPERIENCED">경력</SelectItem>
         </SelectContent>
@@ -91,7 +91,7 @@ export function ResumeFilter() {
           <SelectValue placeholder="전체 연령" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">전체</SelectItem>
+          <SelectItem value="ALL">전체</SelectItem>
           <SelectItem value="20">20대</SelectItem>
           <SelectItem value="30">30대</SelectItem>
           <SelectItem value="40">40대 이상</SelectItem>

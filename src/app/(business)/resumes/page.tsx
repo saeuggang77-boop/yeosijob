@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS, SALARY_TYPES } from "@/lib/constants/resume";
+import { AD_PRODUCTS } from "@/lib/constants/products";
 import { ResumeFilter } from "@/components/resumes/ResumeFilter";
 import { timeAgo, formatPrice } from "@/lib/utils/format";
 import type { Region, BusinessType } from "@/generated/prisma/client";
@@ -26,24 +27,44 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   const session = await auth();
   if (!session || session.user.role !== "BUSINESS") redirect("/login");
 
-  // Check at least one active ad exists
-  const activeAd = await prisma.ad.findFirst({
+  // Fetch active ads to determine tier
+  const activeAds = await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE" },
-    select: { id: true },
+    select: { id: true, productId: true },
   });
 
-  if (!activeAd) {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-20 text-center">
-        <p className="text-lg font-medium">광고 등록 후 열람 가능합니다</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          게재중인 광고가 있어야 이력서를 열람할 수 있습니다
-        </p>
-        <Link href="/ads/new">
-          <Button className="mt-6">광고 등록하기</Button>
-        </Link>
-      </div>
+  // Determine best product tier
+  let bestProductId = "";
+  let dailyLimit = 0;
+  let isUnlimited = false;
+
+  if (activeAds.length > 0) {
+    bestProductId = activeAds.reduce((best, ad) => {
+      const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
+      const bestRank = AD_PRODUCTS[best]?.rank ?? 999;
+      return currentRank < bestRank ? ad.productId : best;
+    }, activeAds[0].productId);
+    dailyLimit = AD_PRODUCTS[bestProductId]?.resumeViewLimit ?? 3;
+    isUnlimited = dailyLimit >= 9999;
+  }
+
+  // Count today's views (use $queryRaw with explicit KST midnight to avoid PrismaPg date issues)
+  let viewedTodayCount = 0;
+  if (activeAds.length > 0) {
+    const now = new Date();
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const kstMidnightUTC = new Date(
+      Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 60 * 60 * 1000
     );
+    const cutoff = kstMidnightUTC.toISOString();
+
+    const viewedToday = await prisma.$queryRaw<{ cnt: number }[]>`
+      SELECT COUNT(DISTINCT "resumeId")::int AS cnt
+      FROM resume_view_logs
+      WHERE "userId" = ${session.user.id}
+        AND "viewedAt" >= ${cutoff}::timestamptz
+    `;
+    viewedTodayCount = viewedToday[0]?.cnt ?? 0;
   }
 
   const params = await searchParams;
@@ -94,10 +115,39 @@ export default async function ResumesPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-6">
-      <h1 className="text-2xl font-bold">이력서 열람</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{total}건의 이력서</p>
+      <h1 className="text-2xl font-bold">인재 정보</h1>
 
-      <div className="mt-6">
+      {/* View quota display */}
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <span className="text-sm text-muted-foreground">{total}건의 이력서</span>
+        {activeAds.length === 0 ? (
+          <Badge variant="destructive">광고 등록 후 열람 가능</Badge>
+        ) : isUnlimited ? (
+          <Badge variant="default">
+            {AD_PRODUCTS[bestProductId]?.name} · 무제한 열람
+          </Badge>
+        ) : (
+          <Badge variant={viewedTodayCount >= dailyLimit ? "destructive" : "secondary"}>
+            오늘 {viewedTodayCount}/{dailyLimit}건 열람
+            {viewedTodayCount >= dailyLimit && " (한도 초과)"}
+          </Badge>
+        )}
+      </div>
+
+      {activeAds.length === 0 && (
+        <Card className="mt-4 border-orange-200 bg-orange-50">
+          <CardContent className="py-4">
+            <p className="text-sm font-medium text-orange-800">
+              게재중인 광고가 있어야 이력서 연락처를 열람할 수 있습니다
+            </p>
+            <Link href="/ads/new">
+              <Button size="sm" className="mt-2">광고 등록하기</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mt-4">
         <ResumeFilter />
       </div>
 
@@ -138,7 +188,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                 <Card className="transition-shadow hover:shadow-md">
                   <CardContent className="py-4">
                     <div className="space-y-2">
-                      {/* Row 1: Title + Date */}
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="text-base font-bold">
                           {resume.title || "제목 없음"}
@@ -148,7 +197,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                         </span>
                       </div>
 
-                      {/* Row 2: Nickname + Age + Physical Info */}
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">{resume.nickname}</span>
                         <span className="text-muted-foreground">{resume.age}세</span>
@@ -157,7 +205,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                         )}
                       </div>
 
-                      {/* Row 3: Region + District Badges */}
                       <div className="flex flex-wrap gap-1.5">
                         <Badge variant="secondary">
                           {REGIONS[resume.region]?.label || resume.region}
@@ -169,7 +216,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                         ))}
                       </div>
 
-                      {/* Row 4: Desired Job Badges */}
                       {(resume.desiredJobs || []).length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
                           {(resume.desiredJobs || []).map((job: BusinessType) => (
@@ -180,7 +226,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                         </div>
                       )}
 
-                      {/* Row 5: Experience + Salary */}
                       <div className="flex flex-wrap items-center gap-3 text-sm">
                         <span className="text-muted-foreground">{experienceLabel}</span>
                         {salaryInfo && (
@@ -199,7 +244,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">
           {page > 1 && (

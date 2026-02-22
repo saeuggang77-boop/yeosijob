@@ -73,34 +73,34 @@ export default async function DashboardPage() {
 
       {/* 요약 카드 */}
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="animate-fade-in-up bg-gradient-to-br from-primary/10 to-transparent stagger-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               게재중 광고
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{activeCount}건</p>
+            <p className="text-4xl font-bold">{activeCount}건</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="animate-fade-in-up stagger-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               전체 광고
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{ads.length}건</p>
+            <p className="text-4xl font-bold">{ads.length}건</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="animate-fade-in-up stagger-3">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               총 조회수
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <p className="text-4xl font-bold">
               {totalViews.toLocaleString()}
             </p>
           </CardContent>

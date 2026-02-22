@@ -68,12 +68,12 @@ export function Sidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-full w-60 flex-col border-r bg-background transition-transform md:translate-x-0 ${
+        className={`fixed left-0 top-0 z-40 flex h-full w-60 flex-col border-r border-border bg-sidebar transition-transform md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center border-b px-4">
+        <div className="flex h-14 items-center border-b border-border px-4">
           <Link href={logoHref} className="text-lg font-bold text-primary">
             {logoText}
           </Link>
@@ -102,7 +102,7 @@ export function Sidebar({
         </nav>
 
         {/* Footer */}
-        <div className="border-t px-4 py-3">
+        <div className="border-t border-border px-4 py-3">
           <p className="truncate text-sm font-medium">
             {userName}{userNameSuffix}
           </p>

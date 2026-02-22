@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md bg-card">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">여시알바</CardTitle>
         <CardDescription>로그인하여 서비스를 이용해보세요</CardDescription>

@@ -34,7 +34,7 @@ export function BannerSlider({ ads }: Props) {
   if (ads.length === 0) return null;
 
   return (
-    <section className="border-b bg-gradient-to-r from-primary/5 to-primary/10">
+    <section className="border-b bg-gradient-to-r from-card via-primary/5 to-card">
       <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-500 ease-in-out"
@@ -44,7 +44,7 @@ export function BannerSlider({ ads }: Props) {
             <Link
               key={ad.id}
               href={`/jobs/${ad.id}`}
-              className="w-full shrink-0 px-4 py-4"
+              className="w-full shrink-0 px-6 py-6"
             >
               <div className="mx-auto max-w-screen-xl">
                 <div className="flex items-center justify-between">
@@ -65,13 +65,13 @@ export function BannerSlider({ ads }: Props) {
         </div>
         {/* Dots indicator */}
         {ads.length > 1 && (
-          <div className="flex justify-center gap-1.5 pb-2">
+          <div className="flex justify-center gap-1.5 pb-3">
             {ads.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === current ? "w-4 bg-primary" : "w-1.5 bg-primary/30"
+                  i === current ? "w-4 bg-primary" : "w-1.5 bg-muted-foreground/30"
                 }`}
               />
             ))}

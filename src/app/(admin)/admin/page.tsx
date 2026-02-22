@@ -43,8 +43,13 @@ export default async function AdminDashboardPage() {
       <h1 className="text-2xl font-bold">관리자 대시보드</h1>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((s) => (
-          <Card key={s.label} className={s.highlight ? "border-orange-300" : ""}>
+        {stats.map((s, i) => (
+          <Card
+            key={s.label}
+            className={`animate-fade-in-up stagger-${i + 1} ${
+              s.highlight ? "border-primary bg-primary/5" : ""
+            }`}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground">
                 {s.label}
@@ -54,15 +59,15 @@ export default async function AdminDashboardPage() {
               {s.href ? (
                 <Link href={s.href}>
                   <p
-                    className={`text-3xl font-bold ${
-                      s.highlight ? "text-orange-600" : ""
+                    className={`text-4xl font-bold ${
+                      s.highlight ? "text-primary" : ""
                     }`}
                   >
                     {s.value}건
                   </p>
                 </Link>
               ) : (
-                <p className="text-3xl font-bold">{s.value}명</p>
+                <p className="text-4xl font-bold">{s.value}명</p>
               )}
             </CardContent>
           </Card>

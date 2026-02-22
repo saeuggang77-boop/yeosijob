@@ -18,10 +18,11 @@ interface AdCardProps {
     lastJumpedAt: Date | string;
     options?: { optionId: string; value?: string | null }[];
   };
+  productId?: string;
   emphasized?: boolean;
 }
 
-export function AdCard({ ad, emphasized = false }: AdCardProps) {
+export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   const hasBold = ad.options?.some((o) => o.optionId === "BOLD");
   const highlight = ad.options?.find((o) => o.optionId === "HIGHLIGHT");
   const icon = ad.options?.find((o) => o.optionId === "ICON");
@@ -50,9 +51,23 @@ export function AdCard({ ad, emphasized = false }: AdCardProps) {
     "10": "💜",
   };
 
+  function getProductStyles(productId?: string) {
+    switch (productId) {
+      case "LINE": return "";
+      case "RECOMMEND": return "border-l-4 border-l-recommend";
+      case "URGENT": return "bg-urgent/5 border-l-4 border-l-urgent";
+      case "SPECIAL": return "border-t-2 border-t-special bg-special/5";
+      case "PREMIUM": return "border border-primary/50 bg-primary/5";
+      case "VIP": return "border border-primary bg-gradient-to-r from-primary/10 to-accent/10";
+      default: return "";
+    }
+  }
+
   const bgClass = highlight?.value
     ? highlightColors[highlight.value] || ""
     : "";
+
+  const productStyles = getProductStyles(productId);
 
   const regionLabels = ad.regions
     .map((r) => REGIONS[r]?.shortLabel || r)
@@ -64,7 +79,7 @@ export function AdCard({ ad, emphasized = false }: AdCardProps) {
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
       <div
-        className={`flex items-center gap-3 border-b px-4 py-3 transition-colors hover:bg-muted/50 ${bgClass} ${emphasized ? "border-l-4 border-l-primary" : ""}`}
+        className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 ${bgClass} ${productStyles} ${emphasized ? "border-l-4 border-l-primary" : ""}`}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
@@ -72,6 +87,15 @@ export function AdCard({ ad, emphasized = false }: AdCardProps) {
               <span className="text-sm">
                 {iconEmojis[icon.value] || "🔹"}
               </span>
+            )}
+            {productId === "URGENT" && (
+              <span className="animate-pulse-urgent rounded bg-urgent px-1.5 py-0.5 text-xs font-bold text-white">급구</span>
+            )}
+            {productId === "VIP" && (
+              <span className="rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-xs font-bold text-primary-foreground">VIP</span>
+            )}
+            {productId === "PREMIUM" && (
+              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-bold text-primary">PREMIUM</span>
             )}
             <h3
               className={`truncate text-sm ${

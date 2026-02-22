@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30">
+    <footer className="border-t bg-card">
       <div className="mx-auto max-w-screen-xl px-4 py-8">
         <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
           <div className="text-center md:text-left">
@@ -12,13 +12,13 @@ export function Footer() {
             </p>
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="/about" className="py-2 hover:underline">
+            <Link href="/about" className="py-2 hover:text-primary hover:underline">
               서비스 소개
             </Link>
-            <Link href="/terms" className="py-2 hover:underline">
+            <Link href="/terms" className="py-2 hover:text-primary hover:underline">
               이용약관
             </Link>
-            <Link href="/privacy" className="py-2 hover:underline">
+            <Link href="/privacy" className="py-2 hover:text-primary hover:underline">
               개인정보처리방침
             </Link>
           </div>

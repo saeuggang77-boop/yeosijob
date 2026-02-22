@@ -128,6 +128,16 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* 배너 슬라이더 */}
       <BannerSlider ads={bannerAds} />
 
+      {/* 히어로 섹션 */}
+      <section className="bg-gradient-to-br from-background via-card to-background px-4 py-12 text-center">
+        <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl font-[family-name:var(--font-heading)]">
+          유흥업계 No.1 구인구직
+        </h1>
+        <p className="mt-3 text-lg text-muted-foreground">
+          여시알바에서 최고의 일자리를 찾으세요
+        </p>
+      </section>
+
       {/* CTA 배너 */}
       {showResumeCta && (
         <div className="border-b bg-primary/5 px-4 py-4">
@@ -146,8 +156,8 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* 최신 인재정보 */}
       {resumeCountsByType.some(r => r.count > 0) && (
         <section className="border-b px-4 py-3">
-          <h2 className="text-sm font-bold mb-2">최신 인재정보</h2>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <h2 className="border-l-4 border-primary pl-3 text-sm font-bold">최신 인재정보</h2>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {resumeCountsByType.filter(r => r.count > 0).map(r => (
               <span key={r.type}>
                 {BUSINESS_TYPES[r.type as BusinessType].shortLabel}{" "}
@@ -187,13 +197,15 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* VIP 섹션 */}
       {vipAds.length > 0 && (
-        <section className="border-b">
-          <div className="flex items-center justify-between px-4 py-2">
-            <h2 className="text-sm font-bold">★ 우대 채용정보</h2>
+        <section className="border-b bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center justify-between px-4 py-3">
+            <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
+              <span className="rounded bg-gradient-to-r from-primary to-amber px-2 py-0.5 text-sm text-primary-foreground">VIP</span>
+            </h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-3 sm:grid sm:grid-cols-4 sm:overflow-visible">
+          <div className="flex gap-3 overflow-x-auto px-4 pb-4 sm:grid sm:grid-cols-4 sm:overflow-visible">
             {vipAds.map((ad) => (
-              <AdBoxCard key={ad.id} ad={ad} />
+              <AdBoxCard key={ad.id} ad={ad} productId="VIP" />
             ))}
           </div>
         </section>
@@ -202,12 +214,14 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* PREMIUM 섹션 */}
       {premiumAds.length > 0 && (
         <section className="border-b">
-          <div className="flex items-center justify-between px-4 py-2">
-            <h2 className="text-sm font-bold">★ 프리미엄 채용정보</h2>
+          <div className="flex items-center justify-between px-4 py-3">
+            <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
+              <span className="rounded bg-primary/20 px-2 py-0.5 text-sm text-primary">PREMIUM</span>
+            </h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-3 sm:grid sm:grid-cols-4 sm:overflow-visible">
+          <div className="flex gap-3 overflow-x-auto px-4 pb-4 sm:grid sm:grid-cols-4 sm:overflow-visible">
             {premiumAds.map((ad) => (
-              <AdBoxCard key={ad.id} ad={ad} />
+              <AdBoxCard key={ad.id} ad={ad} productId="PREMIUM" />
             ))}
           </div>
         </section>
@@ -216,12 +230,12 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* SPECIAL 섹션 */}
       {specialAds.length > 0 && (
         <section className="border-b">
-          <div className="flex items-center justify-between px-4 py-2">
-            <h2 className="text-sm font-bold">★ 스페셜 채용정보</h2>
+          <div className="flex items-center justify-between px-4 py-3">
+            <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">스페셜 채용정보</h2>
           </div>
           <div>
             {specialAds.map((ad) => (
-              <AdCard key={ad.id} ad={ad} emphasized />
+              <AdCard key={ad.id} ad={ad} productId="SPECIAL" />
             ))}
           </div>
         </section>
@@ -232,14 +246,16 @@ export default async function HomePage({ searchParams }: PageProps) {
         <section className="border-b">
           <div className="grid gap-4 p-4 sm:grid-cols-2">
             {urgentAds.length > 0 && (
-              <div>
-                <h2 className="mb-2 text-sm font-bold">★ 급구 채용정보</h2>
-                <div className="space-y-1 rounded-lg bg-orange-50 p-3">
+              <div className="rounded-xl bg-destructive/5 p-4">
+                <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
+                  급구 채용정보 <span className="animate-pulse-urgent ml-2 rounded bg-urgent px-1.5 py-0.5 text-xs font-bold text-white">급구</span>
+                </h2>
+                <div className="mt-3 space-y-1">
                   {urgentAds.map((ad) => (
                     <Link
                       key={ad.id}
                       href={`/jobs/${ad.id}`}
-                      className="block rounded p-2 text-sm transition-colors hover:bg-orange-100"
+                      className="block rounded p-2 text-sm transition-colors hover:bg-background/50"
                     >
                       <span className="font-medium">{ad.title}</span>
                       <span className="ml-2 text-xs text-muted-foreground">
@@ -256,11 +272,11 @@ export default async function HomePage({ searchParams }: PageProps) {
               </div>
             )}
             {recommendAds.length > 0 && (
-              <div>
-                <h2 className="mb-2 text-sm font-bold">★ 추천 채용정보</h2>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="rounded-xl bg-recommend/5 p-4">
+                <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">추천 채용정보</h2>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {recommendAds.map((ad) => (
-                    <AdBoxCard key={ad.id} ad={ad} />
+                    <AdBoxCard key={ad.id} ad={ad}  />
                   ))}
                 </div>
               </div>
@@ -271,8 +287,8 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* LINE 섹션 (전체 채용정보) */}
       <section>
-        <div className="flex items-center justify-between border-b px-4 py-2">
-          <h2 className="text-sm font-semibold">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
             전체 채용정보{" "}
             <span className="font-normal text-muted-foreground">
               {total.toLocaleString()}건
@@ -290,9 +306,9 @@ export default async function HomePage({ searchParams }: PageProps) {
             </p>
           </div>
         ) : (
-          <div>
+          <div className="divide-y divide-border">
             {lineAds.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
+              <AdCard key={ad.id} ad={ad} productId="LINE" />
             ))}
           </div>
         )}
@@ -336,6 +352,15 @@ export default async function HomePage({ searchParams }: PageProps) {
               })}
           </div>
         )}
+      </section>
+
+      {/* 하단 CTA 배너 */}
+      <section className="mt-12 rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 p-8 text-center">
+        <h2 className="text-2xl font-bold">지금 광고를 등록하세요</h2>
+        <p className="mt-2 text-muted-foreground">여시알바에서 최고의 인재를 만나보세요</p>
+        <Link href="/business/ads/new">
+          <Button size="lg" className="mt-4">광고 등록하기</Button>
+        </Link>
       </section>
     </div>
   );

@@ -16,7 +16,7 @@ export default async function AdStatsPage({ params, searchParams }: PageProps) {
   if (!session) redirect("/login");
 
   if (session.user.role !== "BUSINESS") {
-    redirect("/dashboard");
+    redirect("/business/dashboard");
   }
 
   const { id } = await params;
@@ -35,11 +35,11 @@ export default async function AdStatsPage({ params, searchParams }: PageProps) {
   });
 
   if (!ad) {
-    redirect("/dashboard");
+    redirect("/business/dashboard");
   }
 
   if (ad.userId !== session.user.id) {
-    redirect("/dashboard");
+    redirect("/business/dashboard");
   }
 
   // 기간 파라미터 검증
@@ -102,7 +102,7 @@ export default async function AdStatsPage({ params, searchParams }: PageProps) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <Link
-            href="/dashboard"
+            href="/business/dashboard"
             className="text-sm text-muted-foreground hover:underline"
           >
             ← 대시보드로

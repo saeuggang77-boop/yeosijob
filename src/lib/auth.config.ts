@@ -10,7 +10,7 @@ export const authConfig = {
       const pathname = nextUrl.pathname;
 
       // 사장님 전용 페이지
-      if (pathname.startsWith("/dashboard") || pathname.startsWith("/ads")) {
+      if (pathname.startsWith("/business")) {
         if (!isLoggedIn) return false;
         return auth.user.role === "BUSINESS" || auth.user.role === "ADMIN";
       }

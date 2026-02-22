@@ -153,7 +153,7 @@ export default async function ResumeDetailPage({ params }: PageProps) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
-        <Link href="/resumes">
+        <Link href="/business/resumes">
           <Button variant="ghost" size="sm">
             ← 목록으로
           </Button>
@@ -305,12 +305,12 @@ export default async function ResumeDetailPage({ params }: PageProps) {
               <div className="mb-4 rounded-md bg-orange-50 p-3 text-sm text-orange-800">
                 {restrictionReason}
                 {!hasActiveAd && (
-                  <Link href="/ads/new">
+                  <Link href="/business/ads/new">
                     <Button size="sm" className="ml-3">광고 등록하기</Button>
                   </Link>
                 )}
                 {limitExceeded && (
-                  <Link href="/ads/new">
+                  <Link href="/business/ads/new">
                     <Button size="sm" variant="outline" className="ml-3">상위 등급 알아보기</Button>
                   </Link>
                 )}
@@ -337,7 +337,7 @@ export default async function ResumeDetailPage({ params }: PageProps) {
       </div>
 
       <div className="mt-8 text-center">
-        <Link href="/resumes">
+        <Link href="/business/resumes">
           <Button>목록으로</Button>
         </Link>
       </div>

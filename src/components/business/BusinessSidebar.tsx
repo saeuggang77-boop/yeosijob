@@ -7,10 +7,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
-  { href: "/", label: "채용정보", icon: "🏠" },
-  { href: "/dashboard", label: "광고 관리", icon: "📋" },
-  { href: "/ads/new", label: "광고 등록", icon: "➕" },
-  { href: "/resumes", label: "인재 정보", icon: "👥" },
+  { href: "/jobs", label: "채용정보", icon: "🏠" },
+  { href: "/business/dashboard", label: "광고 관리", icon: "📋" },
+  { href: "/business/ads/new", label: "광고 등록", icon: "➕" },
+  { href: "/business/resumes", label: "인재 정보", icon: "👥" },
 ];
 
 interface BusinessSidebarProps {
@@ -22,9 +22,9 @@ export function BusinessSidebar({ userName }: BusinessSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href: string) {
-    if (href === "/") return pathname === "/";
-    if (href === "/dashboard") return pathname === "/dashboard";
-    if (href === "/ads/new") return pathname === "/ads/new";
+    if (href === "/jobs") return pathname === "/jobs";
+    if (href === "/business/dashboard") return pathname === "/business/dashboard";
+    if (href === "/business/ads/new") return pathname === "/business/ads/new";
     return pathname.startsWith(href);
   }
 

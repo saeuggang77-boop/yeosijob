@@ -139,7 +139,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
             <p className="text-sm font-medium text-orange-800">
               게재중인 광고가 있어야 이력서 연락처를 열람할 수 있습니다
             </p>
-            <Link href="/ads/new">
+            <Link href="/business/ads/new">
               <Button size="sm" className="mt-2">광고 등록하기</Button>
             </Link>
           </CardContent>
@@ -183,7 +183,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                 : "";
 
             return (
-              <Link key={resume.id} href={`/resumes/${resume.id}`}>
+              <Link key={resume.id} href={`/business/resumes/${resume.id}`}>
                 <Card className="transition-shadow hover:shadow-md">
                   <CardContent className="py-4">
                     <div className="space-y-2">
@@ -247,7 +247,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
         <div className="mt-8 flex justify-center gap-2">
           {page > 1 && (
             <Link
-              href={`/resumes?${new URLSearchParams({
+              href={`/business/resumes?${new URLSearchParams({
                 ...(region && { region }),
                 ...(businessType && { businessType }),
                 ...(experience && { experience }),
@@ -265,7 +265,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
           </span>
           {page < totalPages && (
             <Link
-              href={`/resumes?${new URLSearchParams({
+              href={`/business/resumes?${new URLSearchParams({
                 ...(region && { region }),
                 ...(businessType && { businessType }),
                 ...(experience && { experience }),

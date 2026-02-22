@@ -33,7 +33,7 @@ export default async function PaymentInfoPage({
     orderBy: { createdAt: "desc" },
   });
 
-  if (!payment) redirect("/dashboard");
+  if (!payment) redirect("/business/dashboard");
 
   const snapshot = payment.itemSnapshot as {
     product: { name: string };
@@ -107,7 +107,7 @@ export default async function PaymentInfoPage({
             홈으로
           </Button>
         </Link>
-        <Link href="/dashboard" className="flex-1">
+        <Link href="/business/dashboard" className="flex-1">
           <Button className="w-full">광고 관리</Button>
         </Link>
       </div>

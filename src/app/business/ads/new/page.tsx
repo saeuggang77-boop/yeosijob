@@ -66,7 +66,7 @@ export default function NewAdPage() {
 
       // 무통장 입금: 기존 결제 안내 페이지로 이동
       if (paymentMethod === "BANK_TRANSFER") {
-        router.push(`/ads/${result.adId}/payment?orderId=${result.orderId}`);
+        router.push(`/business/ads/${result.adId}/payment?orderId=${result.orderId}`);
       } else {
         // 카드/카카오페이: 결제 위젯 표시
         setPaymentInfo({

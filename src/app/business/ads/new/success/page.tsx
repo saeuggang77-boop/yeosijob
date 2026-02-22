@@ -72,12 +72,12 @@ export default function PaymentSuccessPage() {
           <p className="mt-2 text-muted-foreground">{errorMessage}</p>
         </div>
         <div className="mt-6 flex gap-3">
-          <Link href="/ads/new" className="flex-1">
+          <Link href="/business/ads/new" className="flex-1">
             <Button variant="outline" className="w-full">
               다시 시도
             </Button>
           </Link>
-          <Link href="/dashboard" className="flex-1">
+          <Link href="/business/dashboard" className="flex-1">
             <Button className="w-full">광고 관리</Button>
           </Link>
         </div>
@@ -114,7 +114,7 @@ export default function PaymentSuccessPage() {
             홈으로
           </Button>
         </Link>
-        <Link href="/dashboard" className="flex-1">
+        <Link href="/business/dashboard" className="flex-1">
           <Button className="w-full">광고 관리</Button>
         </Link>
       </div>

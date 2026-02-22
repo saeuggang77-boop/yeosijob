@@ -112,7 +112,7 @@ export default function EditAdPage() {
     return (
       <div className="mx-auto max-w-screen-md px-4 py-20 text-center">
         <p className="text-lg text-muted-foreground">{error || "광고를 찾을 수 없습니다"}</p>
-        <Button className="mt-4" onClick={() => router.push("/dashboard")}>
+        <Button className="mt-4" onClick={() => router.push("/business/dashboard")}>
           돌아가기
         </Button>
       </div>
@@ -137,7 +137,7 @@ export default function EditAdPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               {ad.maxEdits}회 수정을 모두 사용했습니다
             </p>
-            <Button className="mt-4" variant="outline" onClick={() => router.push("/dashboard")}>
+            <Button className="mt-4" variant="outline" onClick={() => router.push("/business/dashboard")}>
               돌아가기
             </Button>
           </CardContent>
@@ -254,7 +254,7 @@ export default function EditAdPage() {
           </Card>
 
           <div className="flex gap-3">
-            <Button type="button" variant="outline" className="flex-1" onClick={() => router.push("/dashboard")}>
+            <Button type="button" variant="outline" className="flex-1" onClick={() => router.push("/business/dashboard")}>
               취소
             </Button>
             <Button type="submit" className="flex-1" disabled={saving}>

@@ -46,8 +46,8 @@ export function TossPaymentWidget({
 
     const payment = toss.payment({ customerKey: customerEmail });
 
-    const successUrl = `${window.location.origin}/ads/new/success`;
-    const failUrl = `${window.location.origin}/ads/new/fail`;
+    const successUrl = `${window.location.origin}/business/ads/new/success`;
+    const failUrl = `${window.location.origin}/business/ads/new/fail`;
 
     try {
       if (method === "KAKAO_PAY") {

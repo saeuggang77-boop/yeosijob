@@ -7,8 +7,7 @@ export default auth;
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/ads/:path*",
+    "/business/:path*",
     "/my-resume/:path*",
     "/scraps/:path*",
     "/reviews/:path*",

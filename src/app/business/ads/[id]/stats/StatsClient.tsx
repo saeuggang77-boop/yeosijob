@@ -43,7 +43,7 @@ export function StatsClient({
 
   const handlePeriodChange = (newPeriod: number) => {
     setPeriod(newPeriod);
-    router.push(`/ads/${adId}/stats?period=${newPeriod}`);
+    router.push(`/business/ads/${adId}/stats?period=${newPeriod}`);
   };
 
   const maxViews = Math.max(...initialStats.daily.map((d) => d.views), 1);

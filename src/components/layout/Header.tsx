@@ -36,12 +36,12 @@ export function Header() {
           )}
           {session?.user.role === "BUSINESS" && (
             <>
-              <Link href="/dashboard">
+              <Link href="/business/dashboard">
                 <Button variant="ghost" size="sm">
                   광고관리
                 </Button>
               </Link>
-              <Link href="/resumes">
+              <Link href="/business/resumes">
                 <Button variant="ghost" size="sm">
                   인재정보
                 </Button>
@@ -64,7 +64,7 @@ export function Header() {
                 {session.user.name}님
               </span>
               {session.user.role === "BUSINESS" && (
-                <Link href="/ads/new">
+                <Link href="/business/ads/new">
                   <Button size="sm">광고등록</Button>
                 </Link>
               )}

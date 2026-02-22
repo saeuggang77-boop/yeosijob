@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
             userId: ad.userId,
             title: "새 이력서 등록",
             message: `새로운 구직자(${data.nickname})가 이력서를 등록했습니다. ${data.region} 지역, ${data.desiredJobs.join(", ")} 희망`,
-            link: "/resumes",
+            link: "/business/resumes",
           })),
         });
       }

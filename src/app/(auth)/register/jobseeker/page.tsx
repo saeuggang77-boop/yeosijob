@@ -14,9 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
-export default function RegisterBusinessPage() {
+export default function RegisterJobseekerPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,14 +27,12 @@ export default function RegisterBusinessPage() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      type: "BUSINESS",
+      type: "JOBSEEKER",
       name: formData.get("name"),
       email: formData.get("email"),
       phone: formData.get("phone"),
       password: formData.get("password"),
       confirmPassword: formData.get("confirmPassword"),
-      businessName: formData.get("businessName"),
-      businessNumber: formData.get("businessNumber"),
     };
 
     try {
@@ -63,9 +60,10 @@ export default function RegisterBusinessPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">업소 회원가입</CardTitle>
+        <CardTitle className="text-2xl font-bold">구직자 회원가입</CardTitle>
         <CardDescription>
-          광고를 등록하고 인재를 찾아보세요
+          무료로 가입하고 일자리를 찾아보세요<br />
+          <span className="text-xs">카카오 로그인으로도 간편하게 가입할 수 있습니다</span>
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -75,9 +73,8 @@ export default function RegisterBusinessPage() {
               {error}
             </div>
           )}
-
           <div className="space-y-2">
-            <Label htmlFor="name">담당자명</Label>
+            <Label htmlFor="name">이름</Label>
             <Input
               id="name"
               name="name"
@@ -128,47 +125,18 @@ export default function RegisterBusinessPage() {
               minLength={6}
             />
           </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <Label htmlFor="businessName">업소명</Label>
-            <Input
-              id="businessName"
-              name="businessName"
-              placeholder="업소 이름"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="businessNumber">
-              사업자등록번호{" "}
-              <span className="text-muted-foreground font-normal">
-                (선택)
-              </span>
-            </Label>
-            <Input
-              id="businessNumber"
-              name="businessNumber"
-              placeholder="1234567890 (10자리)"
-              maxLength={10}
-            />
-            <p className="text-xs text-muted-foreground">
-              입력하시면 인증업소 배지를 받을 수 있습니다
-            </p>
-          </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "가입 중..." : "업소 가입하기"}
+            {loading ? "가입 중..." : "가입하기"}
           </Button>
           <div className="flex gap-2 text-sm text-muted-foreground">
             <Link href="/login" className="hover:underline">
               로그인
             </Link>
             <span>|</span>
-            <Link href="/register/jobseeker" className="hover:underline">
-              구직자 회원가입
+            <Link href="/register/business" className="hover:underline">
+              업소 회원가입
             </Link>
           </div>
         </CardFooter>

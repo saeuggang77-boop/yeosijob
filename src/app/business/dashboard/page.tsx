@@ -58,7 +58,7 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-screen-xl px-4 py-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">광고 관리</h1>
-        <Link href="/ads/new">
+        <Link href="/business/ads/new">
           <Button>새 광고 등록</Button>
         </Link>
       </div>
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
             <CardContent className="py-12 text-center text-muted-foreground">
               <p className="text-lg">등록된 광고가 없습니다</p>
               <p className="mt-1 text-sm">첫 광고를 등록해보세요!</p>
-              <Link href="/ads/new" className="mt-4 inline-block">
+              <Link href="/business/ads/new" className="mt-4 inline-block">
                 <Button>광고 등록하기</Button>
               </Link>
             </CardContent>
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
               return (
                 <Card key={ad.id} className="transition-colors hover:bg-muted/50">
                   <CardContent className="py-4">
-                    <Link href={`/ads/${ad.id}/payment`}>
+                    <Link href={`/business/ads/${ad.id}/payment`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
@@ -155,13 +155,13 @@ export default async function DashboardPage() {
                             lastManualJumpAt={ad.lastManualJumpAt?.toISOString() ?? null}
                           />
                         )}
-                        <Link href={`/ads/${ad.id}/stats`}>
+                        <Link href={`/business/ads/${ad.id}/stats`}>
                           <Button size="sm" variant="outline" className="text-xs">
                             통계
                           </Button>
                         </Link>
                         {ad.editCount < ad.maxEdits && (
-                          <Link href={`/ads/${ad.id}/edit`}>
+                          <Link href={`/business/ads/${ad.id}/edit`}>
                             <Button size="sm" variant="ghost" className="text-xs">
                               수정 ({ad.maxEdits - ad.editCount}회 남음)
                             </Button>

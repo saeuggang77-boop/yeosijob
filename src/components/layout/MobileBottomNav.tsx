@@ -70,9 +70,9 @@ export function MobileBottomNav() {
     // Business user navigation
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
-      { href: "/dashboard", label: "광고관리", icon: BriefcaseIcon },
-      { href: "/resumes", label: "인재정보", icon: DocumentIcon },
-      { href: "/profile", label: "마이", icon: UserIcon },
+      { href: "/business/dashboard", label: "광고관리", icon: BriefcaseIcon },
+      { href: "/business/resumes", label: "인재정보", icon: DocumentIcon },
+      { href: "/business/profile", label: "마이", icon: UserIcon },
     ];
   } else if (role === "JOBSEEKER") {
     // Jobseeker user navigation

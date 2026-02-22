@@ -39,7 +39,7 @@ export default async function AdDetailPage({ params }: PageProps) {
 
   // Verify ownership
   if (ad.userId !== session.user.id) {
-    redirect("/dashboard");
+    redirect("/business/dashboard");
   }
 
   const getRegionNames = (regions: Region[]) => {
@@ -79,7 +79,7 @@ export default async function AdDetailPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/dashboard">
+          <Link href="/business/dashboard">
             <Button variant="ghost" size="sm" className="mb-2">
               <ArrowLeft className="w-4 h-4 mr-2" />
               대시보드로 돌아가기
@@ -89,13 +89,13 @@ export default async function AdDetailPage({ params }: PageProps) {
           <p className="text-muted-foreground mt-1">{ad.businessName}</p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/ads/${id}/edit`}>
+          <Link href={`/business/ads/${id}/edit`}>
             <Button variant="outline">
               <Edit className="w-4 h-4 mr-2" />
               수정
             </Button>
           </Link>
-          <Link href={`/ads/${id}/stats`}>
+          <Link href={`/business/ads/${id}/stats`}>
             <Button variant="outline">
               <BarChart3 className="w-4 h-4 mr-2" />
               통계

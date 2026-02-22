@@ -1,6 +1,18 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { Sidebar } from "@/components/layout/Sidebar";
+
+const NAV_ITEMS = [
+  { href: "/admin", label: "대시보드", icon: "📊" },
+  { href: "/admin/ads", label: "광고 관리", icon: "📢" },
+  { href: "/admin/payments", label: "결제 관리", icon: "💳" },
+  { href: "/admin/users", label: "회원 관리", icon: "👥" },
+  { href: "/admin/resumes", label: "이력서", icon: "📄" },
+  { href: "/admin/reviews", label: "후기 관리", icon: "⭐" },
+  { href: "/admin/verification", label: "업소 인증", icon: "✅" },
+  { href: "/admin/cafe-sync", label: "카페 연동", icon: "🔗" },
+  { href: "/admin/settings", label: "설정", icon: "⚙️" },
+];
 
 export default async function AdminLayout({
   children,
@@ -14,7 +26,17 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <AdminSidebar userName={session.user.name || session.user.email || "관리자"} />
+      <Sidebar
+        navItems={NAV_ITEMS}
+        userName={session.user.name || session.user.email || "관리자"}
+        logoText="여시알바 관리자"
+        logoHref="/admin"
+        exactMatchPaths={["/admin"]}
+        showBackLink
+        backLinkLabel="← 사이트로 돌아가기"
+        showLogout={false}
+        userNameSuffix=""
+      />
       <main className="md:ml-60">
         <div className="mx-auto max-w-screen-xl px-4 py-6 pt-16 md:pt-6">
           {children}

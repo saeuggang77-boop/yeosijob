@@ -6,24 +6,40 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const NAV_ITEMS = [
-  { href: "/jobs", label: "채용정보", icon: "🔍" },
-  { href: "/jobseeker/my-resume", label: "내 이력서", icon: "📄" },
-  { href: "/jobseeker/scraps", label: "스크랩", icon: "🔖" },
-  { href: "/jobseeker/reviews", label: "내 후기", icon: "⭐" },
-  { href: "/jobseeker/profile", label: "프로필", icon: "👤" },
-];
-
-interface JobseekerSidebarProps {
-  userName: string;
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
 }
 
-export function JobseekerSidebar({ userName }: JobseekerSidebarProps) {
+interface SidebarProps {
+  navItems: NavItem[];
+  userName: string;
+  logoText?: string;
+  logoHref?: string;
+  exactMatchPaths?: string[];
+  showLogout?: boolean;
+  showBackLink?: boolean;
+  backLinkLabel?: string;
+  userNameSuffix?: string;
+}
+
+export function Sidebar({
+  navItems,
+  userName,
+  logoText = "여시알바",
+  logoHref = "/",
+  exactMatchPaths = [],
+  showLogout = true,
+  showBackLink = false,
+  backLinkLabel = "← 사이트로 이동",
+  userNameSuffix = "님",
+}: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href: string) {
-    if (href === "/jobs") return pathname === "/jobs";
+    if (exactMatchPaths.includes(href)) return pathname === href;
     return pathname.startsWith(href);
   }
 
@@ -58,15 +74,15 @@ export function JobseekerSidebar({ userName }: JobseekerSidebarProps) {
       >
         {/* Logo */}
         <div className="flex h-14 items-center border-b px-4">
-          <Link href="/" className="text-lg font-bold text-primary">
-            여시알바
+          <Link href={logoHref} className="text-lg font-bold text-primary">
+            {logoText}
           </Link>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
@@ -87,20 +103,30 @@ export function JobseekerSidebar({ userName }: JobseekerSidebarProps) {
 
         {/* Footer */}
         <div className="border-t px-4 py-3">
-          <p className="truncate text-sm font-medium">{userName}님</p>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mt-1 w-full justify-start px-0 text-xs text-muted-foreground">
-              ← 사이트로 이동
+          <p className="truncate text-sm font-medium">
+            {userName}{userNameSuffix}
+          </p>
+          {showBackLink && (
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 w-full justify-start px-0 text-xs text-muted-foreground"
+              >
+                {backLinkLabel}
+              </Button>
+            </Link>
+          )}
+          {showLogout && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`w-full justify-start px-0 text-xs text-muted-foreground ${!showBackLink ? "mt-1" : ""}`}
+              onClick={() => signOut({ callbackUrl: "/" })}
+            >
+              로그아웃
             </Button>
-          </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start px-0 text-xs text-muted-foreground"
-            onClick={() => signOut({ callbackUrl: "/" })}
-          >
-            로그아웃
-          </Button>
+          )}
         </div>
       </aside>
     </>

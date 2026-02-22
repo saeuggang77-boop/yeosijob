@@ -55,6 +55,12 @@ export default async function AdminLayout({
             >
               카페 연동
             </Link>
+            <Link
+              href="/admin/resumes"
+              className="shrink-0 py-1 text-muted-foreground hover:text-foreground"
+            >
+              이력서
+            </Link>
           </nav>
         </div>
       </header>

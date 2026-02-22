@@ -118,10 +118,10 @@ export default function MyResumePage() {
       }
       setHasExisting(true);
       if (wasNew) {
-        toast.success("이력서가 등록되었습니다");
+        toast.success(form.isPublic ? "이력서가 공개 상태로 등록되었습니다" : "이력서가 비공개로 등록되었습니다");
         router.push("/");
       } else {
-        toast.success("이력서가 수정되었습니다");
+        toast.success(form.isPublic ? "이력서가 수정되었습니다 (공개 중)" : "이력서가 수정되었습니다 (비공개)");
       }
     } catch {
       setError("서버 오류가 발생했습니다");
@@ -233,15 +233,32 @@ export default function MyResumePage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="flex items-center justify-between py-3">
-            <div>
-              <p className="text-sm font-medium">이력서 공개</p>
-              <p className="text-xs text-muted-foreground">비공개 시 업소에서 열람할 수 없습니다</p>
+        <Card className={`transition-colors ${form.isPublic ? "border-green-200 bg-green-50/50" : "border-gray-200 bg-gray-50/50"}`}>
+          <CardContent className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${form.isPublic ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-500"}`}>
+                {form.isPublic ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className={`text-sm font-semibold transition-colors ${form.isPublic ? "text-green-700" : "text-gray-600"}`}>
+                  {form.isPublic ? "공개 중" : "비공개"}
+                </p>
+                <p className={`text-xs transition-colors ${form.isPublic ? "text-green-600/70" : "text-gray-500"}`}>
+                  {form.isPublic ? "사장님들이 내 이력서를 볼 수 있어요" : "아무도 내 이력서를 볼 수 없어요"}
+                </p>
+              </div>
             </div>
             <button type="button" onClick={() => updateField("isPublic", !form.isPublic)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${form.isPublic ? "bg-primary" : "bg-muted"}`}>
-              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${form.isPublic ? "translate-x-5" : "translate-x-0.5"}`} />
+              className={`relative h-7 w-12 rounded-full transition-colors ${form.isPublic ? "bg-green-500" : "bg-gray-300"}`}>
+              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-transform ${form.isPublic ? "translate-x-5" : "translate-x-0.5"}`} />
             </button>
           </CardContent>
         </Card>

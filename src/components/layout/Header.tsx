@@ -27,6 +27,13 @@ export function Header() {
               </Button>
             </Link>
           )}
+          {session?.user.role === "JOBSEEKER" && (
+            <Link href="/my-resume">
+              <Button variant="ghost" size="sm">
+                내 이력서
+              </Button>
+            </Link>
+          )}
           {session?.user.role === "ADMIN" && (
             <Link href="/admin/dashboard">
               <Button variant="ghost" size="sm">
@@ -45,6 +52,11 @@ export function Header() {
               {session.user.role === "BUSINESS" && (
                 <Link href="/ads/new">
                   <Button size="sm">광고등록</Button>
+                </Link>
+              )}
+              {session.user.role === "JOBSEEKER" && (
+                <Link href="/my-resume">
+                  <Button size="sm">이력서 등록</Button>
                 </Link>
               )}
               <Button

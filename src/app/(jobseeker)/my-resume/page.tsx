@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -49,7 +50,6 @@ export default function MyResumePage() {
   const [deleting, setDeleting] = useState(false);
   const [hasExisting, setHasExisting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [form, setForm] = useState({
     nickname: "",
     age: "",
@@ -103,8 +103,8 @@ export default function MyResumePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setSaving(true);
+    const wasNew = !hasExisting;
     try {
       const res = await fetch("/api/resumes", {
         method: "POST",
@@ -116,8 +116,13 @@ export default function MyResumePage() {
         setError(data.error);
         return;
       }
-      setSuccess(data.message);
       setHasExisting(true);
+      if (wasNew) {
+        toast.success("이력서가 등록되었습니다");
+        router.push("/");
+      } else {
+        toast.success("이력서가 수정되었습니다");
+      }
     } catch {
       setError("서버 오류가 발생했습니다");
     } finally {
@@ -128,7 +133,6 @@ export default function MyResumePage() {
   async function handleDelete() {
     if (!confirm("이력서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
     setError("");
-    setSuccess("");
     setDeleting(true);
     try {
       const res = await fetch("/api/resumes/mine", { method: "DELETE" });
@@ -137,7 +141,7 @@ export default function MyResumePage() {
         setError(data.error);
         return;
       }
-      setSuccess("이력서가 삭제되었습니다");
+      toast.success("이력서가 삭제되었습니다");
       setHasExisting(false);
       setForm({ nickname: "", age: "", region: "", district: "", desiredJobs: [], experience: "", introduction: "", isPublic: true });
     } catch {
@@ -167,7 +171,6 @@ export default function MyResumePage() {
       </div>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
-        {success && <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">{success}</div>}
 
         <Card>
           <CardHeader><CardTitle className="text-lg">기본 정보</CardTitle></CardHeader>

@@ -73,6 +73,13 @@ export default async function JobDetailPage({ params }: PageProps) {
       }).then(review => !!review)
     : false;
 
+  const hasResume = session?.user?.role === "JOBSEEKER"
+    ? await prisma.resume.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      }).then(r => !!r)
+    : true; // non-jobseekers don't need this check
+
   // 조회수 증가 + 일별 메트릭 기록 (fire and forget)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -238,6 +245,21 @@ export default async function JobDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {/* 이력서 등록 안내 (JOBSEEKER without resume) */}
+      {session?.user?.role === "JOBSEEKER" && !hasResume && (
+        <Card className="mt-4 border-primary/30 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4">
+            <div>
+              <p className="font-medium">이력서를 먼저 등록해주세요</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">이력서를 등록하면 업소에서 직접 연락합니다</p>
+            </div>
+            <Link href="/my-resume">
+              <Button size="sm">등록하기</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 후기 미리보기 */}
       {ad.reviews.length > 0 && (
         <Card className="mt-4">
@@ -285,9 +307,17 @@ export default async function JobDetailPage({ params }: PageProps) {
 
       {/* 하단 고정 바 (모바일) */}
       <div className="fixed bottom-[68px] left-0 right-0 border-t bg-background p-3 md:hidden">
-        <a href={`tel:${ad.contactPhone}`}>
-          <Button className="h-12 w-full text-base">전화하기</Button>
-        </a>
+        {session?.user?.role === "JOBSEEKER" && !hasResume ? (
+          <Link href="/my-resume">
+            <Button variant="outline" className="h-12 w-full text-base">
+              이력서를 먼저 등록해주세요
+            </Button>
+          </Link>
+        ) : (
+          <a href={`tel:${ad.contactPhone}`}>
+            <Button className="h-12 w-full text-base">전화하기</Button>
+          </a>
+        )}
       </div>
 
       {/* 하단 여백 (모바일 고정바) */}

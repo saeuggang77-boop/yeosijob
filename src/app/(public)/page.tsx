@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 import { AdCard } from "@/components/ads/AdCard";
 import { AdBoxCard } from "@/components/ads/AdBoxCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
@@ -25,6 +27,13 @@ export default async function HomePage({ searchParams }: PageProps) {
   const search = params.search;
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
+
+  const session = await auth();
+  const isJobseeker = session?.user?.role === "JOBSEEKER";
+  const hasResume = isJobseeker
+    ? await prisma.resume.findUnique({ where: { userId: session.user.id }, select: { id: true } }).then(r => !!r)
+    : false;
+  const showResumeCta = !session || (isJobseeker && !hasResume);
 
   const baseWhere: Record<string, unknown> = { status: "ACTIVE" };
   if (region) baseWhere.regions = { has: region };
@@ -105,6 +114,21 @@ export default async function HomePage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-screen-xl">
       {/* 배너 슬라이더 */}
       <BannerSlider ads={bannerAds} />
+
+      {/* CTA 배너 */}
+      {showResumeCta && (
+        <div className="border-b bg-primary/5 px-4 py-4">
+          <div className="mx-auto flex items-center justify-between">
+            <div>
+              <p className="font-medium">이력서를 등록하고 채용 기회를 받아보세요</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">업소에서 직접 연락이 옵니다</p>
+            </div>
+            <Link href={session ? "/my-resume" : "/login"}>
+              <Button size="sm">{session ? "이력서 등록하기" : "로그인하기"}</Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* 필터 영역 */}
       <div className="sticky top-14 z-40 border-b bg-background px-4 py-3">

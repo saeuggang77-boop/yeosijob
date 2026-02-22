@@ -3,59 +3,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
-// GET: List resumes (for BUSINESS users)
-export async function GET(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session || session.user.role !== "BUSINESS") {
-      return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
-    }
-
-    // Check if user has any ACTIVE ad
-    const activeAd = await prisma.ad.findFirst({
-      where: { userId: session.user.id, status: "ACTIVE" },
-      select: { id: true },
-    });
-    if (!activeAd) {
-      return NextResponse.json({ error: "게재중인 광고가 있어야 이력서를 열람할 수 있습니다" }, { status: 403 });
-    }
-
-    const { searchParams } = request.nextUrl;
-    const region = searchParams.get("region") as Region | null;
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = 20;
-
-    const where: Record<string, unknown> = { isPublic: true };
-    if (region) where.region = region;
-
-    const [resumes, total] = await Promise.all([
-      prisma.resume.findMany({
-        where,
-        orderBy: { updatedAt: "desc" },
-        skip: (page - 1) * limit,
-        take: limit,
-        select: {
-          id: true,
-          nickname: true,
-          age: true,
-          region: true,
-          district: true,
-          desiredJobs: true,
-          experience: true,
-          introduction: true,
-          updatedAt: true,
-        },
-      }),
-      prisma.resume.count({ where }),
-    ]);
-
-    return NextResponse.json({ resumes, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
-  } catch (error) {
-    console.error("Resume list error:", error);
-    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
-  }
-}
-
 // POST: Create/update my resume (for JOBSEEKER users)
 export async function POST(request: NextRequest) {
   try {

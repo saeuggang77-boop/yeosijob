@@ -15,6 +15,7 @@ export interface AdProduct {
   includeResumeAlert: boolean;
   includeCafeAd: number;
   includeIconFree: boolean;
+  resumeViewLimit: number;
   maxEdits: number;
   maxSlots?: number;
   pricing: Record<DurationDays, number>;
@@ -37,6 +38,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: false,
     includeCafeAd: 0,
     includeIconFree: false,
+    resumeViewLimit: 3,
     maxEdits: 1,
     pricing: { 30: 70_000, 60: 125_000, 90: 170_000 },
     vsQueen: "자동점프 +20%, 이력서열람 기본 포함",
@@ -57,6 +59,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: false,
     includeCafeAd: 0,
     includeIconFree: false,
+    resumeViewLimit: 3,
     maxEdits: 1,
     pricing: { 30: 100_000, 60: 185_000, 90: 240_000 },
     vsQueen: "자동점프 +20%, 수동점프 3회 추가",
@@ -77,6 +80,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: false,
     includeCafeAd: 0,
     includeIconFree: true,
+    resumeViewLimit: 3,
     maxEdits: 1,
     pricing: { 30: 100_000, 60: 185_000, 90: 240_000 },
     vsQueen: "자동점프 +20%, 수동점프 5회, 아이콘 무료(퀸알바 3만원)",
@@ -97,6 +101,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: false,
     includeCafeAd: 0,
     includeIconFree: false,
+    resumeViewLimit: 10,
     maxEdits: 2,
     pricing: { 30: 130_000, 60: 235_000, 90: 310_000 },
     vsQueen: "자동점프 +40%, 수동점프 8회, 수정 2회",
@@ -117,6 +122,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: true,
     includeCafeAd: 0,
     includeIconFree: false,
+    resumeViewLimit: 9999,
     maxEdits: 2,
     pricing: { 30: 180_000, 60: 325_000, 90: 430_000 },
     vsQueen: "자동점프 +20%, 수동점프 12회, 디자인+알림 포함",
@@ -137,6 +143,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: true,
     includeCafeAd: 1,
     includeIconFree: false,
+    resumeViewLimit: 9999,
     maxEdits: 3,
     pricing: { 30: 230_000, 60: 415_000, 90: 550_000 },
     vsQueen: "자동점프 +40%, 수동점프 18회, 카페연동, 수정 3회",
@@ -157,6 +164,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeResumeAlert: true,
     includeCafeAd: 2,
     includeIconFree: true,
+    resumeViewLimit: 9999,
     maxEdits: 5,
     maxSlots: 12,
     pricing: { 30: 350_000, 60: 650_000, 90: 900_000 },

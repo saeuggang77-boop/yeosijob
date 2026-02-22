@@ -169,7 +169,8 @@ model User {
   reviews       Review[]
   scraps        Scrap[]
   jumpLogs      JumpLog[]
-  notifications Notification[]
+  notifications  Notification[]
+  resumeViews    ResumeViewLog[] @relation("resumeViews")
 
   @@index([role])
   @@map("users")
@@ -347,6 +348,8 @@ model Resume {
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([region])
+  viewLogs     ResumeViewLog[]
+
   @@index([isPublic, createdAt])
   @@map("resumes")
 }
@@ -412,4 +415,19 @@ model Notification {
 
   @@index([userId, isRead])
   @@map("notifications")
+}
+
+// ── RESUME VIEW LOG ──
+
+model ResumeViewLog {
+  id        String   @id @default(cuid())
+  userId    String
+  resumeId  String
+  viewedAt  DateTime @default(now())
+  user      User     @relation("resumeViews", fields: [userId], references: [id])
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([userId, viewedAt])
+  @@index([resumeId])
+  @@map("resume_view_logs")
 }

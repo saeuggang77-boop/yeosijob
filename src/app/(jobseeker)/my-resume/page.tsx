@@ -46,6 +46,8 @@ export default function MyResumePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [hasExisting, setHasExisting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({
@@ -66,6 +68,7 @@ export default function MyResumePage() {
         if (res.ok) {
           const data = await res.json();
           if (data.resume) {
+            setHasExisting(true);
             setForm({
               nickname: data.resume.nickname || "",
               age: data.resume.age?.toString() || "",
@@ -114,10 +117,33 @@ export default function MyResumePage() {
         return;
       }
       setSuccess(data.message);
+      setHasExisting(true);
     } catch {
       setError("서버 오류가 발생했습니다");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("이력서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+    setError("");
+    setSuccess("");
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/resumes/mine", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      setSuccess("이력서가 삭제되었습니다");
+      setHasExisting(false);
+      setForm({ nickname: "", age: "", region: "", district: "", desiredJobs: [], experience: "", introduction: "", isPublic: true });
+    } catch {
+      setError("서버 오류가 발생했습니다");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -131,7 +157,14 @@ export default function MyResumePage() {
 
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
-      <h1 className="text-2xl font-bold">내 이력서</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{hasExisting ? "이력서 수정" : "이력서 등록"}</h1>
+        {hasExisting && (
+          <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
+            {deleting ? "삭제 중..." : "이력서 삭제"}
+          </Button>
+        )}
+      </div>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
         {success && <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">{success}</div>}
@@ -211,7 +244,7 @@ export default function MyResumePage() {
         </Card>
 
         <Button type="submit" className="h-12 w-full text-base" disabled={saving}>
-          {saving ? "저장 중..." : "이력서 저장"}
+          {saving ? "저장 중..." : hasExisting ? "이력서 수정" : "이력서 등록"}
         </Button>
       </form>
     </div>

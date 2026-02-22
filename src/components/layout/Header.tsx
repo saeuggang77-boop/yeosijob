@@ -20,26 +20,33 @@ export function Header() {
               채용정보
             </Button>
           </Link>
-          {session?.user.role === "BUSINESS" && (
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                광고관리
-              </Button>
-            </Link>
-          )}
-          {session?.user.role === "BUSINESS" && (
-            <Link href="/resumes">
-              <Button variant="ghost" size="sm">
-                인재정보
-              </Button>
-            </Link>
-          )}
           {session?.user.role === "JOBSEEKER" && (
-            <Link href="/my-resume">
-              <Button variant="ghost" size="sm">
-                내 이력서
-              </Button>
-            </Link>
+            <>
+              <Link href="/my-resume">
+                <Button variant="ghost" size="sm">
+                  내 이력서
+                </Button>
+              </Link>
+              <Link href="/my-scraps">
+                <Button variant="ghost" size="sm">
+                  스크랩
+                </Button>
+              </Link>
+            </>
+          )}
+          {session?.user.role === "BUSINESS" && (
+            <>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  광고관리
+                </Button>
+              </Link>
+              <Link href="/resumes">
+                <Button variant="ghost" size="sm">
+                  인재정보
+                </Button>
+              </Link>
+            </>
           )}
           {session?.user.role === "ADMIN" && (
             <Link href="/admin">
@@ -61,11 +68,6 @@ export function Header() {
                   <Button size="sm">광고등록</Button>
                 </Link>
               )}
-              {session.user.role === "JOBSEEKER" && (
-                <Link href="/my-resume">
-                  <Button size="sm">이력서 등록</Button>
-                </Link>
-              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -82,7 +84,7 @@ export function Header() {
                 </Button>
               </Link>
               <Link href="/register/business">
-                <Button size="sm">광고등록</Button>
+                <Button size="sm">회원가입</Button>
               </Link>
             </>
           )}

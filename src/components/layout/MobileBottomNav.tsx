@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-const iconClass = "h-5 w-5";
-
 function HomeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -58,25 +56,31 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const isBusiness = session?.user.role === "BUSINESS";
-  const isJobseeker = session?.user.role === "JOBSEEKER";
+  const role = session?.user.role;
 
   let navItems;
 
-  if (isBusiness) {
+  if (role === "ADMIN") {
+    // Admin navigation
+    navItems = [
+      { href: "/", label: "홈", icon: HomeIcon },
+      { href: "/admin", label: "관리자", icon: UserIcon },
+    ];
+  } else if (role === "BUSINESS") {
     // Business user navigation
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/dashboard", label: "광고관리", icon: BriefcaseIcon },
-      { href: "/resumes", label: "이력서", icon: DocumentIcon },
+      { href: "/resumes", label: "인재정보", icon: DocumentIcon },
       { href: "/profile", label: "마이", icon: UserIcon },
     ];
-  } else if (isJobseeker) {
+  } else if (role === "JOBSEEKER") {
     // Jobseeker user navigation
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
+      { href: "/jobs", label: "채용정보", icon: SearchIcon },
       { href: "/my-resume", label: "이력서", icon: DocumentIcon },
-      { href: "/my-scraps", label: "찜", icon: BookmarkIcon },
+      { href: "/my-scraps", label: "스크랩", icon: BookmarkIcon },
       { href: "/profile", label: "마이", icon: UserIcon },
     ];
   } else {

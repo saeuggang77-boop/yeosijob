@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resumeSchema } from "@/lib/validators/resume";
 import type { Region, BusinessType } from "@/generated/prisma/client";
-import { RESUME_EXPIRY_DAYS } from "@/lib/constants/resume";
 import { z } from "zod";
 
 // POST: Create/update my resume (for JOBSEEKER users)
@@ -36,7 +35,6 @@ export async function POST(request: NextRequest) {
 
     const isNew = !existingResume;
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + RESUME_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
     const resume = await prisma.resume.upsert({
       where: { userId: session.user.id },
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
         introduction: data.introduction,
         photoUrl: data.photoUrl,
         isPublic: data.isPublic,
-        expiresAt: expiresAt,
         lastBumpedAt: now,
       },
       update: {
@@ -82,7 +79,7 @@ export async function POST(request: NextRequest) {
         introduction: data.introduction,
         photoUrl: data.photoUrl,
         isPublic: data.isPublic,
-        // Don't update expiresAt or lastBumpedAt on regular updates
+        // Don't update lastBumpedAt on regular updates
       },
     });
 

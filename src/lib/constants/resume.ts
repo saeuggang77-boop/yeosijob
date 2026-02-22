@@ -22,5 +22,3 @@ export const GENDER_OPTIONS = [
   { value: "남성", label: "남성" },
 ] as const;
 
-export const RESUME_EXPIRY_DAYS = 30;
-export const RESUME_EXPIRY_WARNING_DAYS = 3;

@@ -49,8 +49,6 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
     }
   }
 
-  const isExpired = resume.expiresAt && resume.expiresAt < new Date();
-
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
@@ -67,12 +65,6 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
         <Badge variant={resume.isPublic ? "default" : "destructive"}>
           {resume.isPublic ? "공개" : "비공개"}
         </Badge>
-        {isExpired && <Badge variant="destructive">만료됨</Badge>}
-        {resume.expiresAt && !isExpired && (
-          <Badge variant="outline">
-            만료: {new Date(resume.expiresAt).toLocaleDateString("ko-KR")}
-          </Badge>
-        )}
       </div>
 
       <div className="space-y-4">
@@ -312,16 +304,6 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
                 </span>
                 <span>
                   {new Date(resume.lastBumpedAt).toLocaleString("ko-KR")}
-                </span>
-              </div>
-            )}
-            {resume.lastRefreshedAt && (
-              <div className="flex items-center gap-3">
-                <span className="w-28 font-medium text-muted-foreground">
-                  갱신일
-                </span>
-                <span>
-                  {new Date(resume.lastRefreshedAt).toLocaleString("ko-KR")}
                 </span>
               </div>
             )}

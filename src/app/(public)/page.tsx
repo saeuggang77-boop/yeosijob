@@ -43,7 +43,6 @@ export default async function HomePage({ searchParams }: PageProps) {
         where: {
           isPublic: true,
           desiredJobs: { has: type as BusinessType },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
       }),
     }))

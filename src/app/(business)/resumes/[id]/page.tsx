@@ -46,8 +46,7 @@ export default async function ResumeDetailPage({ params }: PageProps) {
 
   if (
     !resume ||
-    !resume.isPublic ||
-    (resume.expiresAt && resume.expiresAt < new Date())
+    !resume.isPublic
   ) {
     notFound();
   }

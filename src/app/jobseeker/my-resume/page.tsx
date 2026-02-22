@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DISTRICTS } from "@/lib/constants/districts";
-import { EXPERIENCE_LEVELS, SALARY_TYPES, GENDER_OPTIONS, RESUME_EXPIRY_DAYS } from "@/lib/constants/resume";
+import { EXPERIENCE_LEVELS, SALARY_TYPES, GENDER_OPTIONS } from "@/lib/constants/resume";
 import { REGION_LIST } from "@/lib/constants/regions";
 import { BUSINESS_TYPE_LIST } from "@/lib/constants/business-types";
 
@@ -35,7 +35,6 @@ interface ResumeData {
   introduction: string;
   photoUrl?: string;
   isPublic: boolean;
-  daysUntilExpiry?: number;
   canBumpToday?: boolean;
 }
 
@@ -418,11 +417,6 @@ export default function MyResumePage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {resumeData.nickname} · {resumeData.age}세 · {resumeData.gender}
                 </p>
-                {resumeData.daysUntilExpiry !== null && resumeData.daysUntilExpiry !== undefined && (
-                  <p className="mt-1 text-sm font-semibold text-primary">
-                    만료까지 D-{resumeData.daysUntilExpiry}
-                  </p>
-                )}
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button

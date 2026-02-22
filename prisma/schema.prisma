@@ -363,10 +363,8 @@ model Resume {
   introduction String         @db.Text @default("")
   photoUrl     String?
 
-  // 공개/만료
+  // 공개
   isPublic        Boolean   @default(true)
-  expiresAt       DateTime?
-  lastRefreshedAt DateTime?
   lastBumpedAt    DateTime?
 
   createdAt    DateTime       @default(now())
@@ -377,7 +375,6 @@ model Resume {
   @@index([region])
   @@index([isPublic, lastBumpedAt(sort: Desc)])
   @@index([isPublic, createdAt])
-  @@index([expiresAt])
   @@map("resumes")
 }
 

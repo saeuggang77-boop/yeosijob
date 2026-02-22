@@ -78,7 +78,6 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   // Build where clause
   const where: any = {
     isPublic: true,
-    OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
   };
 
   if (region) where.region = region;

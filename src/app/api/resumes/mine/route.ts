@@ -21,13 +21,6 @@ export async function GET() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Calculate days until expiry
-    let daysUntilExpiry: number | null = null;
-    if (resume.expiresAt) {
-      const diffMs = resume.expiresAt.getTime() - now.getTime();
-      daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    }
-
     // Check if can bump today (lastBumpedAt is null or was before today)
     let canBumpToday = true;
     if (resume.lastBumpedAt) {
@@ -42,7 +35,6 @@ export async function GET() {
     return NextResponse.json({
       resume: {
         ...resume,
-        daysUntilExpiry,
         canBumpToday,
       }
     });

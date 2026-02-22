@@ -234,8 +234,6 @@ async function main() {
     },
   });
 
-  const resumeExpiry = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
   if (jobUser) {
     await prisma.resume.create({
       data: {
@@ -257,7 +255,6 @@ async function main() {
         title: "성실하게 일하겠습니다",
         introduction: "안녕하세요. 밝은 성격의 25세 여성입니다. 경험은 적지만 항상 밝은 미소로 열심히 하겠습니다. 강남/서초 지역에서 근무를 희망합니다.",
         isPublic: true,
-        expiresAt: resumeExpiry,
         lastBumpedAt: now,
       },
     });
@@ -282,7 +279,6 @@ async function main() {
       title: "경력 2년차 프로입니다",
       introduction: "텐카페, 바라운지 경력 2년입니다. 서비스 마인드가 좋다는 평가를 많이 받았습니다. 마포/영등포 지역 희망합니다.",
       isPublic: true,
-      expiresAt: resumeExpiry,
       lastBumpedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
     },
   });
@@ -304,7 +300,6 @@ async function main() {
       title: "초보지만 열심히 하겠습니다",
       introduction: "안녕하세요! 부산 해운대 거주 22세입니다. 처음이라 긴장되지만 열심히 배우겠습니다.",
       isPublic: true,
-      expiresAt: resumeExpiry,
       lastBumpedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
     },
   });

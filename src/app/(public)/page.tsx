@@ -35,6 +35,20 @@ export default async function HomePage({ searchParams }: PageProps) {
     : false;
   const showResumeCta = !session || (isJobseeker && !hasResume);
 
+  // Resume counts by business type
+  const resumeCountsByType = await Promise.all(
+    Object.keys(BUSINESS_TYPES).map(async (type) => ({
+      type,
+      count: await prisma.resume.count({
+        where: {
+          isPublic: true,
+          desiredJobs: { has: type as BusinessType },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      }),
+    }))
+  );
+
   const baseWhere: Record<string, unknown> = { status: "ACTIVE" };
   if (region) baseWhere.regions = { has: region };
   if (businessType) baseWhere.businessType = businessType;
@@ -128,6 +142,21 @@ export default async function HomePage({ searchParams }: PageProps) {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* 최신 인재정보 */}
+      {resumeCountsByType.some(r => r.count > 0) && (
+        <section className="border-b px-4 py-3">
+          <h2 className="text-sm font-bold mb-2">최신 인재정보</h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            {resumeCountsByType.filter(r => r.count > 0).map(r => (
+              <span key={r.type}>
+                {BUSINESS_TYPES[r.type as BusinessType].shortLabel}{" "}
+                <strong className="text-foreground">{r.count}</strong>건
+              </span>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* 필터 영역 */}

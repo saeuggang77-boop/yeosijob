@@ -210,11 +210,111 @@ async function main() {
     });
   }
 
+  // 구직자 이력서 생성
+  const jobUser = await prisma.user.findUnique({ where: { email: "job@yeosialba.com" } });
+
+  // 추가 구직자 계정 + 이력서 생성
+  const jobPassword2 = await hash("test1234", 12);
+  const jobUser2 = await prisma.user.create({
+    data: {
+      name: "김서연",
+      email: "job2@yeosialba.com",
+      phone: "01055554444",
+      hashedPassword: jobPassword2,
+      role: "JOBSEEKER",
+    },
+  });
+  const jobUser3 = await prisma.user.create({
+    data: {
+      name: "이유진",
+      email: "job3@yeosialba.com",
+      phone: "01033332222",
+      hashedPassword: jobPassword2,
+      role: "JOBSEEKER",
+    },
+  });
+
+  const resumeExpiry = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  if (jobUser) {
+    await prisma.resume.create({
+      data: {
+        userId: jobUser.id,
+        nickname: "밝은미소",
+        gender: "여성",
+        age: 25,
+        height: 165,
+        weight: 50,
+        region: "SEOUL",
+        districts: ["서울 강남구", "서울 서초구"],
+        desiredJobs: ["ROOM_SALON", "KARAOKE"],
+        experienceLevel: "UNDER_6M",
+        desiredSalaryType: "DAILY",
+        desiredSalaryAmount: 200000,
+        availableHours: "오후 7시~새벽 2시",
+        kakaoId: "bright_smile",
+        phone: "010-7777-6666",
+        title: "성실하게 일하겠습니다",
+        introduction: "안녕하세요. 밝은 성격의 25세 여성입니다. 경험은 적지만 항상 밝은 미소로 열심히 하겠습니다. 강남/서초 지역에서 근무를 희망합니다.",
+        isPublic: true,
+        expiresAt: resumeExpiry,
+        lastBumpedAt: now,
+      },
+    });
+  }
+
+  await prisma.resume.create({
+    data: {
+      userId: jobUser2.id,
+      nickname: "예쁜언니",
+      gender: "여성",
+      age: 28,
+      height: 170,
+      weight: 52,
+      region: "SEOUL",
+      districts: ["서울 마포구", "서울 영등포구"],
+      desiredJobs: ["TEN_CAFE", "BAR_LOUNGE", "PUBLIC_BAR"],
+      experienceLevel: "1Y_TO_3Y",
+      desiredSalaryType: "DAILY",
+      desiredSalaryAmount: 300000,
+      availableHours: "평일 오후 8시~새벽 3시",
+      kakaoId: "pretty_unni28",
+      title: "경력 2년차 프로입니다",
+      introduction: "텐카페, 바라운지 경력 2년입니다. 서비스 마인드가 좋다는 평가를 많이 받았습니다. 마포/영등포 지역 희망합니다.",
+      isPublic: true,
+      expiresAt: resumeExpiry,
+      lastBumpedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.resume.create({
+    data: {
+      userId: jobUser3.id,
+      nickname: "새출발",
+      gender: "여성",
+      age: 22,
+      region: "BUSAN",
+      districts: ["부산 해운대구"],
+      desiredJobs: ["KARAOKE", "CLUB"],
+      experienceLevel: "BEGINNER",
+      desiredSalaryType: "NEGOTIABLE",
+      availableHours: "주말 가능",
+      kakaoId: "new_start22",
+      phone: "010-3333-2222",
+      title: "초보지만 열심히 하겠습니다",
+      introduction: "안녕하세요! 부산 해운대 거주 22세입니다. 처음이라 긴장되지만 열심히 배우겠습니다.",
+      isPublic: true,
+      expiresAt: resumeExpiry,
+      lastBumpedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+    },
+  });
+
   console.log("Seed complete!");
   console.log("  - 1 Business user: boss@yeosialba.com / test1234");
-  console.log("  - 1 Jobseeker user: job@yeosialba.com / test1234");
+  console.log("  - 3 Jobseeker users: job@, job2@, job3@yeosialba.com / test1234");
   console.log("  - 1 Admin user: admin@yeosialba.com / admin1234");
   console.log(`  - ${SAMPLE_ADS.length} sample ads`);
+  console.log("  - 3 sample resumes");
 }
 
 main()

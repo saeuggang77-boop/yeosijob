@@ -13,7 +13,39 @@ export async function GET() {
       where: { userId: session.user.id },
     });
 
-    return NextResponse.json({ resume });
+    if (!resume) {
+      return NextResponse.json({ resume: null });
+    }
+
+    // Calculate computed fields
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Calculate days until expiry
+    let daysUntilExpiry: number | null = null;
+    if (resume.expiresAt) {
+      const diffMs = resume.expiresAt.getTime() - now.getTime();
+      daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    }
+
+    // Check if can bump today (lastBumpedAt is null or was before today)
+    let canBumpToday = true;
+    if (resume.lastBumpedAt) {
+      const lastBumpDate = new Date(
+        resume.lastBumpedAt.getFullYear(),
+        resume.lastBumpedAt.getMonth(),
+        resume.lastBumpedAt.getDate()
+      );
+      canBumpToday = lastBumpDate.getTime() < today.getTime();
+    }
+
+    return NextResponse.json({
+      resume: {
+        ...resume,
+        daysUntilExpiry,
+        canBumpToday,
+      }
+    });
   } catch (error) {
     console.error("My resume error:", error);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });

@@ -335,22 +335,49 @@ model JumpLog {
 model Resume {
   id           String         @id @default(cuid())
   userId       String         @unique
+
+  // 기본정보
   nickname     String
-  age          Int?
+  gender       String         @default("여성")
+  age          Int
+  height       Int?
+  weight       Int?
+
+  // 희망 근무지역
   region       Region
-  district     String?
-  desiredJobs  BusinessType[]
-  experience   String?
-  introduction String?        @db.Text
-  isPublic     Boolean        @default(true)
+  districts    String[]
+
+  // 희망 업종/경력/급여
+  desiredJobs        BusinessType[]
+  experienceLevel    String         @default("BEGINNER")
+  desiredSalaryType  String?
+  desiredSalaryAmount Int?
+  availableHours     String?
+
+  // 연락처
+  kakaoId      String         @default("")
+  phone        String?
+
+  // 이력서 내용
+  title        String         @default("")
+  introduction String         @db.Text @default("")
+  photoUrl     String?
+
+  // 공개/만료
+  isPublic        Boolean   @default(true)
+  expiresAt       DateTime?
+  lastRefreshedAt DateTime?
+  lastBumpedAt    DateTime?
+
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([region])
   viewLogs     ResumeViewLog[]
 
+  @@index([region])
+  @@index([isPublic, lastBumpedAt(sort: Desc)])
   @@index([isPublic, createdAt])
+  @@index([expiresAt])
   @@map("resumes")
 }
 
@@ -423,6 +450,7 @@ model ResumeViewLog {
   id        String   @id @default(cuid())
   userId    String
   resumeId  String
+  adId      String?
   viewedAt  DateTime @default(now())
   user      User     @relation("resumeViews", fields: [userId], references: [id])
   resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)

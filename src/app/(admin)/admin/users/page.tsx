@@ -1,228 +1,182 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import type { UserRole } from "@/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface PageProps {
-  searchParams: Promise<{ role?: UserRole; page?: string }>;
+  searchParams: Promise<{
+    role?: string;
+    search?: string;
+    page?: string;
+  }>;
 }
-
-const ITEMS_PER_PAGE = 20;
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/login");
-  }
+  if (!session || session.user.role !== "ADMIN") redirect("/login");
 
   const params = await searchParams;
-  const roleFilter = params.role;
-  const currentPage = parseInt(params.page || "1", 10);
+  const role = params.role as "BUSINESS" | "JOBSEEKER" | "ADMIN" | undefined;
+  const search = params.search;
+  const page = parseInt(params.page || "1", 10);
+  const limit = 20;
 
-  // Count users by role
-  const [totalUsers, jobseekerCount, businessCount, adminCount] =
-    await Promise.all([
-      prisma.user.count(roleFilter ? { where: { role: roleFilter } } : undefined),
-      prisma.user.count({ where: { role: "JOBSEEKER" } }),
-      prisma.user.count({ where: { role: "BUSINESS" } }),
-      prisma.user.count({ where: { role: "ADMIN" } }),
-    ]);
+  const where: Record<string, unknown> = {};
+  if (role) where.role = role;
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+    ];
+  }
 
-  // Fetch users
-  const users = await prisma.user.findMany({
-    where: roleFilter ? { role: roleFilter } : {},
-    orderBy: { createdAt: "desc" },
-    skip: (currentPage - 1) * ITEMS_PER_PAGE,
-    take: ITEMS_PER_PAGE,
-  });
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        businessName: true,
+        isActive: true,
+        createdAt: true,
+        _count: { select: { ads: true, resumes: true } },
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
 
-  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(total / limit);
 
-  const getRoleBadgeVariant = (role: UserRole) => {
-    switch (role) {
-      case "ADMIN":
-        return "default";
-      case "BUSINESS":
-        return "secondary";
-      case "JOBSEEKER":
-        return "outline";
-      default:
-        return "outline";
-    }
+  const roleLabels: Record<string, string> = {
+    BUSINESS: "사장님",
+    JOBSEEKER: "구직자",
+    ADMIN: "관리자",
   };
 
+  function buildUrl(overrides: Record<string, string | undefined>) {
+    const p = new URLSearchParams();
+    const r = overrides.role ?? role;
+    const q = overrides.search ?? search;
+    const pg = overrides.page ?? String(page);
+    if (r) p.set("role", r);
+    if (q) p.set("search", q);
+    if (pg !== "1") p.set("page", pg);
+    return `/admin/users?${p.toString()}`;
+  }
+
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">사용자 관리</h1>
-        <p className="text-muted-foreground mt-1">
-          전체 사용자 목록 및 관리
-        </p>
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">회원 관리</h1>
+        <span className="text-sm text-muted-foreground">총 {total}명</span>
       </div>
 
-      {/* User counts */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">전체 사용자</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalUsers}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">구직자</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobseekerCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">사업자</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{businessCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">관리자</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{adminCount}</div>
-          </CardContent>
-        </Card>
+      {/* Role filter */}
+      <div className="mt-4 flex gap-2">
+        <Link href="/admin/users">
+          <Button variant={!role ? "default" : "outline"} size="sm">전체</Button>
+        </Link>
+        {(["BUSINESS", "JOBSEEKER", "ADMIN"] as const).map((r) => (
+          <Link key={r} href={buildUrl({ role: r, page: "1" })}>
+            <Button variant={role === r ? "default" : "outline"} size="sm">
+              {roleLabels[r]}
+            </Button>
+          </Link>
+        ))}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>필터</CardTitle>
-          <CardDescription>사용자 유형별로 필터링</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Link href="/admin/users">
-              <Badge variant={!roleFilter ? "default" : "outline"}>전체</Badge>
-            </Link>
-            <Link href="/admin/users?role=JOBSEEKER">
-              <Badge variant={roleFilter === "JOBSEEKER" ? "default" : "outline"}>
-                구직자
-              </Badge>
-            </Link>
-            <Link href="/admin/users?role=BUSINESS">
-              <Badge variant={roleFilter === "BUSINESS" ? "default" : "outline"}>
-                사업자
-              </Badge>
-            </Link>
-            <Link href="/admin/users?role=ADMIN">
-              <Badge variant={roleFilter === "ADMIN" ? "default" : "outline"}>
-                관리자
-              </Badge>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <form className="mt-4" action="/admin/users">
+        {role && <input type="hidden" name="role" value={role} />}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            name="search"
+            defaultValue={search}
+            placeholder="이름, 이메일, 전화번호로 검색"
+            className="h-10 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
+            검색
+          </button>
+        </div>
+      </form>
 
-      {/* Users table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>사용자 목록</CardTitle>
-          <CardDescription>
-            {totalUsers}명의 사용자 (페이지 {currentPage}/{totalPages})
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>이름</TableHead>
-                <TableHead>이메일</TableHead>
-                <TableHead>전화번호</TableHead>
-                <TableHead>역할</TableHead>
-                <TableHead>사업자명</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead>가입일</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phone || "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {user.role === "ADMIN"
-                        ? "관리자"
-                        : user.role === "BUSINESS"
-                        ? "사업자"
-                        : "구직자"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{user.businessName || "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.isActive ? "default" : "secondary"}>
-                      {user.isActive ? "활성" : "비활성"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.createdAt).toLocaleDateString("ko-KR")}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      {/* Table */}
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b text-left text-muted-foreground">
+              <th className="pb-3 font-medium">이름</th>
+              <th className="pb-3 font-medium">이메일</th>
+              <th className="pb-3 font-medium">역할</th>
+              <th className="pb-3 font-medium">업소명</th>
+              <th className="pb-3 font-medium">광고</th>
+              <th className="pb-3 font-medium">이력서</th>
+              <th className="pb-3 font-medium">가입일</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {users.map((user) => (
+              <tr key={user.id} className="hover:bg-muted/50">
+                <td className="py-3 font-medium">{user.name || "-"}</td>
+                <td className="py-3 text-muted-foreground">{user.email}</td>
+                <td className="py-3">
+                  <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
+                    {roleLabels[user.role]}
+                  </Badge>
+                </td>
+                <td className="py-3 text-muted-foreground">{user.businessName || "-"}</td>
+                <td className="py-3 text-muted-foreground">{user._count.ads}</td>
+                <td className="py-3 text-muted-foreground">{user._count.resumes}</td>
+                <td className="py-3 text-muted-foreground">
+                  {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
-              {currentPage > 1 && (
-                <Link
-                  href={`/admin/users?${new URLSearchParams({
-                    ...(roleFilter && { role: roleFilter }),
-                    page: String(currentPage - 1),
-                  })}`}
-                >
-                  <Badge variant="outline">이전</Badge>
-                </Link>
-              )}
-              <span className="text-sm text-muted-foreground">
-                {currentPage} / {totalPages}
-              </span>
-              {currentPage < totalPages && (
-                <Link
-                  href={`/admin/users?${new URLSearchParams({
-                    ...(roleFilter && { role: roleFilter }),
-                    page: String(currentPage + 1),
-                  })}`}
-                >
-                  <Badge variant="outline">다음</Badge>
-                </Link>
-              )}
-            </div>
+      {users.length === 0 && (
+        <p className="py-12 text-center text-muted-foreground">검색 결과가 없습니다</p>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-1">
+          {page > 1 && (
+            <a href={buildUrl({ page: String(page - 1) })} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">←</a>
           )}
-        </CardContent>
-      </Card>
+          {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+            const p = Math.max(1, Math.min(page - 4, totalPages - 9)) + i;
+            if (p > totalPages) return null;
+            return (
+              <a
+                key={p}
+                href={buildUrl({ page: String(p) })}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
+                  p === page ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                }`}
+              >
+                {p}
+              </a>
+            );
+          })}
+          {page < totalPages && (
+            <a href={buildUrl({ page: String(page + 1) })} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">→</a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

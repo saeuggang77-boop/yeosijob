@@ -127,6 +127,9 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {timeAgo(ad.lastJumpedAt)}
           </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            👁 {ad.viewCount.toLocaleString()}
+          </p>
         </div>
       </div>
     </Link>

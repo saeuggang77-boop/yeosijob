@@ -248,6 +248,8 @@ model Ad {
   @@index([userId])
   @@index([businessType])
   @@index([startDate, endDate])
+  @@index([status, productId, lastJumpedAt(sort: Desc)])
+  @@index([status, regions])
   @@map("ads")
 }
 
@@ -375,6 +377,7 @@ model Resume {
   @@index([region])
   @@index([isPublic, lastBumpedAt(sort: Desc)])
   @@index([isPublic, createdAt])
+  @@index([isPublic, region])
   @@map("resumes")
 }
 

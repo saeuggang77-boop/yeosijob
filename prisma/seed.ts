@@ -12,6 +12,21 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const SAMPLE_ADS = [
+  // 1. BANNER
+  {
+    title: "강남 프리미엄 룸싸롱 대규모 채용",
+    businessName: "강남 다이아몬드",
+    businessType: "ROOM_SALON" as const,
+    regions: ["SEOUL" as const],
+    salaryText: "일급 50만~80만+α",
+    workHours: "PM 7:00 ~ AM 3:00",
+    benefits: "의상, 헤어, 메이크업, 숙소, 택시비 전부 지원",
+    description: "강남 최고급 프리미엄 룸싸롱에서 대규모 채용합니다.\n\n업계 최고 대우, 경력 무관.\n숙소 완비, 전국에서 오시는 분 환영!",
+    contactPhone: "01011112222",
+    contactKakao: "diamond_ceo",
+    thumbnailUrl: null,
+  },
+  // 2. VIP 1
   {
     title: "강남 고급 룸싸롱 여성 정직원 모집",
     businessName: "강남 로얄클럽",
@@ -20,11 +35,24 @@ const SAMPLE_ADS = [
     salaryText: "일급 30만~50만+α",
     workHours: "PM 7:00 ~ AM 3:00",
     benefits: "의상 제공, 식사 제공, 택시비 지원, 숙소 제공 가능",
-    description:
-      "강남 최고급 룸싸롱에서 함께할 분을 모집합니다.\n\n경력 무관, 미경험자도 환영합니다.\n매니저가 친절하게 도와드립니다.\n\n- 일급 30만~50만+α (능력에 따라)\n- 의상, 헤어, 메이크업 무료 지원\n- 퇴근 후 택시비 지원\n- 숙소 필요시 제공 가능\n\n편하게 연락주세요!",
+    description: "강남 최고급 룸싸롱에서 함께할 분을 모집합니다.\n\n경력 무관, 미경험자도 환영합니다.",
     contactPhone: "01012345678",
     contactKakao: "royalclub_ceo",
   },
+  // 3. VIP 2
+  {
+    title: "청담 하이엔드 바라운지 채용",
+    businessName: "청담 루미에르",
+    businessType: "BAR_LOUNGE" as const,
+    regions: ["SEOUL" as const],
+    salaryText: "일급 40만~60만",
+    workHours: "PM 8:00 ~ AM 4:00",
+    benefits: "숙소, 의상, 택시비, 식사 제공",
+    description: "청담동 최고급 바라운지에서 함께할 분을 찾습니다.\n\n고급스러운 분위기에서 일하고 싶으신 분 환영!",
+    contactPhone: "01011223344",
+    contactKakao: "lumiere_cd",
+  },
+  // 4. PREMIUM 1
   {
     title: "홍대 텐카페 신규 오픈 대량 모집",
     businessName: "홍대 스타카페",
@@ -33,61 +61,61 @@ const SAMPLE_ADS = [
     salaryText: "시급 25,000~35,000",
     workHours: "PM 6:00 ~ AM 2:00",
     benefits: "식사 제공, 의상 제공",
-    description:
-      "홍대에 신규 오픈하는 텐카페입니다!\n\n밝고 활기찬 분위기에서 함께할 분을 모집합니다.\n경력 무관, 초보자 환영!\n\n지원 시 카카오톡으로 연락주세요.",
+    description: "홍대에 신규 오픈하는 텐카페입니다!\n\n밝고 활기찬 분위기에서 함께할 분을 모집합니다.",
     contactPhone: "01023456789",
     contactKakao: "starcafe_hd",
   },
+  // 5. PREMIUM 2
   {
-    title: "부산 서면 바라운지 스탭 급구",
+    title: "분당 프리미엄 셔츠룸 정직원",
+    businessName: "분당 엘리시움",
+    businessType: "SHIRT_ROOM" as const,
+    regions: ["GYEONGGI" as const],
+    salaryText: "일급 35만~50만",
+    workHours: "PM 7:30 ~ AM 3:00",
+    benefits: "셔츠 제공, 식사, 택시비",
+    description: "분당 최대 규모 셔츠룸에서 정직원을 구합니다.\n\n안정적인 수입 보장!",
+    contactPhone: "01033445566",
+    contactKakao: "elysium_bd",
+  },
+  // 6. SPECIAL 1
+  {
+    title: "부산 서면 바라운지 스탭 모집",
     businessName: "서면 블루라운지",
     businessType: "BAR_LOUNGE" as const,
     regions: ["BUSAN" as const],
     salaryText: "시급 20,000~30,000",
     workHours: "PM 8:00 ~ AM 4:00",
     benefits: "식사 제공, 택시비 지원",
-    description:
-      "서면 중심가에 위치한 바라운지에서 스탭을 구합니다.\n\n분위기 좋은 곳에서 편하게 일하실 분 환영!\n\n급구이니 바로 연락주세요.",
+    description: "서면 중심가에 위치한 바라운지에서 스탭을 구합니다.",
     contactPhone: "01034567890",
   },
+  // 7. SPECIAL 2
   {
-    title: "강남 퍼블릭바 주말 파트타임",
+    title: "해운대 클럽 주말 파트 모집",
+    businessName: "해운대 웨이브",
+    businessType: "CLUB" as const,
+    regions: ["BUSAN" as const],
+    salaryText: "시급 35,000+팁",
+    workHours: "PM 10:00 ~ AM 5:00 (금토)",
+    benefits: "팁 전액, 음료 무제한",
+    description: "해운대 최대 클럽에서 주말 파트타임을 구합니다.\n\n팁 전액 본인!",
+    contactPhone: "01044556677",
+  },
+  // 8. URGENT 1
+  {
+    title: "강남 퍼블릭바 주말 파트타임 급구",
     businessName: "강남 네온바",
     businessType: "PUBLIC_BAR" as const,
     regions: ["SEOUL" as const, "GYEONGGI" as const],
     salaryText: "시급 22,000+팁",
     workHours: "PM 9:00 ~ AM 5:00 (주말)",
     benefits: "팁 100% 본인, 식사 제공",
-    description:
-      "강남역 5분 거리 퍼블릭바에서 주말 파트타임을 구합니다.\n\n팁 전액 본인!\n주 2~3일 가능한 분 우대.",
+    description: "강남역 5분 거리 퍼블릭바에서 주말 파트타임을 구합니다.\n\n팁 전액 본인!\n바로 출근 가능한 분 연락주세요.",
     contactPhone: "01045678901",
     contactKakao: "neonbar",
   },
-  {
-    title: "대구 동성로 노래방 도우미 모집",
-    businessName: "동성로 스타노래방",
-    businessType: "KARAOKE" as const,
-    regions: ["DAEGU" as const],
-    salaryText: "일급 15만~25만",
-    workHours: "PM 7:00 ~ AM 2:00",
-    benefits: "식사, 의상 제공",
-    description:
-      "대구 동성로 대형 노래방에서 도우미를 모집합니다.\n\n친절하고 성실한 분 환영!\n경력자 우대, 초보 가능.",
-    contactPhone: "01056789012",
-  },
-  {
-    title: "인천 하이퍼블릭 정직원 구합니다",
-    businessName: "인천 파티클럽",
-    businessType: "HYPER_PUBLIC" as const,
-    regions: ["INCHEON" as const],
-    salaryText: "일급 25만~40만",
-    workHours: "PM 8:00 ~ AM 4:00",
-    benefits: "숙소, 식사, 의상, 택시비 전부 제공",
-    description:
-      "인천 최대 규모 하이퍼블릭에서 정직원을 구합니다.\n\n전국에서 오시는 분 숙소 지원!\n4대 보험 가능.\n\n편하게 문의주세요.",
-    contactPhone: "01067890123",
-    contactKakao: "partyclub_ic",
-  },
+  // 9. URGENT 2
   {
     title: "경기 수원 셔츠룸 긴급 채용",
     businessName: "수원 엘리트",
@@ -96,10 +124,35 @@ const SAMPLE_ADS = [
     salaryText: "일급 28만~45만",
     workHours: "PM 7:30 ~ AM 3:00",
     benefits: "식사, 셔츠 제공, 택시비",
-    description:
-      "수원 인계동 셔츠룸에서 급하게 채용합니다.\n\n바로 출근 가능한 분 우대!\n일급 당일 정산.",
+    description: "수원 인계동 셔츠룸에서 급하게 채용합니다.\n\n바로 출근 가능한 분 우대!\n일급 당일 정산.",
     contactPhone: "01078901234",
   },
+  // 10. RECOMMEND 1
+  {
+    title: "대구 동성로 노래방 도우미 모집",
+    businessName: "동성로 스타노래방",
+    businessType: "KARAOKE" as const,
+    regions: ["DAEGU" as const],
+    salaryText: "일급 15만~25만",
+    workHours: "PM 7:00 ~ AM 2:00",
+    benefits: "식사, 의상 제공",
+    description: "대구 동성로 대형 노래방에서 도우미를 모집합니다.",
+    contactPhone: "01056789012",
+  },
+  // 11. RECOMMEND 2
+  {
+    title: "인천 하이퍼블릭 정직원 구합니다",
+    businessName: "인천 파티클럽",
+    businessType: "HYPER_PUBLIC" as const,
+    regions: ["INCHEON" as const],
+    salaryText: "일급 25만~40만",
+    workHours: "PM 8:00 ~ AM 4:00",
+    benefits: "숙소, 식사, 의상, 택시비 전부 제공",
+    description: "인천 최대 규모 하이퍼블릭에서 정직원을 구합니다.",
+    contactPhone: "01067890123",
+    contactKakao: "partyclub_ic",
+  },
+  // 12. LINE 1
   {
     title: "광주 클럽 주말 알바 모집",
     businessName: "광주 매직클럽",
@@ -108,9 +161,45 @@ const SAMPLE_ADS = [
     salaryText: "시급 30,000+팁",
     workHours: "PM 10:00 ~ AM 5:00 (금토)",
     benefits: "팁 전액, 음료 무제한",
-    description:
-      "광주 최대 클럽에서 주말 파트타임을 구합니다.\n금토 근무, 팁 전액 본인!\n\n즐겁게 일하면서 돈 벌어보세요.",
+    description: "광주 최대 클럽에서 주말 파트타임을 구합니다.",
     contactPhone: "01089012345",
+  },
+  // 13. LINE 2
+  {
+    title: "대전 마사지샵 관리사 모집",
+    businessName: "대전 힐링스파",
+    businessType: "MASSAGE" as const,
+    regions: ["DAEJEON" as const],
+    salaryText: "월급 250만~350만",
+    workHours: "AM 11:00 ~ PM 10:00 (교대)",
+    benefits: "숙소 제공, 식사 제공",
+    description: "대전 중심가 마사지샵에서 관리사를 모집합니다.\n\n경력자 우대.",
+    contactPhone: "01090123456",
+  },
+  // 14. LINE 3
+  {
+    title: "울산 노래방 파트타임",
+    businessName: "울산 스타노래방",
+    businessType: "KARAOKE" as const,
+    regions: ["ULSAN" as const],
+    salaryText: "시급 18,000~25,000",
+    workHours: "PM 8:00 ~ AM 2:00",
+    benefits: "식사 제공",
+    description: "울산 중구 노래방에서 파트타임을 구합니다.",
+    contactPhone: "01001234567",
+  },
+  // 15. LINE 4
+  {
+    title: "제주 바라운지 스탭 채용",
+    businessName: "제주 선셋바",
+    businessType: "BAR_LOUNGE" as const,
+    regions: ["JEJU" as const],
+    salaryText: "시급 20,000~28,000",
+    workHours: "PM 7:00 ~ AM 3:00",
+    benefits: "숙소 제공, 식사 제공, 항공권 지원",
+    description: "제주도 바라운지에서 스탭을 채용합니다.\n\n숙소+항공권 지원!",
+    contactPhone: "01012340000",
+    contactKakao: "sunset_jeju",
   },
 ];
 
@@ -181,6 +270,10 @@ async function main() {
     const lastJumped = new Date(now);
     lastJumped.setMinutes(lastJumped.getMinutes() - i * 15);
 
+    // 등급별 차별화: BANNER 1, VIP 2, PREMIUM 2, SPECIAL 2, URGENT 2, RECOMMEND 2, LINE 4
+    const productIds = ["BANNER", "VIP", "VIP", "PREMIUM", "PREMIUM", "SPECIAL", "SPECIAL", "URGENT", "URGENT", "RECOMMEND", "RECOMMEND", "LINE", "LINE", "LINE", "LINE"] as const;
+    const amounts = [700000, 500000, 500000, 300000, 300000, 200000, 200000, 150000, 150000, 100000, 100000, 70000, 70000, 70000, 70000];
+
     await prisma.ad.create({
       data: {
         userId: bizUser.id,
@@ -194,16 +287,16 @@ async function main() {
         description: sample.description,
         contactPhone: sample.contactPhone,
         contactKakao: sample.contactKakao || null,
-        productId: "LINE",
+        productId: productIds[i],
         durationDays: 30,
-        totalAmount: 70000,
+        totalAmount: amounts[i],
         status: "ACTIVE",
         startDate,
         endDate,
         autoJumpPerDay: 12,
         manualJumpPerDay: 0,
         lastJumpedAt: lastJumped,
-        isVerified: i < 3,
+        isVerified: i < 5,
         viewCount: Math.floor(Math.random() * 500),
         maxEdits: 1,
       },

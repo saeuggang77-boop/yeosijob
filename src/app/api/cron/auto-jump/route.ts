@@ -41,41 +41,42 @@ export async function GET(request: NextRequest) {
 
     let jumpCount = 0;
 
-    for (const ad of ads) {
-      // 이 시간대에 배분할 점프 횟수
-      const jumpsInPeriod = isBusinessHours
-        ? Math.ceil(ad.autoJumpPerDay * 0.7)
-        : Math.floor(ad.autoJumpPerDay * 0.3);
+    // Batch process - 50건씩
+    const BATCH_SIZE = 50;
+    for (let batch = 0; batch < ads.length; batch += BATCH_SIZE) {
+      const batchAds = ads.slice(batch, batch + BATCH_SIZE);
 
-      if (jumpsInPeriod === 0) continue;
+      await Promise.all(
+        batchAds.map(async (ad) => {
+          const jumpsInPeriod = isBusinessHours
+            ? Math.ceil(ad.autoJumpPerDay * 0.7)
+            : Math.floor(ad.autoJumpPerDay * 0.3);
 
-      // 이 시간대에서 점프 간격 (분 단위)
-      const intervalMinutes = (12 * 60) / jumpsInPeriod;
+          if (jumpsInPeriod === 0) return;
 
-      // 마지막 점프 이후 경과 시간 (분)
-      const minutesSinceLastJump =
-        (now.getTime() - ad.lastJumpedAt.getTime()) / (1000 * 60);
+          const intervalMinutes = (12 * 60) / jumpsInPeriod;
+          const minutesSinceLastJump =
+            (now.getTime() - ad.lastJumpedAt.getTime()) / (1000 * 60);
 
-      // 간격 이상 지났으면 점프 실행
-      if (minutesSinceLastJump >= intervalMinutes) {
-        await prisma.$transaction(async (tx) => {
-          await tx.ad.update({
-            where: { id: ad.id },
-            data: { lastJumpedAt: now },
-          });
-
-          await tx.jumpLog.create({
-            data: {
-              adId: ad.id,
-              userId: ad.userId,
-              type: "AUTO",
-              jumpedAt: now,
-            },
-          });
-        });
-
-        jumpCount++;
-      }
+          if (minutesSinceLastJump >= intervalMinutes) {
+            await prisma.$transaction(async (tx) => {
+              await tx.ad.update({
+                where: { id: ad.id },
+                data: { lastJumpedAt: now },
+              });
+              await tx.jumpLog.create({
+                data: {
+                  adId: ad.id,
+                  userId: ad.userId,
+                  type: "AUTO",
+                  jumpedAt: now,
+                },
+              });
+            });
+            jumpCount++;
+          }
+        })
+      );
     }
 
     return NextResponse.json({

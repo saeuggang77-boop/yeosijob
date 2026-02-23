@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export const metadata = {
   title: "여시잡 소개",
-  description: "유흥업소 채용 플랫폼 여시잡을 소개합니다.",
+  description: "밤여시(여시) + Job = 여시잡. 밤여시 카페 기반 신뢰할 수 있는 유흥업소 구인구직 플랫폼입니다.",
   openGraph: {
     title: "여시잡 소개 | 여시잡",
-    description: "유흥업소 채용 플랫폼 여시잡을 소개합니다.",
+    description: "밤여시(여시) + Job = 여시잡. 밤여시 카페 기반 신뢰할 수 있는 유흥업소 구인구직 플랫폼입니다.",
   },
 };
 
@@ -20,7 +21,38 @@ export default function AboutPage() {
         구직자와 업소를 빠르고 안전하게 연결해 드립니다.
       </p>
 
-      <div className="mt-8 space-y-4">
+      {/* 브랜드 스토리 섹션 */}
+      <div className="mt-8 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+        <h2 className="text-xl font-bold">여시잡이란?</h2>
+        <div className="mt-4 space-y-3 text-muted-foreground">
+          <p>
+            <span className="font-semibold text-primary">밤여시</span>는 국내 최대 유흥업소
+            정보 커뮤니티 카페로, 오랜 시간 업계 종사자들에게 신뢰받아 온 공간입니다.
+          </p>
+          <p>
+            <span className="font-semibold text-foreground">여시잡</span>은 바로 이{" "}
+            <span className="font-semibold text-primary">밤여시(여시)</span>에{" "}
+            <span className="font-semibold text-primary">Job(일자리)</span>을 더한 이름입니다.
+          </p>
+          <div className="my-4 flex items-center justify-center gap-3 text-lg font-bold">
+            <span className="rounded-lg bg-primary/20 px-3 py-1.5 text-primary">밤여시(여시)</span>
+            <span className="text-muted-foreground">+</span>
+            <span className="rounded-lg bg-primary/20 px-3 py-1.5 text-primary">Job</span>
+            <span className="text-muted-foreground">=</span>
+            <span className="rounded-lg bg-primary px-3 py-1.5 text-primary-foreground">여시잡</span>
+          </div>
+          <p>
+            밤여시 카페에서 쌓은 신뢰와 네트워크를 바탕으로,
+            구직자와 사장님 모두가 안심하고 이용할 수 있는 구인구직 플랫폼을 만들었습니다.
+          </p>
+        </div>
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* 서비스 소개 */}
+      <h2 className="mb-4 text-xl font-bold">주요 서비스</h2>
+      <div className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>채용정보</CardTitle>
@@ -68,6 +100,34 @@ export default function AboutPage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* 왜 여시잡인가 */}
+      <h2 className="mb-4 text-xl font-bold">왜 여시잡인가요?</h2>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border p-4 text-center">
+          <p className="text-3xl">🤝</p>
+          <p className="mt-2 font-semibold">밤여시 기반 신뢰</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            오랜 커뮤니티 신뢰를 바탕으로 검증된 채용정보를 제공합니다
+          </p>
+        </div>
+        <div className="rounded-xl border p-4 text-center">
+          <p className="text-3xl">⚡</p>
+          <p className="mt-2 font-semibold">빠른 매칭</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            지역, 업종, 조건별 검색으로 원하는 일자리를 바로 찾을 수 있습니다
+          </p>
+        </div>
+        <div className="rounded-xl border p-4 text-center">
+          <p className="text-3xl">🔒</p>
+          <p className="mt-2 font-semibold">안전한 거래</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            사업자 인증과 후기 시스템으로 안심하고 지원할 수 있습니다
+          </p>
+        </div>
       </div>
     </div>
   );

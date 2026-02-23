@@ -5,6 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
+export const metadata = {
+  title: "광고 안내",
+  description: "여시잡 광고 상품 안내 및 가격표",
+  openGraph: {
+    title: "광고 안내 | 여시잡",
+    description: "여시잡 광고 상품 안내 및 가격표",
+  },
+};
+
 export default async function PricingPage() {
   const session = await auth();
 

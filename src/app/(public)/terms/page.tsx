@@ -1,6 +1,10 @@
 export const metadata = {
-  title: "이용약관 - 여시잡",
+  title: "이용약관",
   description: "여시잡 이용약관",
+  openGraph: {
+    title: "이용약관 | 여시잡",
+    description: "여시잡 이용약관",
+  },
 };
 
 export default function TermsPage() {

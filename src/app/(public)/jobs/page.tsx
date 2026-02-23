@@ -8,6 +8,15 @@ import type { Region, BusinessType } from "@/generated/prisma/client";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "채용정보",
+  description: "전국 유흥업소 채용정보를 확인하세요. 룸싸롱, 노래방, 텐카페, 바, 클럽 등",
+  openGraph: {
+    title: "채용정보 | 여시잡",
+    description: "전국 유흥업소 채용정보를 확인하세요.",
+  },
+};
+
 interface PageProps {
   searchParams: Promise<{
     region?: string;

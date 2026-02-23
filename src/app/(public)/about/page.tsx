@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const metadata = {
   title: "여시잡 소개",
   description: "유흥업소 채용 플랫폼 여시잡을 소개합니다.",
+  openGraph: {
+    title: "여시잡 소개 | 여시잡",
+    description: "유흥업소 채용 플랫폼 여시잡을 소개합니다.",
+  },
 };
 
 export default function AboutPage() {

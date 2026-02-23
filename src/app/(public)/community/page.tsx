@@ -6,6 +6,15 @@ import { Card } from "@/components/ui/card";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "커뮤니티",
+  description: "유흥업계 종사자들의 커뮤니티 게시판",
+  openGraph: {
+    title: "커뮤니티 | 여시잡",
+    description: "유흥업계 종사자들의 커뮤니티 게시판",
+  },
+};
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;

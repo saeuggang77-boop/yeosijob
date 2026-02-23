@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -15,6 +16,39 @@ import type { Region } from "@/generated/prisma/client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const ad = await prisma.ad.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      businessName: true,
+      regions: true,
+      businessType: true
+    },
+  });
+
+  if (!ad) {
+    return { title: "채용정보를 찾을 수 없습니다" };
+  }
+
+  const regionLabels = ad.regions
+    .map((r: Region) => REGIONS[r]?.label || r)
+    .join(", ");
+  const bizLabel = BUSINESS_TYPES[ad.businessType]?.label || ad.businessType;
+  const description = `${ad.businessName} - ${regionLabels} ${bizLabel} 채용정보`;
+
+  return {
+    title: ad.title,
+    description,
+    openGraph: {
+      type: "article",
+      title: `${ad.title} | 여시잡`,
+      description,
+    },
+  };
 }
 
 export default async function JobDetailPage({ params }: PageProps) {

@@ -26,6 +26,11 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: post.title,
     description: post.content.substring(0, 100),
+    openGraph: {
+      type: "article",
+      title: `${post.title} | 여시잡`,
+      description: post.content.substring(0, 100),
+    },
   };
 }
 

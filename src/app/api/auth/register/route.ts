@@ -43,7 +43,7 @@ export async function POST(request: Request) {
           hashedPassword,
           role: "BUSINESS",
           businessName,
-          businessNumber: businessNumber || null,
+          businessNumber,
         },
       });
 

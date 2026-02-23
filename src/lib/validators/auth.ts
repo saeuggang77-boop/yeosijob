@@ -32,9 +32,7 @@ export const registerBusinessSchema = z
     businessName: z.string().min(1, "업소명을 입력해주세요"),
     businessNumber: z
       .string()
-      .regex(/^\d{10}$/, "사업자등록번호 10자리를 입력해주세요")
-      .optional()
-      .or(z.literal("")),
+      .regex(/^\d{10}$/, "사업자등록번호 10자리를 입력해주세요"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "비밀번호가 일치하지 않습니다",

@@ -141,20 +141,17 @@ export default function RegisterBusinessPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="businessNumber">
-              사업자등록번호{" "}
-              <span className="text-muted-foreground font-normal">
-                (선택)
-              </span>
-            </Label>
+            <Label htmlFor="businessNumber">사업자등록번호</Label>
             <Input
               id="businessNumber"
               name="businessNumber"
               placeholder="1234567890 (10자리)"
+              required
+              pattern="\d{10}"
               maxLength={10}
             />
             <p className="text-xs text-muted-foreground">
-              입력하시면 인증업소 배지를 받을 수 있습니다
+              사업자등록번호 인증은 법적 필수사항입니다
             </p>
           </div>
         </CardContent>

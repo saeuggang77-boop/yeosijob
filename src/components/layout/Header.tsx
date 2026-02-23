@@ -16,7 +16,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          <Link href="/">
+          <Link href="/jobs">
             <Button variant="ghost" size="sm">
               채용정보
             </Button>

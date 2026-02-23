@@ -14,7 +14,7 @@ interface PageProps {
 
 export default function EditNoticePage({ params }: PageProps) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [noticeId, setNoticeId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -30,7 +30,11 @@ export default function EditNoticePage({ params }: PageProps) {
     });
   }, []);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (status === "loading") {
+    return null;
+  }
+
+  if (status === "unauthenticated" || session?.user.role !== "ADMIN") {
     router.push("/login");
     return null;
   }

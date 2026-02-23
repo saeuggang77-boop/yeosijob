@@ -8,14 +8,18 @@ import { Card } from "@/components/ui/card";
 
 export default function NewNoticePage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (status === "loading") {
+    return null;
+  }
+
+  if (status === "unauthenticated" || session?.user.role !== "ADMIN") {
     router.push("/login");
     return null;
   }

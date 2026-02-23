@@ -39,6 +39,23 @@ export const registerBusinessSchema = z
     path: ["confirmPassword"],
   });
 
+export const forgotPasswordSchema = z.object({
+  email: z.email("올바른 이메일을 입력해주세요"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "토큰이 필요합니다"),
+    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+  });
+
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type RegisterJobseekerInput = z.infer<typeof registerJobseekerSchema>;
 export type RegisterBusinessInput = z.infer<typeof registerBusinessSchema>;

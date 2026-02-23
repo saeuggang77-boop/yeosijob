@@ -353,10 +353,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       <section className="border-b">
         <div className="px-4 py-3">
           <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
-            줄광고{" "}
-            <span className="font-normal text-muted-foreground">
-              {total.toLocaleString()}건
-            </span>
+            줄광고
           </h2>
         </div>
 
@@ -431,7 +428,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     )}
                     <a
                       href={`/?page=${p}`}
-                      className={`inline-flex h-11 w-11 items-center justify-center rounded text-sm ${
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded text-xs ${
                         p === page
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-muted"
@@ -493,7 +490,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         <section className="border-b bg-section-warm px-4 py-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold">
-              인재정보 <span className="text-primary">{totalResumes.toLocaleString()}</span>건
+              인재정보
             </h2>
             <Link href="/business/resumes">
               <Button variant="outline" size="sm">인재정보 보기</Button>

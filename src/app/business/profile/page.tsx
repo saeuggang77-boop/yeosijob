@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, BarChart3 } from "lucide-react";
+import ChangePasswordSection from "@/components/ChangePasswordSection";
 
 async function LogoutButton() {
   return (
@@ -31,6 +33,12 @@ export default async function BusinessProfilePage() {
   if (session.user.role !== "BUSINESS") {
     redirect("/");
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { hashedPassword: true },
+  });
+  const hasPassword = !!user?.hashedPassword;
 
   return (
     <div className="mx-auto max-w-screen-lg px-4 py-6">
@@ -60,6 +68,9 @@ export default async function BusinessProfilePage() {
             </CardContent>
           </Card>
         </Link>
+
+        {/* 비밀번호 변경 */}
+        {hasPassword && <ChangePasswordSection />}
       </div>
 
       {/* 로그아웃 버튼 */}

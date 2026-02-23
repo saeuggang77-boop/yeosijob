@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, FileText, Heart, MessageSquare } from "lucide-react";
+import ChangePasswordSection from "@/components/ChangePasswordSection";
 
 async function LogoutButton() {
   return (
@@ -37,13 +38,15 @@ export default async function ProfilePage() {
   const userId = session.user.id;
 
   // Query counts
-  const [scrapCount, reviewCount, resume] = await Promise.all([
+  const [scrapCount, reviewCount, resume, user] = await Promise.all([
     prisma.scrap.count({ where: { userId } }),
     prisma.review.count({ where: { userId } }),
     prisma.resume.findUnique({ where: { userId } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true } }),
   ]);
 
   const resumeStatus = resume ? "등록됨" : "미등록";
+  const hasPassword = !!user?.hashedPassword;
 
   return (
     <div className="mx-auto max-w-screen-lg px-4 py-6">
@@ -111,6 +114,9 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
         </Link>
+
+        {/* 비밀번호 변경 */}
+        {hasPassword && <ChangePasswordSection />}
       </div>
 
       {/* 로그아웃 버튼 */}

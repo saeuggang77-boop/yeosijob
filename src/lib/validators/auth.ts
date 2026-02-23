@@ -54,8 +54,24 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요"),
+    newPassword: z.string().min(6, "새 비밀번호는 6자 이상이어야 합니다"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "현재 비밀번호와 다른 비밀번호를 입력해주세요",
+    path: ["newPassword"],
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+  });
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterJobseekerInput = z.infer<typeof registerJobseekerSchema>;
 export type RegisterBusinessInput = z.infer<typeof registerBusinessSchema>;

@@ -60,7 +60,7 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
         </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
-        <p className="mt-1 text-sm font-medium text-primary">{ad.salaryText}</p>
+        <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>
         {ad.viewCount !== undefined && (
           <p className="mt-0.5 text-[10px] text-muted-foreground">👁 {ad.viewCount.toLocaleString()}</p>
         )}

@@ -170,7 +170,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
             유흥업계 No.1 구인구직
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground md:text-xl">
+          <p className="mt-4 text-lg text-[#B0B0B0] md:text-xl">
             여시알바에서 최고의 일자리를 찾으세요
           </p>
 

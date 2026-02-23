@@ -117,7 +117,6 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* Hero Section with Mesh Gradient */}
       <section className="hero-mesh relative overflow-hidden px-4 py-16 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background/60"></div>
         <div className="relative z-10">
           <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
             유흥업계 No.1 구인구직
@@ -130,12 +129,12 @@ export default async function HomePage({ searchParams }: PageProps) {
           <form
             action="/jobs"
             method="get"
-            className="mx-auto mt-8 flex max-w-3xl flex-col gap-2 sm:flex-row sm:gap-0"
+            className="hero-search mx-auto mt-8 flex max-w-3xl flex-col overflow-hidden bg-card sm:flex-row"
           >
             <select
               name="region"
               defaultValue=""
-              className="h-12 rounded-t-lg border border-border bg-card px-3 text-sm text-foreground sm:rounded-l-lg sm:rounded-tr-none sm:border-r-0"
+              className="h-12 border-b border-border/50 bg-transparent px-3 text-sm text-foreground sm:border-b-0 sm:border-r"
             >
               <option value="">지역 전체</option>
               {Object.entries(REGIONS).map(([key, val]) => (
@@ -145,7 +144,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             <select
               name="businessType"
               defaultValue=""
-              className="h-12 border border-border bg-card px-3 text-sm text-foreground sm:border-r-0"
+              className="h-12 border-b border-border/50 bg-transparent px-3 text-sm text-foreground sm:border-b-0 sm:border-r"
             >
               <option value="">업종 전체</option>
               {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
@@ -156,17 +155,18 @@ export default async function HomePage({ searchParams }: PageProps) {
               type="text"
               name="search"
               placeholder="업소명 / 제목 검색"
-              className="h-12 min-w-0 flex-1 border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 sm:border-r-0"
+              className="h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none sm:border-r sm:border-border/50"
             />
             <button
               type="submit"
-              className="h-12 rounded-b-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:rounded-r-lg sm:rounded-bl-none"
+              className="h-12 bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               검색
             </button>
           </form>
         </div>
       </section>
+      <div className="hero-divider" />
 
       {/* Banner Slider - Full Width, Most Prominent */}
       {bannerAds.length > 0 && (

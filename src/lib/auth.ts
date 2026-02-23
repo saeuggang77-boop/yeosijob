@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import KakaoProvider from "next-auth/providers/kakao";
+import GoogleProvider from "next-auth/providers/google";
+import NaverProvider from "next-auth/providers/naver";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
@@ -11,8 +13,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      if (account?.provider === "kakao") {
+      const oauthProviders = ["kakao", "google", "naver"];
+      if (account?.provider && oauthProviders.includes(account.provider)) {
         if (!user.email) return false;
+
+        const defaultNames: Record<string, string> = {
+          kakao: "카카오 사용자",
+          google: "구글 사용자",
+          naver: "네이버 사용자",
+        };
 
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
@@ -22,7 +31,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const newUser = await prisma.user.create({
             data: {
               email: user.email,
-              name: user.name || "카카오 사용자",
+              name: user.name || defaultNames[account.provider] || "소셜 사용자",
               image: user.image,
               role: "JOBSEEKER",
               emailVerified: new Date(),
@@ -73,6 +82,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     KakaoProvider({
       clientId: process.env.KAKAO_CLIENT_ID || "",
       clientSecret: process.env.KAKAO_CLIENT_SECRET || "",
+    }),
+    NaverProvider({
+      clientId: process.env.NAVER_CLIENT_ID || "",
+      clientSecret: process.env.NAVER_CLIENT_SECRET || "",
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
     Credentials({
       name: "credentials",

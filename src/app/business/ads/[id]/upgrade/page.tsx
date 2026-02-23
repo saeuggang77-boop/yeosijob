@@ -1,20 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Step1BusinessInfo } from "@/components/ads/steps/Step1BusinessInfo";
-import { Step2JobInfo } from "@/components/ads/steps/Step2JobInfo";
 import { Step3ProductSelector } from "@/components/ads/steps/Step3ProductSelector";
 import { Step4Payment } from "@/components/ads/steps/Step4Payment";
 import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { AD_PRODUCTS } from "@/lib/constants/products";
 import type { AdFormData } from "@/lib/validators/ad";
 
-export default function NewAdPage() {
+interface AdInfo {
+  id: string;
+  productId: string;
+  businessName: string;
+  regions: string[];
+  title: string;
+  status: string;
+}
+
+export default function UpgradeAdPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const { data: session } = useSession();
+
+  const [adInfo, setAdInfo] = useState<AdInfo | null>(null);
+  const [loadingAd, setLoadingAd] = useState(true);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
     regions: [],
@@ -23,11 +39,6 @@ export default function NewAdPage() {
     options: [],
     optionValues: {},
   });
-
-  const isFreeProduct = formData.productId === "FREE";
-  const STEP_LABELS = isFreeProduct
-    ? ["업소 정보", "채용 정보", "상품 선택"]
-    : ["업소 정보", "채용 정보", "상품 선택", "결제"];
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -38,54 +49,49 @@ export default function NewAdPage() {
     method: "CARD" | "KAKAO_PAY";
   } | null>(null);
 
+  // Load current ad info
+  useEffect(() => {
+    fetch(`/api/ads/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setAdInfo(data);
+          // Pre-fill regions from current ad (trim to new product's maxRegions later)
+          setFormData(prev => ({ ...prev, regions: data.regions || [] }));
+        }
+      })
+      .catch(() => setError("광고 정보를 불러올 수 없습니다"))
+      .finally(() => setLoadingAd(false));
+  }, [id]);
+
   function updateData(data: Partial<AdFormData>) {
-    setFormData((prev) => ({ ...prev, ...data }));
-  }
-
-  function handleNext() {
-    const maxStep = formData.productId === "FREE" ? 3 : 4;
-    setStep((s) => Math.min(s + 1, maxStep));
-  }
-
-  function handleBack() {
-    setStep((s) => Math.max(s - 1, 1));
+    setFormData(prev => ({ ...prev, ...data }));
   }
 
   async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
     setError("");
     setLoading(true);
     try {
-      const isFreeProduct = formData.productId === "FREE";
-
-      const payload = {
-        ...formData,
-        paymentMethod: isFreeProduct ? undefined : paymentMethod
-      };
-
-      const res = await fetch("/api/ads", {
+      const res = await fetch(`/api/ads/${id}/upgrade`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...formData,
+          paymentMethod,
+        }),
       });
 
       const result = await res.json();
-
       if (!res.ok) {
-        setError(result.error || "광고 등록에 실패했습니다");
+        setError(result.error || "업그레이드에 실패했습니다");
         return;
       }
 
-      // FREE 상품: 성공 페이지로 이동
-      if (isFreeProduct) {
-        router.push("/business/ads/new/success?free=true");
-        return;
-      }
-
-      // 무통장 입금
       if (paymentMethod === "BANK_TRANSFER") {
         router.push(`/business/ads/${result.adId}/payment?orderId=${result.orderId}`);
       } else {
-        // 카드/카카오페이
         setPaymentInfo({
           orderId: result.orderId,
           amount: result.amount,
@@ -94,18 +100,38 @@ export default function NewAdPage() {
         });
         setShowPayment(true);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "서버 오류가 발생했습니다");
+    } catch {
+      setError("서버 오류가 발생했습니다");
     } finally {
       setLoading(false);
     }
   }
 
-  // 결제 위젯 화면
+  if (loadingAd) {
+    return (
+      <div className="mx-auto max-w-screen-md px-4 py-20 text-center">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="mt-4 text-lg font-medium">광고 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (!adInfo) {
+    return (
+      <div className="mx-auto max-w-screen-md px-4 py-8 text-center">
+        <p className="text-destructive">{error || "광고를 찾을 수 없습니다"}</p>
+        <Link href="/business/dashboard">
+          <Button className="mt-4">대시보드로 이동</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Toss payment widget screen
   if (showPayment && paymentInfo) {
     return (
       <div className="mx-auto max-w-screen-md px-4 py-6">
-        <h1 className="text-2xl font-bold">결제</h1>
+        <h1 className="text-2xl font-bold">업그레이드 결제</h1>
         <div className="mt-6 space-y-4">
           <Card>
             <CardContent className="py-6 text-center">
@@ -117,9 +143,11 @@ export default function NewAdPage() {
             orderId={paymentInfo.orderId}
             orderName={paymentInfo.orderName}
             amount={paymentInfo.amount}
-            customerName={formData.businessName || ""}
+            customerName={adInfo.businessName}
             customerEmail={session?.user?.email || ""}
             method={paymentInfo.method}
+            successUrl={`${window.location.origin}/business/ads/new/success?upgrade=true`}
+            failUrl={`${window.location.origin}/business/ads/new/fail`}
             onError={(msg) => {
               setError(msg);
               setShowPayment(false);
@@ -133,11 +161,31 @@ export default function NewAdPage() {
     );
   }
 
+  const STEP_LABELS = ["상품 선택", "결제"];
+  const currentProductName = AD_PRODUCTS[adInfo.productId]?.name || adInfo.productId;
+
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
-      <h1 className="text-2xl font-bold">광고 등록</h1>
+      <Link href={`/business/ads/${id}`}>
+        <Button variant="ghost" size="sm" className="mb-2">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          광고 상세로 돌아가기
+        </Button>
+      </Link>
+      <h1 className="text-2xl font-bold">광고 업그레이드</h1>
 
-      {/* 스텝 인디케이터 */}
+      {/* Current tier info */}
+      <Card className="mt-4 border-muted">
+        <CardHeader className="pb-2">
+          <CardDescription>현재 등급</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            {currentProductName}
+            <Badge variant="secondary">{adInfo.title}</Badge>
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      {/* Step indicator */}
       <div className="mt-6 flex items-center gap-1">
         {STEP_LABELS.map((label, i) => {
           const stepNum = i + 1;
@@ -158,18 +206,10 @@ export default function NewAdPage() {
                   {isDone ? "✓" : stepNum}
                 </div>
                 {i < STEP_LABELS.length - 1 && (
-                  <div
-                    className={`h-0.5 flex-1 ${
-                      isDone ? "bg-primary/40" : "bg-muted"
-                    }`}
-                  />
+                  <div className={`h-0.5 flex-1 ${isDone ? "bg-primary/40" : "bg-muted"}`} />
                 )}
               </div>
-              <span
-                className={`mt-1 text-xs ${
-                  isActive ? "font-medium" : "text-muted-foreground"
-                }`}
-              >
+              <span className={`mt-1 text-xs ${isActive ? "font-medium" : "text-muted-foreground"}`}>
                 {label}
               </span>
             </div>
@@ -183,37 +223,20 @@ export default function NewAdPage() {
         </div>
       )}
 
-      {/* 스텝 컨텐츠 */}
       <div className="mt-6">
         {step === 1 && (
-          <Step1BusinessInfo
-            data={formData}
-            onUpdate={updateData}
-            onNext={handleNext}
-          />
-        )}
-        {step === 2 && (
-          <Step2JobInfo
-            data={formData}
-            onUpdate={updateData}
-            onNext={handleNext}
-            onBack={handleBack}
-          />
-        )}
-        {step === 3 && (
           <Step3ProductSelector
             data={formData}
             onUpdate={updateData}
-            onNext={handleNext}
-            onBack={handleBack}
-            onFreeSubmit={() => handleSubmit()}
-            freeSubmitLoading={loading}
+            onNext={() => setStep(2)}
+            onBack={() => router.push(`/business/ads/${id}`)}
+            upgradeFrom={adInfo.productId}
           />
         )}
-        {step === 4 && formData.productId !== "FREE" && (
+        {step === 2 && (
           <Step4Payment
             data={formData}
-            onBack={handleBack}
+            onBack={() => setStep(1)}
             onSubmit={handleSubmit}
             loading={loading}
           />

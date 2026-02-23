@@ -55,8 +55,6 @@ export async function POST(request: NextRequest) {
     const tossResult = await confirmTossPayment({ paymentKey, orderId, amount });
 
     const now = new Date();
-    const durationDays = payment.ad?.durationDays || 30;
-    const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
     // 결제 방법 판별
     const isKakaoPay = tossResult.easyPay?.provider === "카카오페이";
@@ -77,17 +75,68 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Ad 활성화
+      // Ad 활성화 또는 업그레이드
       if (payment.adId) {
-        await tx.ad.update({
-          where: { id: payment.adId },
-          data: {
-            status: "ACTIVE",
-            startDate: now,
-            endDate,
-            lastJumpedAt: now,
-          },
-        });
+        const snapshot = payment.itemSnapshot as any;
+        const isUpgrade = snapshot?.type === "upgrade";
+
+        // 업그레이드: snapshot.duration 사용, 일반: 기존 ad.durationDays 사용
+        const durationDays = isUpgrade
+          ? snapshot.duration
+          : (payment.ad?.durationDays || 30);
+        const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+        if (isUpgrade) {
+          // 기존 옵션 삭제
+          await tx.adOption.deleteMany({
+            where: { adId: payment.adId },
+          });
+
+          // 새 옵션 생성
+          if (snapshot.options && Array.isArray(snapshot.options)) {
+            for (const opt of snapshot.options) {
+              await tx.adOption.create({
+                data: {
+                  adId: payment.adId,
+                  optionId: opt.id,
+                  value: opt.value,
+                  durationDays: snapshot.duration,
+                  startDate: now,
+                  endDate,
+                },
+              });
+            }
+          }
+
+          // 광고 업그레이드
+          await tx.ad.update({
+            where: { id: payment.adId },
+            data: {
+              status: "ACTIVE",
+              productId: snapshot.product.id,
+              durationDays: snapshot.duration,
+              totalAmount: { increment: amount },
+              autoJumpPerDay: snapshot.newFeatures.autoJumpPerDay,
+              manualJumpPerDay: snapshot.newFeatures.manualJumpPerDay,
+              maxEdits: snapshot.newFeatures.maxEdits,
+              startDate: now,
+              endDate,
+              lastJumpedAt: now,
+              editCount: 0,
+            },
+          });
+        } else {
+          // 일반 광고 활성화
+          await tx.ad.update({
+            where: { id: payment.adId },
+            data: {
+              status: "ACTIVE",
+              startDate: now,
+              endDate,
+              lastJumpedAt: now,
+            },
+          });
+        }
       }
     });
 

@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "필수 항목을 모두 입력해주세요" }, { status: 400 });
     }
 
-    if (!regions || regions.length === 0) {
+    // BANNER는 전국 노출이므로 지역 선택 불필요
+    if (productId !== "BANNER" && (!regions || regions.length === 0)) {
       return NextResponse.json({ error: "노출 지역을 선택해주세요" }, { status: 400 });
     }
 
@@ -150,8 +151,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 지역 수 확인
-    if (regions.length > product.maxRegions) {
+    // 지역 수 확인 (BANNER는 전국 노출이므로 skip)
+    if (productId !== "BANNER" && regions.length > product.maxRegions) {
       return NextResponse.json(
         { error: `${product.name}은 최대 ${product.maxRegions}개 지역만 선택 가능합니다` },
         { status: 400 }

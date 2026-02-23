@@ -106,23 +106,27 @@ export default async function AdDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* FREE 광고 업그레이드 안내 */}
-      {isFree && (
+      {/* 업그레이드 안내 - BANNER가 아닌 ACTIVE 광고 */}
+      {ad.status === "ACTIVE" && ad.productId !== "BANNER" && (
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader>
-            <CardTitle>무료 광고 등급</CardTitle>
+            <CardTitle>{isFree ? "무료 광고 등급" : `현재 등급: ${getProductName(ad.productId)}`}</CardTitle>
             <CardDescription>
-              유료 등급으로 업그레이드하면 자동점프, 수동점프, 이력서 열람 기능을 사용할 수 있습니다.
+              {isFree
+                ? "유료 등급으로 업그레이드하면 자동점프, 수동점프, 이력서 열람 기능을 사용할 수 있습니다."
+                : "상위 등급으로 업그레이드하면 더 많은 노출과 기능을 이용할 수 있습니다."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-              <li>• 수동점프는 유료 등급부터 사용할 수 있습니다</li>
-              <li>• 이력서 열람은 유료 등급부터 가능합니다</li>
-              <li>• 무료 광고는 리스트 최하단에 노출됩니다</li>
-            </ul>
-            <Link href="/business/ads/new">
-              <Button>유료 광고로 업그레이드</Button>
+            {isFree && (
+              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                <li>• 수동점프는 유료 등급부터 사용할 수 있습니다</li>
+                <li>• 이력서 열람은 유료 등급부터 가능합니다</li>
+                <li>• 무료 광고는 리스트 최하단에 노출됩니다</li>
+              </ul>
+            )}
+            <Link href={`/business/ads/${id}/upgrade`}>
+              <Button>{isFree ? "유료 광고로 업그레이드" : "상위 등급으로 업그레이드"}</Button>
             </Link>
           </CardContent>
         </Card>

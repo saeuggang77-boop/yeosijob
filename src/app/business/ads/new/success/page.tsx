@@ -9,6 +9,7 @@ import Link from "next/link";
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const isFree = searchParams.get("free") === "true";
+  const isUpgrade = searchParams.get("upgrade") === "true";
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     isFree ? "success" : "loading"
   );
@@ -93,16 +94,25 @@ export default function PaymentSuccessPage() {
           ✓
         </div>
         <h1 className="mt-4 text-2xl font-bold">
-          {isFree ? "광고 등록 완료" : "결제 완료"}
+          {isFree ? "광고 등록 완료" : isUpgrade ? "업그레이드 완료" : "결제 완료"}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          광고가 정상적으로 등록되었습니다
+          {isUpgrade ? "광고 등급이 업그레이드되었습니다" : "광고가 정상적으로 등록되었습니다"}
         </p>
       </div>
 
       <Card className="mt-6">
         <CardContent className="py-6 text-center">
-          {isFree ? (
+          {isUpgrade ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                업그레이드가 완료되어 새 등급이 즉시 적용됩니다.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                광고 관리 페이지에서 상태를 확인하세요.
+              </p>
+            </>
+          ) : isFree ? (
             <>
               <p className="text-sm text-muted-foreground">
                 무료 광고가 등록되어 즉시 게재됩니다.

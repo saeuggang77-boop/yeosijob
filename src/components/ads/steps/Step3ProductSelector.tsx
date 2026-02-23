@@ -21,6 +21,7 @@ interface Props {
   onBack: () => void;
   onFreeSubmit?: () => void;
   freeSubmitLoading?: boolean;
+  upgradeFrom?: string;
 }
 
 // Phase 2-16: 모든 등급 오픈 (FREE 추가)
@@ -55,6 +56,7 @@ export function Step3ProductSelector({
   onBack,
   onFreeSubmit,
   freeSubmitLoading,
+  upgradeFrom,
 }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -66,6 +68,15 @@ export function Step3ProductSelector({
   const optionValues = data.optionValues || {};
 
   const product = productId ? AD_PRODUCTS[productId] : AD_PRODUCTS.FREE;
+  const isBanner = productId === "BANNER";
+
+  const filteredProducts = upgradeFrom
+    ? AVAILABLE_PRODUCTS.filter(pid => {
+        if (pid === "FREE") return false;
+        const currentRank = AD_PRODUCTS[upgradeFrom].rank;
+        return AD_PRODUCTS[pid].rank < currentRank;
+      })
+    : AVAILABLE_PRODUCTS;
 
   const totalPrice = useMemo(() => {
     // FREE 상품은 0원
@@ -133,7 +144,7 @@ export function Step3ProductSelector({
 
   function handleSubmit() {
     const errs: Record<string, string> = {};
-    if (regions.length === 0) {
+    if (!isBanner && regions.length === 0) {
       errs.regions = "노출 지역을 선택해주세요";
     }
     if (options.includes("ICON") && !optionValues.ICON) {
@@ -152,79 +163,17 @@ export function Step3ProductSelector({
 
   return (
     <div className="space-y-4">
-      {/* 기간 선택 - 유료만 */}
-      {!isFreeProduct && productId !== "" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">광고 기간</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              {DURATION_OPTIONS.map((d) => (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => onUpdate({ durationDays: d.value })}
-                  className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
-                    durationDays === d.value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 노출 지역 선택 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            노출 지역{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              (최대 {product.maxRegions || 1}개)
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {REGION_LIST.map((r) => {
-              const selected = regions.includes(r.value);
-              return (
-                <button
-                  key={r.value}
-                  type="button"
-                  onClick={() => toggleRegion(r.value)}
-                  className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-                    selected
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              );
-            })}
-          </div>
-          {errors.regions && (
-            <p className="mt-2 text-xs text-destructive">{errors.regions}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 상품 선택 */}
+      {/* 1. 상품 선택 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">광고 상품</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {AVAILABLE_PRODUCTS.map((pid) => {
+          {filteredProducts.map((pid) => {
             const p = AD_PRODUCTS[pid];
             const isLine = pid === "LINE";
             const isFree = pid === "FREE";
+            const isLineSelected = isLine && productId === "LINE";
             const isUpgradeSelected = !isLine && !isFree && productId === pid;
             const isFreeSelected = isFree && productId === "FREE";
 
@@ -233,7 +182,18 @@ export function Step3ProductSelector({
                 <button
                   type="button"
                   onClick={() => {
-                    if (isLine && productId !== "FREE") return;
+                    if (isLine && productId !== "FREE" && productId !== "" && productId !== "LINE") return;
+                    if (isLine && (productId === "" || productId === "FREE")) {
+                      // 줄광고 직접 선택
+                      onUpdate({
+                        productId: "LINE",
+                        durationDays: 0,
+                        regions: regions.length > AD_PRODUCTS.LINE.maxRegions ? regions.slice(0, AD_PRODUCTS.LINE.maxRegions) : regions,
+                        options: [],
+                        optionValues: {},
+                      });
+                      return;
+                    }
                     if (isFree) {
                       onUpdate({
                         productId: "FREE",
@@ -260,9 +220,9 @@ export function Step3ProductSelector({
                     }
                   }}
                   className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                    isUpgradeSelected || isFreeSelected
+                    isUpgradeSelected || isFreeSelected || isLineSelected
                       ? "border-primary bg-primary/5"
-                      : isLine
+                      : isLine && !isLineSelected && productId !== "" && productId !== "FREE"
                         ? "border-muted bg-muted/30"
                         : "hover:bg-muted/50"
                   }`}
@@ -270,10 +230,13 @@ export function Step3ProductSelector({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{p.name}</span>
-                      {isLine && !isFreeSelected && (
+                      {isLine && !isFreeSelected && !isLineSelected && productId !== "" && productId !== "FREE" && (
                         <Badge variant="secondary" className="text-[10px]">
-                          필수
+                          기본
                         </Badge>
+                      )}
+                      {isLineSelected && (
+                        <Badge className="text-[10px]">선택됨</Badge>
                       )}
                       {(isUpgradeSelected || isFreeSelected) && (
                         <Badge className="text-[10px]">선택됨 {!isFree && "(다시 눌러 해제)"}</Badge>
@@ -317,8 +280,83 @@ export function Step3ProductSelector({
         </CardContent>
       </Card>
 
-      {/* 부가 옵션 - 유료만 */}
+      {/* 3. 기간 선택 - 유료 상품 선택 후 표시 */}
       {!isFreeProduct && productId !== "" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">광고 기간</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              {DURATION_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => onUpdate({ durationDays: d.value })}
+                  className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
+                    durationDays === d.value
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 4. 노출 지역 - 상품 선택 후 표시, BANNER는 전국 안내만 */}
+      {productId !== "" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              노출 지역{" "}
+              {!isBanner && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  (최대 {product.maxRegions}개 선택 가능)
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isBanner ? (
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                특수배너는 전국 노출됩니다. 지역 선택이 필요하지 않습니다.
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {REGION_LIST.map((r) => {
+                    const selected = regions.includes(r.value);
+                    return (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => toggleRegion(r.value)}
+                        className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.regions && (
+                  <p className="mt-2 text-xs text-destructive">{errors.regions}</p>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 5. 부가 옵션 - 유료 + 기간 선택 완료 시만 */}
+      {!isFreeProduct && productId !== "" && durationDays > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
@@ -505,7 +543,7 @@ export function Step3ProductSelector({
             <Button
               className="flex-1"
               onClick={handleSubmit}
-              disabled={productId === "" || (!isFreeProduct && durationDays === 0) || regions.length === 0}
+              disabled={productId === "" || (!isFreeProduct && durationDays === 0) || (!isBanner && regions.length === 0)}
             >
               다음 단계
             </Button>

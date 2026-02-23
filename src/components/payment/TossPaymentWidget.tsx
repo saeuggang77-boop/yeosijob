@@ -12,6 +12,8 @@ interface Props {
   customerName: string;
   customerEmail: string;
   method: "CARD" | "KAKAO_PAY";
+  successUrl?: string;
+  failUrl?: string;
   onError?: (message: string) => void;
 }
 
@@ -22,6 +24,8 @@ export function TossPaymentWidget({
   customerName,
   customerEmail,
   method,
+  successUrl,
+  failUrl,
   onError,
 }: Props) {
   const tossRef = useRef<Awaited<ReturnType<typeof loadTossPayments>> | null>(null);
@@ -46,8 +50,8 @@ export function TossPaymentWidget({
 
     const payment = toss.payment({ customerKey: customerEmail });
 
-    const successUrl = `${window.location.origin}/business/ads/new/success`;
-    const failUrl = `${window.location.origin}/business/ads/new/fail`;
+    const resolvedSuccessUrl = successUrl || `${window.location.origin}/business/ads/new/success`;
+    const resolvedFailUrl = failUrl || `${window.location.origin}/business/ads/new/fail`;
 
     try {
       if (method === "KAKAO_PAY") {
@@ -58,8 +62,8 @@ export function TossPaymentWidget({
           orderName,
           customerName,
           customerEmail,
-          successUrl,
-          failUrl,
+          successUrl: resolvedSuccessUrl,
+          failUrl: resolvedFailUrl,
           card: {
             flowMode: "DIRECT",
             easyPay: "카카오페이",
@@ -73,8 +77,8 @@ export function TossPaymentWidget({
           orderName,
           customerName,
           customerEmail,
-          successUrl,
-          failUrl,
+          successUrl: resolvedSuccessUrl,
+          failUrl: resolvedFailUrl,
         });
       }
     } catch (error) {

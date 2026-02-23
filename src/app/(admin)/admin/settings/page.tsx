@@ -47,7 +47,7 @@ export default async function AdminSettingsPage() {
               <dt className="text-sm font-medium text-muted-foreground">
                 사이트명
               </dt>
-              <dd className="text-lg font-semibold">여시알바</dd>
+              <dd className="text-lg font-semibold">여시잡</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">

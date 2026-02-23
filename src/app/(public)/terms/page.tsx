@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "이용약관 - 여시알바",
-  description: "여시알바 이용약관",
+  title: "이용약관 - 여시잡",
+  description: "여시잡 이용약관",
 };
 
 export default function TermsPage() {
@@ -13,7 +13,7 @@ export default function TermsPage() {
         <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">제1조 (목적)</h2>
           <p>
-            이 약관은 여시알바(이하 &quot;회사&quot;)가 제공하는 인터넷 관련 서비스(이하 &quot;서비스&quot;)의
+            이 약관은 여시잡(이하 &quot;회사&quot;)가 제공하는 인터넷 관련 서비스(이하 &quot;서비스&quot;)의
             이용과 관련하여 회사와 이용자의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.
           </p>
         </section>

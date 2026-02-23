@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = {
-  title: "여시알바 소개",
-  description: "유흥업소 채용 플랫폼 여시알바를 소개합니다.",
+  title: "여시잡 소개",
+  description: "유흥업소 채용 플랫폼 여시잡를 소개합니다.",
 };
 
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-screen-md px-4 py-10">
-      <h1 className="text-3xl font-bold">여시알바 소개</h1>
+      <h1 className="text-3xl font-bold">여시잡 소개</h1>
       <p className="mt-3 text-lg text-muted-foreground">
-        여시알바는 유흥업소 전문 채용 플랫폼입니다.
+        여시잡는 유흥업소 전문 채용 플랫폼입니다.
       </p>
       <p className="mt-1 text-muted-foreground">
         구직자와 업소를 빠르고 안전하게 연결해 드립니다.

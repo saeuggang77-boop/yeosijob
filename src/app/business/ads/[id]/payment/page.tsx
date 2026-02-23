@@ -64,7 +64,7 @@ export default async function PaymentInfoPage({
           <div className="rounded-lg bg-muted p-4 text-center">
             <p className="text-sm text-muted-foreground">입금 계좌</p>
             <p className="mt-1 text-lg font-bold">국민은행 123-456-789012</p>
-            <p className="text-sm text-muted-foreground">예금주: 여시알바</p>
+            <p className="text-sm text-muted-foreground">예금주: 여시잡</p>
           </div>
 
           <div className="space-y-2 text-sm">

@@ -119,7 +119,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       <section className="hero-mesh relative overflow-hidden px-4 py-20 text-center md:py-24">
         <div className="relative z-10">
           <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
-            당신의 새로운 시작, 여시알바
+            당신의 새로운 시작, 여시잡
           </h1>
           <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
             밤여시 카페 기반 신뢰할 수 있는 구인구직 플랫폼
@@ -417,7 +417,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           지금 광고를 등록하세요
         </h2>
         <p className="mt-3 text-muted-foreground">
-          여시알바에서 최고의 인재를 만나보세요
+          여시잡에서 최고의 인재를 만나보세요
         </p>
         <Link href="/business/ads/new">
           <Button

@@ -27,7 +27,7 @@ interface SidebarProps {
 export function Sidebar({
   navItems,
   userName,
-  logoText = "여시알바",
+  logoText = "여시잡",
   logoHref = "/",
   exactMatchPaths = [],
   showLogout = true,

@@ -31,7 +31,7 @@ export default async function AdminLayout({
       <Sidebar
         navItems={NAV_ITEMS}
         userName={session.user.name || session.user.email || "관리자"}
-        logoText="여시알바 관리자"
+        logoText="여시잡 관리자"
         logoHref="/admin"
         exactMatchPaths={["/admin"]}
         showBackLink

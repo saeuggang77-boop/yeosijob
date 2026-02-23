@@ -134,7 +134,7 @@ export async function POST(
     const totalAmount = linePrice + upgradePrice + optionsPrice;
 
     // orderId 생성
-    const orderId = `YSA-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     // 결제 정보 생성 (itemSnapshot에 upgrade 정보 포함)
     const itemSnapshot = {

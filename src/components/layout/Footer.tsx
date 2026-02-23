@@ -7,13 +7,13 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-3">
           {/* 회사 정보 */}
           <div>
-            <p className="text-lg font-bold text-primary">여시알바</p>
+            <p className="text-lg font-bold text-primary">여시잡</p>
             <p className="mt-2 text-sm text-muted-foreground">유흥업계 No.1 구인구직 플랫폼</p>
             <div className="mt-4 space-y-1 text-xs text-muted-foreground">
-              <p>상호: 여시알바</p>
+              <p>상호: 여시잡</p>
               <p>대표: -</p>
               <p>사업자등록번호: 준비중</p>
-              <p>고객센터: 카카오톡 @yeosialba</p>
+              <p>고객센터: 카카오톡 @yeosijob</p>
             </div>
           </div>
 
@@ -38,7 +38,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} 여시알바. All rights reserved.
+          &copy; {new Date().getFullYear()} 여시잡. All rights reserved.
         </div>
       </div>
     </footer>

@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     // orderId 생성 (FREE는 불필요하지만 일관성을 위해 생성)
-    const orderId = `YSA-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     // 트랜잭션으로 Ad + Payment 생성 (FREE는 Payment 생성 안 함)
     const result = await prisma.$transaction(async (tx) => {

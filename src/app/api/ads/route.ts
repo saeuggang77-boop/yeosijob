@@ -78,6 +78,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
+    // 사업자 인증 확인
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isVerifiedBiz: true },
+    });
+    if (!user?.isVerifiedBiz) {
+      return NextResponse.json(
+        { error: "사업자 인증이 완료되지 않았습니다. 프로필에서 사업자등록번호를 제출하고 관리자 승인을 받아주세요." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
       businessName,

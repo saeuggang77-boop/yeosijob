@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Step1BusinessInfo } from "@/components/ads/steps/Step1BusinessInfo";
 import { Step2JobInfo } from "@/components/ads/steps/Step2JobInfo";
 import { Step3ProductSelector } from "@/components/ads/steps/Step3ProductSelector";
 import { Step4Payment } from "@/components/ads/steps/Step4Payment";
 import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { AdFormData } from "@/lib/validators/ad";
 
 export default function NewAdPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
     regions: [],
@@ -37,6 +39,47 @@ export default function NewAdPage() {
     orderName: string;
     method: "CARD" | "KAKAO_PAY";
   } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/verification")
+      .then((res) => res.json())
+      .then((data) => setIsVerified(data.isVerified ?? false))
+      .catch(() => setIsVerified(false));
+  }, []);
+
+  // 비인증 업소 차단
+  if (isVerified === false) {
+    return (
+      <div className="mx-auto max-w-screen-md px-4 py-6">
+        <h1 className="text-2xl font-bold">광고 등록</h1>
+        <Card className="mt-6 border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-destructive">사업자 인증 필요</CardTitle>
+            <CardDescription>
+              광고를 등록하려면 사업자 인증이 완료되어야 합니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              프로필에서 사업자등록번호를 제출하고 관리자 승인을 받은 후 광고를 등록할 수 있습니다.
+            </p>
+            <Link href="/business/profile">
+              <Button>프로필로 이동</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isVerified === null) {
+    return (
+      <div className="mx-auto max-w-screen-md px-4 py-6">
+        <h1 className="text-2xl font-bold">광고 등록</h1>
+        <p className="mt-6 text-muted-foreground">로딩 중...</p>
+      </div>
+    );
+  }
 
   function updateData(data: Partial<AdFormData>) {
     setFormData((prev) => ({ ...prev, ...data }));

@@ -182,12 +182,11 @@ export function Step3ProductSelector({
                 <button
                   type="button"
                   onClick={() => {
-                    if (isLine && productId !== "FREE" && productId !== "" && productId !== "LINE") return;
-                    if (isLine && (productId === "" || productId === "FREE")) {
-                      // 줄광고 직접 선택
+                    if (isLine) {
+                      // 줄광고 선택 (어떤 상태에서든 줄광고로 전환)
                       onUpdate({
                         productId: "LINE",
-                        durationDays: 0,
+                        durationDays: productId === "FREE" || productId === "" ? 0 : durationDays,
                         regions: regions.length > AD_PRODUCTS.LINE.maxRegions ? regions.slice(0, AD_PRODUCTS.LINE.maxRegions) : regions,
                         options: [],
                         optionValues: {},
@@ -230,11 +229,6 @@ export function Step3ProductSelector({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{p.name}</span>
-                      {isLine && !isFreeSelected && !isLineSelected && productId !== "" && productId !== "FREE" && (
-                        <Badge variant="secondary" className="text-[10px]">
-                          기본
-                        </Badge>
-                      )}
                       {isLineSelected && (
                         <Badge className="text-[10px]">선택됨</Badge>
                       )}

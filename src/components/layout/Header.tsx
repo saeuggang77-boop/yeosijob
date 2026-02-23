@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { NotificationBell } from "@/components/notification/NotificationBell";
 
 export function Header() {
   const { data: session } = useSession();
@@ -77,6 +78,7 @@ export function Header() {
           <ThemeToggle />
           {session ? (
             <>
+              <NotificationBell />
               <span className="hidden text-sm text-muted-foreground md:inline">
                 {session.user.name}님
               </span>

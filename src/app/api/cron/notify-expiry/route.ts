@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           title: true,
+          userId: true,
           user: {
             select: { email: true },
           },
@@ -54,6 +55,17 @@ export async function GET(request: NextRequest) {
             daysLeft,
             ad.id,
           );
+
+          // Create in-app notification
+          await prisma.notification.create({
+            data: {
+              userId: ad.userId,
+              title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
+              message: `'${ad.title}' 광고가 ${daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`}`,
+              link: `/business/ads/${ad.id}`,
+            },
+          });
+
           results.notified++;
         } catch (error) {
           console.error(`Failed to send expiry notification for ad ${ad.id}:`, error);

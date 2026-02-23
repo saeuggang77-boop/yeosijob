@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 function HomeIcon({ className }: { className?: string }) {
   return (
@@ -52,11 +53,41 @@ function BookmarkIcon({ className }: { className?: string }) {
   );
 }
 
+function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    </svg>
+  );
+}
+
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const role = session?.user.role;
+
+  useEffect(() => {
+    if (!session) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unreadCount);
+        }
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [session]);
 
   let navItems;
 
@@ -72,6 +103,7 @@ export function MobileBottomNav() {
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/business/dashboard", label: "광고관리", icon: BriefcaseIcon },
       { href: "/business/resumes", label: "인재정보", icon: DocumentIcon },
+      { href: "/notifications", label: "알림", icon: BellIcon },
       { href: "/business/profile", label: "마이", icon: UserIcon },
     ];
   } else if (role === "JOBSEEKER") {
@@ -81,6 +113,7 @@ export function MobileBottomNav() {
       { href: "/jobs", label: "채용정보", icon: SearchIcon },
       { href: "/jobseeker/my-resume", label: "이력서", icon: DocumentIcon },
       { href: "/jobseeker/scraps", label: "스크랩", icon: BookmarkIcon },
+      { href: "/notifications", label: "알림", icon: BellIcon },
       { href: "/jobseeker/profile", label: "마이", icon: UserIcon },
     ];
   } else {
@@ -97,6 +130,9 @@ export function MobileBottomNav() {
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const isNotificationItem = item.href === "/notifications";
+          const showBadge = isNotificationItem && unreadCount > 0;
+
           return (
             <Link
               key={item.href}
@@ -107,7 +143,12 @@ export function MobileBottomNav() {
                   : "text-muted-foreground"
               }`}
             >
-              <item.icon className="h-6 w-6" />
+              <div className="relative">
+                <item.icon className="h-6 w-6" />
+                {showBadge && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
+                )}
+              </div>
               <span>{item.label}</span>
             </Link>
           );

@@ -105,6 +105,16 @@ export async function POST(
       }
     });
 
+    // 사업자에게 입금 확인 알림
+    await prisma.notification.create({
+      data: {
+        userId: payment.ad!.userId,
+        title: "입금이 확인되었습니다",
+        message: `'${payment.ad!.title}' 광고가 활성화되었습니다. 광고 기간: ${durationDays}일`,
+        link: `/business/dashboard`,
+      },
+    });
+
     return NextResponse.json({
       message: "입금이 확인되었습니다",
       paymentId: id,

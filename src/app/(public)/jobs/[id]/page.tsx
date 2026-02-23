@@ -252,7 +252,11 @@ export default async function JobDetailPage({ params }: PageProps) {
           )}
           <div className="flex items-start justify-between gap-4">
             <span className="shrink-0 text-muted-foreground">조회수</span>
-            <span>{ad.viewCount.toLocaleString()}회</span>
+            {ad.viewCount < 50 ? (
+              <Badge variant="secondary" className="text-xs">NEW</Badge>
+            ) : (
+              <span>{ad.viewCount.toLocaleString()}회</span>
+            )}
           </div>
           <div className="flex items-start justify-between gap-4">
             <span className="shrink-0 text-muted-foreground">등록일</span>

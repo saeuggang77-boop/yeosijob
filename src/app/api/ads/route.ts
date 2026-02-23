@@ -389,6 +389,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 무통장 입금 대기 → 관리자에게 알림 (fire and forget)
+    prisma.user
+      .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+      .then((admins) => {
+        if (admins.length > 0) {
+          return prisma.notification.createMany({
+            data: admins.map((admin) => ({
+              userId: admin.id,
+              title: "새 무통장 입금 대기",
+              message: `${businessName}에서 ${product.name} 광고 결제를 신청했습니다 (${totalAmount.toLocaleString()}원)`,
+              link: "/admin/payments",
+            })),
+          });
+        }
+      })
+      .catch(() => {});
+
     return NextResponse.json(
       {
         adId: result.ad.id,

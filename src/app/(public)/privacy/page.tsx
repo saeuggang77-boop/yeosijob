@@ -84,11 +84,11 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">8. 개인정보 보호책임자</h2>
-          <ul className="list-disc space-y-1 pl-5">
+          <ul data-nosnippet="" className="list-disc space-y-1 pl-5">
             <li>성명: 박상만</li>
             <li>직위: 대표</li>
             <li>연락처: 1588-7928</li>
-            <li>이메일: samsungcu@naver.com</li>
+            <li>이메일: samsungcu&#64;naver.com</li>
           </ul>
         </section>
 

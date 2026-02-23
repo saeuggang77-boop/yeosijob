@@ -102,7 +102,19 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제10조 (면책조항)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제10조 (결제 및 환불)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>유료 광고 서비스는 무통장 입금(계좌이체) 방식으로 결제할 수 있습니다.</li>
+            <li>결제 후 광고가 게재되기 전(입금 대기 상태): 전액 환불이 가능합니다.</li>
+            <li>광고가 게재(활성화)된 이후: 환불이 불가합니다.</li>
+            <li>회사의 귀책사유로 서비스가 제공되지 않은 경우: 전액 환불합니다.</li>
+            <li>환불 신청은 고객센터(1588-7928)로 연락해주시기 바랍니다.</li>
+            <li>환불 처리 기간은 신청일로부터 영업일 기준 7일 이내입니다.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제11조 (면책조항)</h2>
           <p>
             회사는 천재지변 또는 이에 준하는 불가항력으로 인해 서비스를 제공할 수 없는 경우에는
             서비스 제공에 관한 책임이 면제됩니다. 회사는 이용자의 귀책사유로 인한 서비스 이용의

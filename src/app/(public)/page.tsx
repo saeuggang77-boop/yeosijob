@@ -149,9 +149,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             밤을 빛내는 여시들의 일자리, 여시잡
           </h1>
           <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
-            <span className="font-semibold text-primary/80">밤여시(여시)</span> +{" "}
-            <span className="font-semibold text-primary/80">Job</span> ={" "}
-            <span className="font-semibold">여시잡</span>, 밤여시 카페 기반 No.1 구인구직
+            가장 어울리는 곳에서 당신이 더 빛날 수 있게
           </p>
 
           {/* Search Bar */}

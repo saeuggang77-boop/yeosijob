@@ -56,7 +56,7 @@ export function BannerSlider({ ads }: Props) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-primary">{ad.salaryText}</p>
+                    <p className="text-lg font-bold text-success">{ad.salaryText}</p>
                   </div>
                 </div>
               </div>

@@ -223,7 +223,7 @@
 
 /* Gold gradient text */
 .text-gradient-gold {
-  background: linear-gradient(135deg, #D4A853, #E8C547, #F59E0B);
+  background: linear-gradient(135deg, #C49A45, #D4A853, #E8C547);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

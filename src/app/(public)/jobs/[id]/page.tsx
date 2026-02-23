@@ -168,7 +168,7 @@ export default async function JobDetailPage({ params }: PageProps) {
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-start justify-between gap-4">
             <span className="shrink-0 text-muted-foreground">급여</span>
-            <span className="text-right font-semibold text-primary">{ad.salaryText}</span>
+            <span className="text-right font-semibold text-success">{ad.salaryText}</span>
           </div>
           {ad.workHours && (
             <div className="flex items-start justify-between gap-4">

@@ -293,7 +293,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-base font-bold text-primary">{ad.salaryText}</p>
+                        <p className="text-base font-bold text-success">{ad.salaryText}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           조회 {ad.viewCount.toLocaleString()}
                         </p>
@@ -355,7 +355,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-base font-bold text-primary">{ad.salaryText}</p>
+                        <p className="text-base font-bold text-success">{ad.salaryText}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           조회 {ad.viewCount.toLocaleString()}
                         </p>
@@ -409,7 +409,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-sm font-medium text-primary">{ad.salaryText}</p>
+                        <p className="text-sm font-medium text-success">{ad.salaryText}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           조회 {ad.viewCount.toLocaleString()}
                         </p>

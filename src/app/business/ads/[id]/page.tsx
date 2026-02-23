@@ -132,6 +132,23 @@ export default async function AdDetailPage({ params }: PageProps) {
         </Card>
       )}
 
+      {/* 연장 안내 - EXPIRED 유료 광고 */}
+      {ad.status === "EXPIRED" && ad.productId !== "FREE" && (
+        <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardHeader>
+            <CardTitle>광고가 만료되었습니다</CardTitle>
+            <CardDescription>
+              동일한 상품({getProductName(ad.productId)})으로 광고를 연장할 수 있습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href={`/business/ads/${id}/renew`}>
+              <Button>광고 연장하기</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Status and Product */}
       <Card>
         <CardHeader>

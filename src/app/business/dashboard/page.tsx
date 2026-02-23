@@ -196,6 +196,20 @@ export default async function DashboardPage() {
                         )}
                       </div>
                     )}
+                    {ad.status === "EXPIRED" && ad.productId !== "FREE" && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 border-t pt-2">
+                        <Link href={`/business/ads/${ad.id}/renew`}>
+                          <Button size="sm" variant="default" className="text-xs">
+                            광고 연장하기
+                          </Button>
+                        </Link>
+                        <Link href={`/business/ads/${ad.id}/stats`}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            통계
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );

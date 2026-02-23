@@ -75,18 +75,19 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Ad 활성화 또는 업그레이드
+      // Ad 활성화 또는 업그레이드/연장
       if (payment.adId) {
         const snapshot = payment.itemSnapshot as any;
         const isUpgrade = snapshot?.type === "upgrade";
+        const isRenew = snapshot?.type === "renew";
 
-        // 업그레이드: snapshot.duration 사용, 일반: 기존 ad.durationDays 사용
-        const durationDays = isUpgrade
+        // 업그레이드/연장: snapshot.duration 사용, 일반: 기존 ad.durationDays 사용
+        const durationDays = (isUpgrade || isRenew)
           ? snapshot.duration
           : (payment.ad?.durationDays || 30);
         const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-        if (isUpgrade) {
+        if (isUpgrade || isRenew) {
           // 기존 옵션 삭제
           await tx.adOption.deleteMany({
             where: { adId: payment.adId },
@@ -108,20 +109,21 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // 광고 업그레이드
+          // 광고 업그레이드/연장
           await tx.ad.update({
             where: { id: payment.adId },
             data: {
               status: "ACTIVE",
               productId: snapshot.product.id,
               durationDays: snapshot.duration,
-              totalAmount: { increment: amount },
+              totalAmount: isRenew ? amount : { increment: amount },
               autoJumpPerDay: snapshot.newFeatures.autoJumpPerDay,
               manualJumpPerDay: snapshot.newFeatures.manualJumpPerDay,
               maxEdits: snapshot.newFeatures.maxEdits,
               startDate: now,
               endDate,
               lastJumpedAt: now,
+              manualJumpUsedToday: 0,
               editCount: 0,
             },
           });

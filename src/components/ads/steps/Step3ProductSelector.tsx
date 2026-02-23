@@ -116,6 +116,9 @@ export function Step3ProductSelector({
       current.splice(idx, 1);
     } else if (current.length < maxRegions) {
       current.push(regionKey);
+    } else if (maxRegions === 1) {
+      // 1개 제한일 때 다른 지역 클릭 시 교체
+      current[0] = regionKey;
     }
     onUpdate({ regions: current });
   }

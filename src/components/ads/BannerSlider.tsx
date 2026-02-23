@@ -67,7 +67,7 @@ export function BannerSlider({ ads }: Props) {
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
                     <span className="banner-badge rounded-md px-3 py-1 text-xs font-black tracking-wider">
-                      BANNER
+                      노블레스
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {biz?.icon} {biz?.shortLabel}

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, FileText, Heart, MessageSquare } from "lucide-react";
+import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
 
@@ -43,7 +44,7 @@ export default async function ProfilePage() {
     prisma.scrap.count({ where: { userId } }),
     prisma.review.count({ where: { userId } }),
     prisma.resume.findUnique({ where: { userId } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true, name: true, phone: true } }),
   ]);
 
   const resumeStatus = resume ? "등록됨" : "미등록";
@@ -60,6 +61,13 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-4">
+        {/* 프로필 수정 */}
+        <EditProfileSection
+          currentName={user?.name || ""}
+          currentPhone={user?.phone || ""}
+          isBusiness={false}
+        />
+
         {/* 내 이력서 */}
         <Link href="/jobseeker/my-resume" className="block">
           <Card className="transition-shadow hover:shadow-md">

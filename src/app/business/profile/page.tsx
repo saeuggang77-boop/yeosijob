@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, BarChart3 } from "lucide-react";
+import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
 
@@ -37,7 +38,7 @@ export default async function BusinessProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { hashedPassword: true },
+    select: { hashedPassword: true, name: true, phone: true, businessName: true },
   });
   const hasPassword = !!user?.hashedPassword;
 
@@ -55,6 +56,14 @@ export default async function BusinessProfilePage() {
       </div>
 
       <div className="space-y-4">
+        {/* 프로필 수정 */}
+        <EditProfileSection
+          currentName={user?.name || ""}
+          currentPhone={user?.phone || ""}
+          currentBusinessName={user?.businessName || ""}
+          isBusiness={true}
+        />
+
         {/* 광고 관리 */}
         <Link href="/business/dashboard" className="block">
           <Card className="transition-shadow hover:shadow-md">

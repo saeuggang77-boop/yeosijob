@@ -15,6 +15,9 @@ export const metadata = {
     title: "채용정보 | 여시잡",
     description: "전국 유흥업소 채용정보를 확인하세요.",
   },
+  alternates: {
+    canonical: "/jobs",
+  },
 };
 
 interface PageProps {

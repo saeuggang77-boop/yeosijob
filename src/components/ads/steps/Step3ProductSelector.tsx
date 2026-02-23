@@ -22,6 +22,8 @@ interface Props {
   onFreeSubmit?: () => void;
   freeSubmitLoading?: boolean;
   upgradeFrom?: string;
+  freeCredits?: number;
+  onCreditSubmit?: () => void;
 }
 
 // Phase 2-16: 모든 등급 오픈 (FREE 추가)
@@ -57,6 +59,8 @@ export function Step3ProductSelector({
   onFreeSubmit,
   freeSubmitLoading,
   upgradeFrom,
+  freeCredits = 0,
+  onCreditSubmit,
 }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -537,13 +541,25 @@ export function Step3ProductSelector({
               {freeSubmitLoading ? "등록 중..." : "무료 광고 등록하기"}
             </Button>
           ) : (
-            <Button
-              className="flex-1"
-              onClick={handleSubmit}
-              disabled={productId === "" || (!isFreeProduct && durationDays === 0) || (!isBanner && regions.length === 0)}
-            >
-              다음 단계
-            </Button>
+            <>
+              {freeCredits > 0 && productId !== "" && durationDays > 0 && (
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={onCreditSubmit}
+                  disabled={(!isBanner && regions.length === 0) || freeSubmitLoading}
+                >
+                  {freeSubmitLoading ? "등록 중..." : `무료 광고권 사용 (${freeCredits}회)`}
+                </Button>
+              )}
+              <Button
+                className="flex-1"
+                onClick={handleSubmit}
+                disabled={productId === "" || (!isFreeProduct && durationDays === 0) || (!isBanner && regions.length === 0)}
+              >
+                결제하기
+              </Button>
+            </>
           )}
         </div>
       </div>

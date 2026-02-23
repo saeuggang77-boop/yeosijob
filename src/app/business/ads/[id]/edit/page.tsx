@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,39 @@ export default function EditAdPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const [showPostcode, setShowPostcode] = useState(false);
+  const postcodeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (document.getElementById("daum-postcode-script")) return;
+    const script = document.createElement("script");
+    script.id = "daum-postcode-script";
+    script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  const openPostcode = useCallback(() => {
+    if (!(window as any).daum?.Postcode) {
+      alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    setShowPostcode(true);
+    setTimeout(() => {
+      if (!postcodeRef.current) return;
+      new (window as any).daum.Postcode({
+        oncomplete: (result: any) => {
+          const addr = result.roadAddress || result.jibunAddress;
+          setForm((prev) => ({ ...prev, address: addr }));
+          setShowPostcode(false);
+        },
+        onclose: () => setShowPostcode(false),
+        width: "100%",
+        height: "100%",
+      }).embed(postcodeRef.current);
+    }, 100);
+  }, []);
 
   const [form, setForm] = useState({
     title: "",
@@ -234,12 +267,31 @@ export default function EditAdPage() {
               </div>
               <div>
                 <Label htmlFor="address">주소</Label>
-                <input
-                  id="address"
-                  value={form.address}
-                  onChange={(e) => updateField("address", e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
+                <div className="mt-1 flex gap-2">
+                  <input
+                    id="address"
+                    value={form.address}
+                    readOnly
+                    placeholder="주소 검색을 클릭하세요"
+                    className="h-10 flex-1 cursor-pointer rounded-md border bg-muted/50 px-3 text-sm outline-none"
+                    onClick={openPostcode}
+                  />
+                  <Button type="button" variant="outline" onClick={openPostcode} className="shrink-0">
+                    주소 검색
+                  </Button>
+                </div>
+                {showPostcode && (
+                  <div className="relative mt-2 overflow-hidden rounded-md border">
+                    <div ref={postcodeRef} className="h-[400px] w-full" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPostcode(false)}
+                      className="absolute right-2 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white hover:bg-black/80"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="addressDetail">상세주소</Label>

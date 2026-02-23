@@ -250,14 +250,6 @@ export default async function JobDetailPage({ params }: PageProps) {
               <span className="text-right">{ad.workHours}</span>
             </div>
           )}
-          {ad.address && (
-            <div className="flex items-start justify-between gap-4">
-              <span className="shrink-0 text-muted-foreground">위치</span>
-              <span className="text-right break-keep">
-                {ad.address} {ad.addressDetail}
-              </span>
-            </div>
-          )}
           <div className="flex items-start justify-between gap-4">
             <span className="shrink-0 text-muted-foreground">조회수</span>
             <span>{ad.viewCount.toLocaleString()}회</span>
@@ -266,6 +258,25 @@ export default async function JobDetailPage({ params }: PageProps) {
             <span className="shrink-0 text-muted-foreground">등록일</span>
             <span>{formatDate(ad.createdAt)}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 위치 정보 */}
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="text-lg">위치</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
+          {ad.address ? (
+            <div className="space-y-1">
+              <p className="font-medium">{ad.address}</p>
+              {ad.addressDetail && (
+                <p className="text-muted-foreground">{ad.addressDetail}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">{regionLabels}</p>
+          )}
         </CardContent>
       </Card>
 

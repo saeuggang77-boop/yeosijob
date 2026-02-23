@@ -5,6 +5,18 @@ import { Badge } from "@/components/ui/badge";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "공지사항",
+  description: "여시잡 공지사항 - 중요한 소식과 업데이트를 확인하세요",
+  openGraph: {
+    title: "공지사항 | 여시잡",
+    description: "여시잡 공지사항 - 중요한 소식과 업데이트를 확인하세요",
+  },
+  alternates: {
+    canonical: "/notice",
+  },
+};
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;
@@ -49,42 +61,70 @@ export default async function NoticePage({ searchParams }: PageProps) {
             <p className="text-lg">등록된 공지사항이 없습니다</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">제목</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold">조회수</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold">작성일</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {notices.map((notice) => (
-                  <tr key={notice.id} className="hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <Link href={`/notice/${notice.id}`} className="hover:underline">
-                        <span className="text-sm font-medium">
-                          {notice.isPinned && <span className="mr-2">📌</span>}
-                          {notice.title}
-                        </span>
-                        {notice.isPinned && (
-                          <Badge variant="default" className="ml-2 text-xs">
-                            고정
-                          </Badge>
-                        )}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-muted-foreground">
-                      {notice.viewCount.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm text-muted-foreground">
-                      {notice.createdAt.toLocaleDateString("ko-KR")}
-                    </td>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full">
+                <thead className="border-b bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">제목</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold">조회수</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold">작성일</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {notices.map((notice) => (
+                    <tr key={notice.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <Link href={`/notice/${notice.id}`} className="hover:underline">
+                          <span className="text-sm font-medium">
+                            {notice.isPinned && <span className="mr-2">📌</span>}
+                            {notice.title}
+                          </span>
+                          {notice.isPinned && (
+                            <Badge variant="default" className="ml-2 text-xs">
+                              고정
+                            </Badge>
+                          )}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-muted-foreground">
+                        {notice.viewCount.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-muted-foreground">
+                        {notice.createdAt.toLocaleDateString("ko-KR")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List */}
+            <div className="divide-y divide-border md:hidden">
+              {notices.map((notice) => (
+                <Link
+                  key={notice.id}
+                  href={`/notice/${notice.id}`}
+                  className="block p-4 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="mb-1 text-sm font-medium">
+                    {notice.isPinned && <span className="mr-2">📌</span>}
+                    <span className="line-clamp-1">{notice.title}</span>
+                    {notice.isPinned && (
+                      <Badge variant="default" className="ml-2 text-xs">
+                        고정
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {notice.createdAt.toLocaleDateString("ko-KR")} · 조회{" "}
+                    {notice.viewCount.toLocaleString()}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </Card>
 

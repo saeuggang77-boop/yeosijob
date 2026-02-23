@@ -40,15 +40,12 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
 
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
-      <div className={`relative w-44 shrink-0 rounded-lg border p-3 transition-all duration-200 hover:-translate-y-1 hover:bg-muted/50 sm:w-auto ${productStyles}`}>
+      <div className={`relative w-full rounded-lg border p-3 transition-all duration-200 hover:-translate-y-1 hover:bg-muted/50 ${productStyles}`}>
         {productId === "VIP" && (
           <span className="absolute -top-2 -right-2 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">VIP</span>
         )}
         {productId === "PREMIUM" && (
           <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">⭐</span>
-        )}
-        {productId === "URGENT" && (
-          <span className="absolute -top-2 -right-2 animate-pulse-urgent rounded bg-urgent px-1.5 py-0.5 text-[10px] font-bold text-white">급구</span>
         )}
         <div className="flex items-center gap-1">
           <h3 className="truncate text-sm font-medium">{ad.title}</h3>

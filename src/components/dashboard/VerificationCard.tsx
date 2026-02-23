@@ -14,6 +14,7 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
   const router = useRouter();
   const [number, setNumber] = useState("");
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ verified: boolean; message: string } | null>(null);
 
   if (isVerified) {
     return (
@@ -43,14 +44,25 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
       return;
     }
     setLoading(true);
+    setResult(null);
     try {
       const res = await fetch("/api/verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessNumber: number }),
       });
-      if (res.ok) router.refresh();
-      else alert("제출 실패");
+      const data = await res.json();
+      if (data.verified) {
+        setResult({ verified: true, message: data.message });
+        setTimeout(() => router.refresh(), 1500);
+      } else if (res.ok) {
+        setResult({ verified: false, message: data.message });
+        setTimeout(() => router.refresh(), 2000);
+      } else {
+        setResult({ verified: false, message: data.message || data.error || "제출 실패" });
+      }
+    } catch {
+      alert("서버 오류가 발생했습니다");
     } finally {
       setLoading(false);
     }
@@ -60,7 +72,7 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
     <Card>
       <CardContent className="py-3">
         <p className="text-sm font-medium">업소 인증</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">사업자등록번호를 제출하면 인증 배지를 받을 수 있습니다</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">사업자등록번호를 제출하면 자동으로 인증됩니다</p>
         <div className="mt-2 flex gap-2">
           <input
             value={number}
@@ -69,9 +81,14 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
             className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <Button size="sm" onClick={handleSubmit} disabled={loading}>
-            {loading ? "제출 중..." : "제출"}
+            {loading ? "확인 중..." : "인증"}
           </Button>
         </div>
+        {result && (
+          <p className={`mt-2 text-xs ${result.verified ? "text-green-600" : "text-red-500"}`}>
+            {result.message}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

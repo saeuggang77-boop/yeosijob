@@ -17,6 +17,7 @@ export default function NewAdPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [freeCredits, setFreeCredits] = useState(0);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
     regions: [],
@@ -43,7 +44,10 @@ export default function NewAdPage() {
   useEffect(() => {
     fetch("/api/verification")
       .then((res) => res.json())
-      .then((data) => setIsVerified(data.isVerified ?? false))
+      .then((data) => {
+        setIsVerified(data.isVerified ?? false);
+        setFreeCredits(data.freeAdCredits ?? 0);
+      })
       .catch(() => setIsVerified(false));
   }, []);
 
@@ -94,7 +98,7 @@ export default function NewAdPage() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
+  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER", useCreditFlag?: boolean) {
     setError("");
     setLoading(true);
     try {
@@ -102,7 +106,8 @@ export default function NewAdPage() {
 
       const payload = {
         ...formData,
-        paymentMethod: isFreeProduct ? undefined : paymentMethod
+        paymentMethod: isFreeProduct ? undefined : paymentMethod,
+        useCredit: useCreditFlag || false,
       };
 
       const res = await fetch("/api/ads", {
@@ -118,8 +123,8 @@ export default function NewAdPage() {
         return;
       }
 
-      // FREE 상품: 성공 페이지로 이동
-      if (isFreeProduct) {
+      // FREE 상품 또는 무료 광고권 사용: 성공 페이지로 이동
+      if (isFreeProduct || result.useCredit) {
         router.push("/business/ads/new/success?free=true");
         return;
       }
@@ -251,6 +256,8 @@ export default function NewAdPage() {
             onBack={handleBack}
             onFreeSubmit={() => handleSubmit()}
             freeSubmitLoading={loading}
+            freeCredits={freeCredits}
+            onCreditSubmit={() => handleSubmit(undefined, true)}
           />
         )}
         {step === 4 && formData.productId !== "FREE" && (

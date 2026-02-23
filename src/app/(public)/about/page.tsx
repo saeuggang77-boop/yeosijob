@@ -8,6 +8,9 @@ export const metadata = {
     title: "여시잡 소개 | 여시잡",
     description: "밤여시(여시) + Job = 여시잡. 밤여시 카페 기반 신뢰할 수 있는 유흥업소 구인구직 플랫폼입니다.",
   },
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {

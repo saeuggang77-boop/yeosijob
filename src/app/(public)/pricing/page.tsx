@@ -12,6 +12,9 @@ export const metadata = {
     title: "광고 안내 | 여시잡",
     description: "여시잡 광고 상품 안내 및 가격표",
   },
+  alternates: {
+    canonical: "/pricing",
+  },
 };
 
 export default async function PricingPage() {
@@ -78,7 +81,65 @@ export default async function PricingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile Card Layout */}
+          <div className="lg:hidden space-y-4">
+            {orderedTiers.map((tier) => (
+              <div key={tier.id} className={`rounded-lg p-4 ${getTierRowClass(tier.id)}`}>
+                <h3 className="text-lg font-bold mb-3">{tier.name}</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">30일</span>
+                    <span className="font-medium">{formatPrice(tier.pricing[30])}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">60일</span>
+                    <span className="font-medium">{formatPrice(tier.pricing[60])}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">90일</span>
+                    <span className="font-medium">{formatPrice(tier.pricing[90])}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t">
+                    <span className="text-muted-foreground">자동점프/일</span>
+                    <span>{formatNumber(tier.autoJumpPerDay)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">수동점프/일</span>
+                    <span>{formatNumber(tier.manualJumpPerDay)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">이력서 열람</span>
+                    <span>
+                      {tier.includeResumeView ? (
+                        <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">디자인 포함</span>
+                    <span>{formatNumber(tier.includeDesignCount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">최대 지역</span>
+                    <span>{tier.maxRegions === 0 ? "제한없음" : tier.maxRegions}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">최대 수정</span>
+                    <span>{formatNumber(tier.maxEdits)}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <span className="text-muted-foreground">노출 위치</span>
+                    <p className="mt-1">{tier.position}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table Layout */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full min-w-[1000px]">
               <thead>
                 <tr className="border-b-2 bg-muted/50">
@@ -120,6 +181,7 @@ export default async function PricingPage() {
               </tbody>
             </table>
           </div>
+
           <div className="mt-4 text-sm text-muted-foreground border-t pt-4">
             <p className="flex items-start gap-2">
               <span className="font-bold text-primary">※</span>

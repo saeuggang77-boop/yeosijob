@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +22,57 @@ interface Props {
   onNext: () => void;
 }
 
+declare global {
+  interface Window {
+    daum: {
+      Postcode: new (options: {
+        oncomplete: (data: { address: string; roadAddress: string; jibunAddress: string }) => void;
+        onclose?: (state: string) => void;
+        width: string;
+        height: string;
+      }) => { embed: (element: HTMLElement) => void };
+    };
+  }
+}
+
 export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [address, setAddress] = useState(data.address || "");
+  const [showPostcode, setShowPostcode] = useState(false);
+  const postcodeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (document.getElementById("daum-postcode-script")) return;
+    const script = document.createElement("script");
+    script.id = "daum-postcode-script";
+    script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  const openPostcode = useCallback(() => {
+    if (!window.daum?.Postcode) {
+      alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    setShowPostcode(true);
+    setTimeout(() => {
+      if (!postcodeRef.current) return;
+      new window.daum.Postcode({
+        oncomplete: (result) => {
+          const addr = result.roadAddress || result.jibunAddress;
+          setAddress(addr);
+          onUpdate({ address: addr });
+          setShowPostcode(false);
+        },
+        onclose: () => {
+          setShowPostcode(false);
+        },
+        width: "100%",
+        height: "100%",
+      }).embed(postcodeRef.current);
+    }, 100);
+  }, [onUpdate]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -130,12 +179,32 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
 
           <div className="space-y-2">
             <Label htmlFor="address">주소 (선택)</Label>
-            <Input
-              id="address"
-              name="address"
-              defaultValue={data.address}
-              placeholder="주소"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="address"
+                name="address"
+                value={address}
+                readOnly
+                placeholder="주소 검색을 클릭하세요"
+                className="flex-1 cursor-pointer bg-muted/50"
+                onClick={openPostcode}
+              />
+              <Button type="button" variant="outline" onClick={openPostcode} className="shrink-0">
+                주소 검색
+              </Button>
+            </div>
+            {showPostcode && (
+              <div className="relative mt-2 overflow-hidden rounded-md border">
+                <div ref={postcodeRef} className="h-[400px] w-full" />
+                <button
+                  type="button"
+                  onClick={() => setShowPostcode(false)}
+                  className="absolute right-2 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white hover:bg-black/80"
+                >
+                  닫기
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

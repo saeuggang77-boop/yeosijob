@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,32 @@ interface PageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const notice = await prisma.notice.findUnique({
+    where: { id },
+    select: { title: true, content: true },
+  });
+
+  if (!notice) {
+    return { title: "공지사항" };
+  }
+
+  const description = notice.content.slice(0, 160).replace(/\n/g, " ");
+
+  return {
+    title: notice.title,
+    description,
+    openGraph: {
+      title: `${notice.title} | 여시잡`,
+      description,
+    },
+    alternates: {
+      canonical: `/notice/${id}`,
+    },
+  };
 }
 
 export default async function NoticeDetailPage({ params }: PageProps) {

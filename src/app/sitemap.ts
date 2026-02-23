@@ -71,5 +71,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...adPages];
+  // 커뮤니티 게시글
+  const communityPosts = await prisma.post.findMany({
+    where: { isHidden: false },
+    select: { id: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+    take: 1000,
+  });
+
+  const communityPages: MetadataRoute.Sitemap = communityPosts.map((post) => ({
+    url: `${baseUrl}/community/${post.id}`,
+    lastModified: post.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.5,
+  }));
+
+  // 공지사항 개별 페이지
+  const notices = await prisma.notice.findMany({
+    select: { id: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const noticePages: MetadataRoute.Sitemap = notices.map((notice) => ({
+    url: `${baseUrl}/notice/${notice.id}`,
+    lastModified: notice.updatedAt,
+    changeFrequency: "monthly" as const,
+    priority: 0.4,
+  }));
+
+  return [...staticPages, ...adPages, ...communityPages, ...noticePages];
 }

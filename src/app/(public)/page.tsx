@@ -12,6 +12,18 @@ import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "여시잡 | 유흥알바 밤알바 룸알바 No.1 구인구직",
+  description: "여시잡에서 유흥업소 채용정보와 인재를 만나보세요. 룸싸롱, 노래방, 텐카페, 바, 클럽 등 전국 유흥알바 구인구직 플랫폼",
+  openGraph: {
+    title: "여시잡 | 유흥알바 밤알바 룸알바 No.1 구인구직",
+    description: "여시잡에서 유흥업소 채용정보와 인재를 만나보세요. 전국 유흥알바 구인구직 플랫폼",
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;
@@ -54,6 +66,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     freeAds,
     total,
     totalResumes,
+    recentPosts,
   ] = await Promise.all([
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "BANNER" },
@@ -76,7 +89,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "SPECIAL" },
       orderBy: { lastJumpedAt: "desc" },
-      take: 5,
+      take: 6,
       select: adSelect,
     }),
     prisma.ad.findMany({
@@ -106,6 +119,20 @@ export default async function HomePage({ searchParams }: PageProps) {
     }),
     prisma.ad.count({ where: { ...baseWhere, productId: "LINE" } }),
     prisma.resume.count({ where: { isPublic: true } }),
+    prisma.post.findMany({
+      where: { isHidden: false },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        viewCount: true,
+        createdAt: true,
+        author: { select: { name: true } },
+        _count: { select: { comments: true } },
+      },
+    }),
   ]);
 
   const totalPages = Math.ceil(total / limit);
@@ -116,7 +143,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       <AnnouncementBar />
 
       {/* Hero Section with Bokeh Effect */}
-      <section className="hero-mesh relative overflow-hidden px-4 py-20 text-center md:py-24">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-16 text-center md:py-24">
         <div className="relative z-10">
           <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
             당신의 새로운 시작, 여시잡
@@ -136,7 +163,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             <select
               name="region"
               defaultValue=""
-              className="h-12 border-b border-border/50 bg-transparent px-3 text-sm text-foreground sm:border-b-0 sm:border-r"
+              className="h-12 border-b border-border/50 bg-transparent px-4 text-sm text-foreground sm:border-b-0 sm:border-r"
             >
               <option value="">지역 전체</option>
               {Object.entries(REGIONS).map(([key, val]) => (
@@ -146,7 +173,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             <select
               name="businessType"
               defaultValue=""
-              className="h-12 border-b border-border/50 bg-transparent px-3 text-sm text-foreground sm:border-b-0 sm:border-r"
+              className="h-12 border-b border-border/50 bg-transparent px-4 text-sm text-foreground sm:border-b-0 sm:border-r"
             >
               <option value="">업종 전체</option>
               {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
@@ -161,7 +188,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             />
             <button
               type="submit"
-              className="h-12 bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-2 h-12 rounded-lg bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:mt-0 sm:rounded-none"
             >
               검색
             </button>
@@ -258,7 +285,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     <AdBoxCard key={ad.id} ad={ad} productId="URGENT" />
                   ))}
                 </div>
-                <Link href="/jobs?productId=URGENT" className="mt-2 block text-sm text-urgent hover:underline">더보기 →</Link>
+                <Link href="/jobs?productId=URGENT" className="mt-2 block text-right text-sm text-urgent hover:underline">더보기 →</Link>
               </div>
             )}
             {/* Recommend Column */}
@@ -275,9 +302,51 @@ export default async function HomePage({ searchParams }: PageProps) {
                     <AdBoxCard key={ad.id} ad={ad} productId="RECOMMEND" />
                   ))}
                 </div>
-                <Link href="/jobs?productId=RECOMMEND" className="mt-2 block text-sm text-primary hover:underline">더보기 →</Link>
+                <Link href="/jobs?productId=RECOMMEND" className="mt-2 block text-right text-sm text-primary hover:underline">더보기 →</Link>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Community Preview */}
+      {recentPosts.length > 0 && (
+        <section className="border-b px-4 py-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold">커뮤니티</h2>
+            <div className="flex items-center gap-2">
+              <Link href="/community/new">
+                <Button size="sm" variant="outline">글쓰기</Button>
+              </Link>
+              <Link href="/community" className="text-sm text-primary hover:underline">
+                더보기 →
+              </Link>
+            </div>
+          </div>
+          <div className="divide-y divide-border rounded-lg border">
+            {recentPosts.map((post) => (
+              <Link key={post.id} href={`/community/${post.id}`} className="block transition-colors hover:bg-muted/50">
+                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                      post.category === "REVIEW" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
+                      post.category === "QUESTION" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                      post.category === "INFO" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
+                      "bg-muted text-muted-foreground"
+                    }`}>
+                      {post.category === "FREE_TALK" ? "자유" : post.category === "REVIEW" ? "후기" : post.category === "QUESTION" ? "질문" : "정보"}
+                    </span>
+                    <span className="truncate text-sm font-medium">{post.title}</span>
+                    {post._count.comments > 0 && (
+                      <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                    <span>{post.author.name}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}
@@ -286,7 +355,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       <section className="border-b">
         <div className="px-4 py-3">
           <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
-            전체 채용정보{" "}
+            줄광고{" "}
             <span className="font-normal text-muted-foreground">
               {total.toLocaleString()}건
             </span>
@@ -304,8 +373,23 @@ export default async function HomePage({ searchParams }: PageProps) {
               const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
               const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
               return (
-                <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
-                  <div className="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/50">
+                <Link key={ad.id} href={`/jobs/${ad.id}`} className="block transition-colors hover:bg-muted/50">
+                  {/* Mobile: 2-line card */}
+                  <div className="px-4 py-3 text-sm md:hidden">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate font-medium">{ad.businessName}</span>
+                      <span className="shrink-0 font-medium text-success">{ad.salaryText}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="shrink-0">{regionLabels}</span>
+                      <span>·</span>
+                      <span className="shrink-0">{bizLabel}</span>
+                      <span>·</span>
+                      <span className="min-w-0 truncate">{ad.title}</span>
+                    </div>
+                  </div>
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden items-center gap-3 px-4 py-3 text-sm md:flex">
                     <span className="w-32 truncate font-medium">{ad.businessName}</span>
                     <span className="text-muted-foreground">|</span>
                     <span className="w-20 shrink-0 text-xs text-muted-foreground">{regionLabels}</span>
@@ -349,7 +433,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     )}
                     <a
                       href={`/?page=${p}`}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded text-sm ${
                         p === page
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-muted"
@@ -377,8 +461,21 @@ export default async function HomePage({ searchParams }: PageProps) {
               const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
               const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
               return (
-                <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
-                  <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50">
+                <Link key={ad.id} href={`/jobs/${ad.id}`} className="block transition-colors hover:bg-muted/50">
+                  {/* Mobile: 2-line card */}
+                  <div className="px-4 py-2.5 text-sm text-muted-foreground md:hidden">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate">{ad.businessName}</span>
+                      <span className="shrink-0 text-xs">{ad.salaryText}</span>
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-xs">
+                      <span className="shrink-0">{regionLabels}</span>
+                      <span>·</span>
+                      <span className="min-w-0 truncate text-foreground">{ad.title}</span>
+                    </div>
+                  </div>
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground md:flex">
                     <span className="w-28 truncate">{ad.businessName}</span>
                     <span>|</span>
                     <span className="w-16 shrink-0 text-xs">{regionLabels}</span>

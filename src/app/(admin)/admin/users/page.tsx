@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GrantCreditsButton } from "@/components/admin/GrantCreditsButton";
 
 interface PageProps {
   searchParams: Promise<{
@@ -29,7 +30,6 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -48,7 +48,6 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         businessName: true,
         isActive: true,
         createdAt: true,
-        _count: { select: { ads: true, resumes: true } },
       },
     }),
     prisma.user.count({ where }),
@@ -102,7 +101,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             type="text"
             name="search"
             defaultValue={search}
-            placeholder="이름, 이메일, 전화번호로 검색"
+            placeholder="이름, 이메일로 검색"
             className="h-10 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
           />
           <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
@@ -120,9 +119,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
               <th className="pb-3 font-medium">이메일</th>
               <th className="pb-3 font-medium">역할</th>
               <th className="pb-3 font-medium">업소명</th>
-              <th className="pb-3 font-medium">광고</th>
-              <th className="pb-3 font-medium">이력서</th>
               <th className="pb-3 font-medium">가입일</th>
+              <th className="pb-3 font-medium">무료광고권</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -136,10 +134,13 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                   </Badge>
                 </td>
                 <td className="py-3 text-muted-foreground">{user.businessName || "-"}</td>
-                <td className="py-3 text-muted-foreground">{user._count.ads}</td>
-                <td className="py-3 text-muted-foreground">{user._count.resumes}</td>
                 <td className="py-3 text-muted-foreground">
-                  {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                  {user.createdAt.toLocaleDateString("ko-KR")}
+                </td>
+                <td className="py-3">
+                  {user.role === "BUSINESS" ? (
+                    <GrantCreditsButton userId={user.id} />
+                  ) : "-"}
                 </td>
               </tr>
             ))}

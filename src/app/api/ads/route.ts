@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       options = [],
       optionValues = {},
       paymentMethod,
+      useCredit,
     } = body;
 
     // 검증
@@ -167,6 +168,91 @@ export async function POST(request: NextRequest) {
       if (existingPaidAds >= 5) {
         return NextResponse.json({ error: "유료 광고는 최대 5개까지 등록할 수 있습니다" }, { status: 400 });
       }
+    }
+
+    // 무료 광고권 사용
+    if (productId !== "FREE" && useCredit) {
+      const creditResult = await prisma.$queryRaw<{ freeAdCredits: number }[]>`
+        SELECT "freeAdCredits" FROM "users" WHERE id = ${session.user.id}
+      `;
+
+      if (!creditResult[0] || creditResult[0].freeAdCredits < 1) {
+        return NextResponse.json({ error: "무료 광고권이 없습니다" }, { status: 400 });
+      }
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + durationDays);
+
+      const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      // Transaction: create ad + decrement credit + create payment record
+      const ad = await prisma.$transaction(async (tx) => {
+        const newAd = await tx.ad.create({
+          data: {
+            userId: session.user.id,
+            businessName,
+            businessType: businessType as BusinessType,
+            contactPhone: contactPhone.replace(/-/g, ""),
+            contactKakao: contactKakao || null,
+            address: address || null,
+            addressDetail: addressDetail || null,
+            title,
+            salaryText,
+            workHours: workHours || null,
+            benefits: benefits || null,
+            description,
+            regions: regions as Region[],
+            productId: productId as AdProductId,
+            durationDays: duration,
+            totalAmount: 0,
+            status: "ACTIVE",
+            startDate: now,
+            endDate,
+            autoJumpPerDay: product.autoJumpPerDay,
+            manualJumpPerDay: product.manualJumpPerDay,
+            maxEdits: product.maxEdits,
+            isVerified: user.isVerifiedBiz || false,
+          },
+        });
+
+        // Create options if any
+        if (options && options.length > 0) {
+          await tx.adOption.createMany({
+            data: (options as string[]).map((optId: string) => ({
+              adId: newAd.id,
+              optionId: optId as AdOptionId,
+              value: optionValues[optId] || null,
+              durationDays: duration,
+              startDate: now,
+              endDate,
+            })),
+          });
+        }
+
+        // Payment record for audit trail
+        await tx.payment.create({
+          data: {
+            userId: session.user.id,
+            adId: newAd.id,
+            orderId,
+            amount: 0,
+            method: "FREE_CREDIT",
+            status: "APPROVED",
+            paidAt: now,
+            itemSnapshot: { product: productId, duration: durationDays, credit: true },
+          },
+        });
+
+        // Decrement credit
+        await tx.$queryRaw`
+          UPDATE "users" SET "freeAdCredits" = "freeAdCredits" - 1 WHERE id = ${session.user.id}
+        `;
+
+        return newAd;
+      });
+
+      return NextResponse.json({ adId: ad.id, useCredit: true });
     }
 
     // 결제 수단 검증 (FREE 제외)

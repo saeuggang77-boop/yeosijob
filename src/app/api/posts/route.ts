@@ -11,11 +11,18 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     const isAdmin = session?.user?.role === "ADMIN";
 
+    const category = searchParams.get("category") || "";
+
     const where: Record<string, unknown> = {};
 
     // Hide isHidden posts unless admin
     if (!isAdmin) {
       where.isHidden = false;
+    }
+
+    // Category filter
+    if (category && ["FREE_TALK", "REVIEW", "QUESTION", "INFO"].includes(category)) {
+      where.category = category;
     }
 
     const [posts, total] = await Promise.all([
@@ -28,6 +35,7 @@ export async function GET(request: NextRequest) {
           id: true,
           title: true,
           content: true,
+          category: true,
           viewCount: true,
           isHidden: true,
           createdAt: true,
@@ -78,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content, category } = body;
 
     // Validation
     if (!title || title.length < 1 || title.length > 50) {
@@ -89,16 +97,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "내용은 1-2000자로 입력해주세요" }, { status: 400 });
     }
 
+    const validCategories = ["FREE_TALK", "REVIEW", "QUESTION", "INFO"];
+    const postCategory = validCategories.includes(category) ? category : "FREE_TALK";
+
     const post = await prisma.post.create({
       data: {
         title: title.trim(),
         content: content.trim(),
+        category: postCategory,
         authorId: session.user.id,
       },
       select: {
         id: true,
         title: true,
         content: true,
+        category: true,
         viewCount: true,
         isHidden: true,
         createdAt: true,

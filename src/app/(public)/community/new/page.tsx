@@ -12,6 +12,7 @@ export default function NewPostPage() {
   const { data: session, status } = useSession();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("FREE_TALK");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (status === "loading") {
@@ -35,7 +36,7 @@ export default function NewPostPage() {
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content, category }),
       });
 
       if (!res.ok) throw new Error("Failed to create post");
@@ -57,6 +58,23 @@ export default function NewPostPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium mb-2">
+                카테고리
+              </label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="FREE_TALK">자유</option>
+                <option value="REVIEW">후기</option>
+                <option value="QUESTION">질문</option>
+                <option value="INFO">정보</option>
+              </select>
+            </div>
+
             <div>
               <label htmlFor="title" className="block text-sm font-medium mb-2">
                 제목

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { AgeVerification } from "@/components/AgeVerification";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className={`${jakartaSans.variable} antialiased`}>
         <ThemeProvider>
           <SessionProvider>
+            <AgeVerification />
             {children}
             <Toaster />
           </SessionProvider>

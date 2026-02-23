@@ -143,6 +143,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 유료 광고: 사업자당 최대 5개 제한
+    if (!isFreeProduct) {
+      const existingPaidAds = await prisma.ad.count({
+        where: {
+          userId: session.user.id,
+          productId: { not: "FREE" },
+          status: { in: ["ACTIVE", "PENDING_DEPOSIT"] },
+        },
+      });
+      if (existingPaidAds >= 5) {
+        return NextResponse.json({ error: "유료 광고는 최대 5개까지 등록할 수 있습니다" }, { status: 400 });
+      }
+    }
+
     // 결제 수단 검증 (FREE 제외)
     if (!isFreeProduct) {
       const validMethods = ["CARD", "BANK_TRANSFER", "KAKAO_PAY"];

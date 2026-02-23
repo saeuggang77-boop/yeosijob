@@ -21,8 +21,8 @@ interface Props {
   onBack: () => void;
 }
 
-// Phase 2-16: 모든 등급 오픈
-const AVAILABLE_PRODUCTS = ["LINE", "RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"] as const;
+// Phase 2-16: 모든 등급 오픈 (FREE 추가)
+const AVAILABLE_PRODUCTS = ["FREE", "LINE", "RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"] as const;
 const DURATION_OPTIONS: { value: DurationDays; label: string }[] = [
   { value: 30, label: "30일" },
   { value: 60, label: "60일" },
@@ -55,7 +55,8 @@ export function Step3ProductSelector({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const productId = data.productId || "LINE";
-  const durationDays = (data.durationDays || 30) as DurationDays;
+  const durationDays = data.durationDays ?? 30;
+  const isFreeProduct = productId === "FREE";
   const regions = data.regions || [];
   const options = data.options || [];
   const optionValues = data.optionValues || {};
@@ -63,14 +64,20 @@ export function Step3ProductSelector({
   const product = AD_PRODUCTS[productId];
 
   const totalPrice = useMemo(() => {
+    // FREE 상품은 0원
+    if (productId === "FREE") {
+      return 0;
+    }
+
     let total = 0;
+    const duration = durationDays as DurationDays;
 
     // 줄광고 필수
-    total += AD_PRODUCTS.LINE.pricing[durationDays];
+    total += AD_PRODUCTS.LINE.pricing[duration];
 
     // 상위 등급 (줄광고가 아닌 경우)
     if (productId !== "LINE") {
-      total += AD_PRODUCTS[productId].pricing[durationDays];
+      total += AD_PRODUCTS[productId].pricing[duration];
     }
 
     // 부가 옵션
@@ -79,7 +86,7 @@ export function Step3ProductSelector({
       if (opt) {
         const isFree = optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
         if (!isFree) {
-          total += opt.pricing[durationDays];
+          total += opt.pricing[duration];
         }
       }
     }
@@ -148,22 +155,29 @@ export function Step3ProductSelector({
           <CardTitle className="text-lg">광고 기간</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            {DURATION_OPTIONS.map((d) => (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => onUpdate({ durationDays: d.value })}
-                className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
-                  durationDays === d.value
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "hover:bg-muted"
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
+          {isFreeProduct ? (
+            <div className="rounded-md border border-muted bg-muted/30 p-4 text-center">
+              <p className="text-lg font-semibold text-primary">무제한</p>
+              <p className="mt-1 text-xs text-muted-foreground">무료 광고는 기간 제한이 없습니다</p>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              {DURATION_OPTIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => onUpdate({ durationDays: d.value })}
+                  className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
+                    durationDays === d.value
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -212,70 +226,94 @@ export function Step3ProductSelector({
           {AVAILABLE_PRODUCTS.map((pid) => {
             const p = AD_PRODUCTS[pid];
             const isLine = pid === "LINE";
-            const isUpgradeSelected = !isLine && productId === pid;
+            const isFree = pid === "FREE";
+            const isUpgradeSelected = !isLine && !isFree && productId === pid;
+            const isFreeSelected = isFree && productId === "FREE";
 
             return (
-              <button
-                key={pid}
-                type="button"
-                onClick={() => {
-                  if (isLine) return;
-                  if (isUpgradeSelected) {
-                    // 해제: 줄광고만으로 되돌리기
-                    const lineMax = AD_PRODUCTS.LINE.maxRegions;
-                    onUpdate({
-                      productId: "LINE",
-                      regions: regions.length > lineMax ? regions.slice(0, lineMax) : regions,
-                    });
-                  } else {
-                    // 선택: 상위 등급으로 변경
-                    onUpdate({
-                      productId: pid,
-                      regions: regions.length > p.maxRegions ? regions.slice(0, p.maxRegions) : regions,
-                    });
-                  }
-                }}
-                className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                  isUpgradeSelected
-                    ? "border-primary bg-primary/5"
-                    : isLine
-                      ? "border-muted bg-muted/30"
-                      : "hover:bg-muted/50"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{p.name}</span>
-                    {isLine && (
-                      <Badge variant="secondary" className="text-[10px]">
-                        필수
-                      </Badge>
-                    )}
-                    {isUpgradeSelected && (
-                      <Badge className="text-[10px]">선택됨 (다시 눌러 해제)</Badge>
+              <div key={pid}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isLine && productId !== "FREE") return;
+                    if (isFree) {
+                      onUpdate({
+                        productId: "FREE",
+                        durationDays: 0,
+                        regions: regions.length > 1 ? regions.slice(0, 1) : regions,
+                        options: [],
+                        optionValues: {},
+                      });
+                    } else if (isUpgradeSelected) {
+                      // 해제: 줄광고만으로 되돌리기
+                      const lineMax = AD_PRODUCTS.LINE.maxRegions;
+                      onUpdate({
+                        productId: "LINE",
+                        durationDays: isFreeProduct ? 30 : durationDays,
+                        regions: regions.length > lineMax ? regions.slice(0, lineMax) : regions,
+                      });
+                    } else if (!isFree) {
+                      // 선택: 상위 등급으로 변경
+                      onUpdate({
+                        productId: pid,
+                        durationDays: isFreeProduct ? 30 : durationDays,
+                        regions: regions.length > p.maxRegions ? regions.slice(0, p.maxRegions) : regions,
+                      });
+                    }
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
+                    isUpgradeSelected || isFreeSelected
+                      ? "border-primary bg-primary/5"
+                      : isLine
+                        ? "border-muted bg-muted/30"
+                        : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{p.name}</span>
+                      {isLine && !isFreeSelected && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          필수
+                        </Badge>
+                      )}
+                      {(isUpgradeSelected || isFreeSelected) && (
+                        <Badge className="text-[10px]">선택됨 {!isFree && "(다시 눌러 해제)"}</Badge>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {isFree ? "0원 · 기간무제한 · 기본 노출만" : p.description}
+                    </p>
+                    {!isFree && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        자동점프 일{p.autoJumpPerDay}회
+                        {p.manualJumpPerDay > 0 &&
+                          ` · 수동점프 일${p.manualJumpPerDay}회`}
+                        {` · 지역 ${p.maxRegions}개`}
+                      </p>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {p.description}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    자동점프 일{p.autoJumpPerDay}회
-                    {p.manualJumpPerDay > 0 &&
-                      ` · 수동점프 일${p.manualJumpPerDay}회`}
-                    {` · 지역 ${p.maxRegions}개`}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">
-                    {isLine
-                      ? `${p.pricing[durationDays].toLocaleString()}원`
-                      : `+${p.pricing[durationDays].toLocaleString()}원`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {durationDays}일
-                  </p>
-                </div>
-              </button>
+                  <div className="text-right">
+                    <p className="font-semibold">
+                      {isFree
+                        ? "무료"
+                        : isLine
+                          ? `${p.pricing[durationDays as DurationDays].toLocaleString()}원`
+                          : `+${p.pricing[durationDays as DurationDays].toLocaleString()}원`}
+                    </p>
+                    {!isFree && (
+                      <p className="text-xs text-muted-foreground">
+                        {durationDays}일
+                      </p>
+                    )}
+                  </div>
+                </button>
+                {isFreeSelected && (
+                  <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-700">
+                    유료 등급으로 업그레이드하면 자동점프, 이력서 열람 등 더 많은 기능을 사용할 수 있습니다
+                  </div>
+                )}
+              </div>
             );
           })}
         </CardContent>
@@ -292,12 +330,18 @@ export function Step3ProductSelector({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          {isFreeProduct ? (
+            <div className="rounded-md border border-muted bg-muted/30 p-4 text-center text-sm text-muted-foreground">
+              부가옵션은 유료 등급에서 사용할 수 있습니다
+            </div>
+          ) : (
+            <>
           {Object.entries(AD_OPTIONS).map(([optId, opt]) => {
             // 급구 등급이면 아이콘 무료
             const isFreeIcon =
               optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
             const isSelected = options.includes(optId);
-            const price = isFreeIcon ? 0 : opt.pricing[durationDays];
+            const price = isFreeIcon ? 0 : opt.pricing[durationDays as DurationDays];
 
             return (
               <div key={optId}>
@@ -383,48 +427,66 @@ export function Step3ProductSelector({
               </div>
             );
           })}
+            </>
+          )}
         </CardContent>
       </Card>
 
       {/* 합산 금액 고정 바 */}
       <div className="sticky bottom-[68px] md:bottom-0 rounded-lg border bg-background p-4 shadow-lg">
         <div className="space-y-1 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">줄광고 ({durationDays}일)</span>
-            <span>{AD_PRODUCTS.LINE.pricing[durationDays].toLocaleString()}원</span>
-          </div>
-          {productId !== "LINE" && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                {AD_PRODUCTS[productId].name} ({durationDays}일)
-              </span>
-              <span>
-                {AD_PRODUCTS[productId].pricing[durationDays].toLocaleString()}원
-              </span>
-            </div>
-          )}
-          {options.map((optId) => {
-            const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
-            if (!opt) return null;
-            const isFree =
-              optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
-            return (
-              <div key={optId} className="flex justify-between">
-                <span className="text-muted-foreground">{opt.name}</span>
-                <span>
-                  {isFree ? "무료" : `${opt.pricing[durationDays].toLocaleString()}원`}
+          {isFreeProduct ? (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">무료 광고</span>
+                <span className="font-semibold text-green-600">무료</span>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between text-base font-bold">
+                <span>총 결제금액</span>
+                <span className="text-primary">무료</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">줄광고 ({durationDays}일)</span>
+                <span>{AD_PRODUCTS.LINE.pricing[durationDays as DurationDays].toLocaleString()}원</span>
+              </div>
+              {productId !== "LINE" && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {AD_PRODUCTS[productId].name} ({durationDays}일)
+                  </span>
+                  <span>
+                    {AD_PRODUCTS[productId].pricing[durationDays as DurationDays].toLocaleString()}원
+                  </span>
+                </div>
+              )}
+              {options.map((optId) => {
+                const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
+                if (!opt) return null;
+                const isFree =
+                  optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
+                return (
+                  <div key={optId} className="flex justify-between">
+                    <span className="text-muted-foreground">{opt.name}</span>
+                    <span>
+                      {isFree ? "무료" : `${opt.pricing[durationDays as DurationDays].toLocaleString()}원`}
+                    </span>
+                  </div>
+                );
+              })}
+              <Separator className="my-2" />
+              <div className="flex justify-between text-base font-bold">
+                <span>총 결제금액</span>
+                <span className="text-primary">
+                  {totalPrice.toLocaleString()}원
                 </span>
               </div>
-            );
-          })}
-          <Separator className="my-2" />
-          <div className="flex justify-between text-base font-bold">
-            <span>총 결제금액</span>
-            <span className="text-primary">
-              {totalPrice.toLocaleString()}원
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">VAT 포함</p>
+              <p className="text-xs text-muted-foreground">VAT 포함</p>
+            </>
+          )}
         </div>
 
         <div className="mt-3 flex gap-3">

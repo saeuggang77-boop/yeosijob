@@ -23,6 +23,27 @@ export interface AdProduct {
 }
 
 export const AD_PRODUCTS: Record<string, AdProduct> = {
+  FREE: {
+    id: "FREE",
+    name: "무료등록",
+    rank: 100,
+    required: false,
+    description: "기본 텍스트 노출, 기간 무제한",
+    position: "채용정보 리스트 최하단",
+    maxRegions: 1,
+    autoJumpPerDay: 0,
+    manualJumpPerDay: 0,
+    includeResumeView: false,
+    includeDesignCount: 0,
+    includeResumeAlert: false,
+    includeCafeAd: 0,
+    includeIconFree: false,
+    resumeViewLimit: 0,
+    maxEdits: 999,
+    pricing: { 30: 0, 60: 0, 90: 0 },
+    vsQueen: "무료, 기간무제한, 기본 노출만",
+  },
+
   LINE: {
     id: "LINE",
     name: "줄광고",

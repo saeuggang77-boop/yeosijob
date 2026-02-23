@@ -53,6 +53,7 @@ export default async function DashboardPage() {
 
   const activeCount = ads.filter((a) => a.status === "ACTIVE").length;
   const totalViews = ads.reduce((sum, a) => sum + a.viewCount, 0);
+  const hasFreeAd = ads.some((a) => a.status === "ACTIVE" && a.productId === "FREE");
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-6">
@@ -70,6 +71,17 @@ export default async function DashboardPage() {
           isVerified={user?.isVerifiedBiz || false}
         />
       </div>
+
+      {/* FREE 광고 업그레이드 배너 */}
+      {hasFreeAd && (
+        <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <p className="font-medium">내 무료 광고가 리스트 최하단에 있습니다</p>
+          <p className="mt-1 text-sm text-muted-foreground">줄광고로 업그레이드하면 자동점프로 상위 노출됩니다</p>
+          <Link href="/business/ads/new">
+            <Button size="sm" className="mt-2">업그레이드하기</Button>
+          </Link>
+        </div>
+      )}
 
       {/* 요약 카드 */}
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -140,32 +152,47 @@ export default async function DashboardPage() {
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             조회 {ad.viewCount.toLocaleString()}회 ·{" "}
-                            {ad.totalAmount.toLocaleString()}원
+                            {ad.productId === "FREE" ? "무료" : `${ad.totalAmount.toLocaleString()}원`}
+                            {ad.productId === "FREE" && " · 유료 전용"}
                           </p>
                         </div>
                       </div>
                     </Link>
                     {ad.status === "ACTIVE" && (
                       <div className="mt-2 flex flex-wrap items-center gap-2 border-t pt-2">
-                        {ad.manualJumpPerDay > 0 && (
-                          <JumpButton
-                            adId={ad.id}
-                            manualJumpPerDay={ad.manualJumpPerDay}
-                            manualJumpUsedToday={ad.manualJumpUsedToday}
-                            lastManualJumpAt={ad.lastManualJumpAt?.toISOString() ?? null}
-                          />
+                        {ad.productId === "FREE" ? (
+                          <Button size="sm" variant="outline" className="text-xs" disabled>
+                            수동점프 (유료 전용)
+                          </Button>
+                        ) : (
+                          ad.manualJumpPerDay > 0 && (
+                            <JumpButton
+                              adId={ad.id}
+                              manualJumpPerDay={ad.manualJumpPerDay}
+                              manualJumpUsedToday={ad.manualJumpUsedToday}
+                              lastManualJumpAt={ad.lastManualJumpAt?.toISOString() ?? null}
+                            />
+                          )
                         )}
                         <Link href={`/business/ads/${ad.id}/stats`}>
                           <Button size="sm" variant="outline" className="text-xs">
                             통계
                           </Button>
                         </Link>
-                        {ad.editCount < ad.maxEdits && (
+                        {ad.productId === "FREE" ? (
                           <Link href={`/business/ads/${ad.id}/edit`}>
                             <Button size="sm" variant="ghost" className="text-xs">
-                              수정 ({ad.maxEdits - ad.editCount}회 남음)
+                              수정 (무제한)
                             </Button>
                           </Link>
+                        ) : (
+                          ad.editCount < ad.maxEdits && (
+                            <Link href={`/business/ads/${ad.id}/edit`}>
+                              <Button size="sm" variant="ghost" className="text-xs">
+                                수정 ({ad.maxEdits - ad.editCount}회 남음)
+                              </Button>
+                            </Link>
+                          )
                         )}
                       </div>
                     )}

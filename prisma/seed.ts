@@ -201,6 +201,41 @@ const SAMPLE_ADS = [
     contactPhone: "01012340000",
     contactKakao: "sunset_jeju",
   },
+  // 16. FREE 1
+  {
+    title: "강릉 카페 아르바이트 모집",
+    businessName: "강릉 바다카페",
+    businessType: "TEN_CAFE" as const,
+    regions: ["GANGWON" as const],
+    salaryText: "시급 15,000",
+    workHours: "PM 2:00 ~ PM 10:00",
+    benefits: "식사 제공",
+    description: "강릉 해변가 카페에서 아르바이트를 구합니다.\n\n편안한 분위기에서 일하실 분 연락주세요.",
+    contactPhone: "01055556666",
+  },
+  // 17. FREE 2
+  {
+    title: "춘천 노래방 도우미 모집",
+    businessName: "춘천 뮤직노래방",
+    businessType: "KARAOKE" as const,
+    regions: ["GANGWON" as const],
+    salaryText: "일급 12만~18만",
+    workHours: "PM 8:00 ~ AM 2:00",
+    benefits: "식사 제공",
+    description: "춘천 중심가 노래방에서 도우미를 구합니다.",
+    contactPhone: "01066667777",
+  },
+  // 18. FREE 3
+  {
+    title: "전주 술집 홀 서빙 모집",
+    businessName: "전주 전통주점",
+    businessType: "PUBLIC_BAR" as const,
+    regions: ["JEONBUK" as const],
+    salaryText: "시급 12,000",
+    workHours: "PM 6:00 ~ AM 1:00",
+    description: "전주 한옥마을 인근 전통주점에서 홀 서빙을 구합니다.\n\n한복 제공, 관광객 많은 곳입니다.",
+    contactPhone: "01077778888",
+  },
 ];
 
 async function main() {
@@ -270,9 +305,10 @@ async function main() {
     const lastJumped = new Date(now);
     lastJumped.setMinutes(lastJumped.getMinutes() - i * 15);
 
-    // 등급별 차별화: BANNER 1, VIP 2, PREMIUM 2, SPECIAL 2, URGENT 2, RECOMMEND 2, LINE 4
-    const productIds = ["BANNER", "VIP", "VIP", "PREMIUM", "PREMIUM", "SPECIAL", "SPECIAL", "URGENT", "URGENT", "RECOMMEND", "RECOMMEND", "LINE", "LINE", "LINE", "LINE"] as const;
-    const amounts = [700000, 500000, 500000, 300000, 300000, 200000, 200000, 150000, 150000, 100000, 100000, 70000, 70000, 70000, 70000];
+    // 등급별 차별화: BANNER 1, VIP 2, PREMIUM 2, SPECIAL 2, URGENT 2, RECOMMEND 2, LINE 4, FREE 3
+    const productIds = ["BANNER", "VIP", "VIP", "PREMIUM", "PREMIUM", "SPECIAL", "SPECIAL", "URGENT", "URGENT", "RECOMMEND", "RECOMMEND", "LINE", "LINE", "LINE", "LINE", "FREE", "FREE", "FREE"] as const;
+    const amounts = [700000, 500000, 500000, 300000, 300000, 200000, 200000, 150000, 150000, 100000, 100000, 70000, 70000, 70000, 70000, 0, 0, 0];
+    const isFreeAd = productIds[i] === "FREE";
 
     await prisma.ad.create({
       data: {
@@ -288,17 +324,17 @@ async function main() {
         contactPhone: sample.contactPhone,
         contactKakao: sample.contactKakao || null,
         productId: productIds[i],
-        durationDays: 30,
+        durationDays: isFreeAd ? 0 : 30,
         totalAmount: amounts[i],
         status: "ACTIVE",
-        startDate,
-        endDate,
-        autoJumpPerDay: 12,
+        startDate: isFreeAd ? new Date() : startDate,
+        endDate: isFreeAd ? undefined : endDate,
+        autoJumpPerDay: isFreeAd ? 0 : 12,
         manualJumpPerDay: 0,
         lastJumpedAt: lastJumped,
         isVerified: i < 5,
         viewCount: Math.floor(Math.random() * 500),
-        maxEdits: 1,
+        maxEdits: isFreeAd ? 999 : 1,
       },
     });
   }
@@ -401,7 +437,7 @@ async function main() {
   console.log("  - 1 Business user: boss@yeosialba.com / test1234");
   console.log("  - 3 Jobseeker users: job@, job2@, job3@yeosialba.com / test1234");
   console.log("  - 1 Admin user: admin@yeosialba.com / admin1234");
-  console.log(`  - ${SAMPLE_ADS.length} sample ads`);
+  console.log(`  - ${SAMPLE_ADS.length} sample ads (including 3 FREE tier)`);
   console.log("  - 3 sample resumes");
 }
 

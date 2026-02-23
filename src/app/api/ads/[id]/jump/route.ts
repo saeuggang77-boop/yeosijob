@@ -20,6 +20,7 @@ export async function POST(
         id: true,
         userId: true,
         status: true,
+        productId: true,
         manualJumpPerDay: true,
         manualJumpUsedToday: true,
         lastManualJumpAt: true,
@@ -36,6 +37,10 @@ export async function POST(
 
     if (ad.status !== "ACTIVE") {
       return NextResponse.json({ error: "게재중인 광고만 점프할 수 있습니다" }, { status: 400 });
+    }
+
+    if (ad.productId === "FREE") {
+      return NextResponse.json({ error: "무료 광고는 수동점프를 사용할 수 없습니다. 유료 등급으로 업그레이드해주세요." }, { status: 400 });
     }
 
     if (ad.manualJumpPerDay === 0) {

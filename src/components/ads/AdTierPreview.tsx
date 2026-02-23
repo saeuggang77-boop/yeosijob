@@ -6,6 +6,7 @@ export function AdTierPreview() {
     { id: "SPECIAL", label: "스페셜", price: "20만원/30일", style: "border-t-2 border-t-special bg-special/5", desc: "퍼플 강조 + 상단 노출" },
     { id: "PREMIUM", label: "프리미엄", price: "30만원/30일", style: "border border-primary/50 bg-primary/5", desc: "골드 테두리 + 카드 노출" },
     { id: "VIP", label: "VIP", price: "50만원/30일", style: "border border-primary bg-gradient-to-r from-primary/10 to-accent/10", desc: "최상단 골드 카드 노출" },
+    { id: "FREE", label: "무료", price: "0원", style: "border bg-muted/30", desc: "기본 텍스트 노출, 기간무제한, 점프/이력서 열람 없음" },
   ];
 
   return (

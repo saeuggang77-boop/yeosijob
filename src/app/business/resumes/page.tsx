@@ -27,9 +27,9 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   const session = await auth();
   if (!session || session.user.role !== "BUSINESS") redirect("/login");
 
-  // Fetch active ads to determine tier
+  // Fetch active ads to determine tier (exclude FREE)
   const activeAds = await prisma.ad.findMany({
-    where: { userId: session.user.id, status: "ACTIVE" },
+    where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
     select: { id: true, productId: true },
   });
 
@@ -137,7 +137,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
         <Card className="mt-4 border-orange-200 bg-orange-50">
           <CardContent className="py-4">
             <p className="text-sm font-medium text-orange-800">
-              게재중인 광고가 있어야 이력서 연락처를 열람할 수 있습니다
+              유료 광고 등록 후 인재정보를 열람할 수 있습니다
             </p>
             <Link href="/business/ads/new">
               <Button size="sm" className="mt-2">광고 등록하기</Button>

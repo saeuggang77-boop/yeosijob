@@ -25,22 +25,27 @@ export function Step4Payment({ data, onBack, onSubmit, loading }: Props) {
   const [selectedMethod, setSelectedMethod] = useState<"CARD" | "KAKAO_PAY" | "BANK_TRANSFER">("CARD");
 
   const productId = data.productId || "LINE";
-  const durationDays = (data.durationDays || 30) as DurationDays;
+  const durationDays = data.durationDays ?? 30;
   const options = data.options || [];
   const product = AD_PRODUCTS[productId];
+  const isFreeProduct = productId === "FREE";
 
   // 합산 계산
-  let totalPrice = AD_PRODUCTS.LINE.pricing[durationDays];
-  if (productId !== "LINE") {
-    totalPrice += AD_PRODUCTS[productId].pricing[durationDays];
-  }
-  for (const optId of options) {
-    const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
-    if (opt) {
-      const isFree =
-        optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
-      if (!isFree) {
-        totalPrice += opt.pricing[durationDays];
+  let totalPrice = 0;
+  if (!isFreeProduct) {
+    const duration = durationDays as DurationDays;
+    totalPrice = AD_PRODUCTS.LINE.pricing[duration];
+    if (productId !== "LINE") {
+      totalPrice += AD_PRODUCTS[productId].pricing[duration];
+    }
+    for (const optId of options) {
+      const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
+      if (opt) {
+        const isFree =
+          optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
+        if (!isFree) {
+          totalPrice += opt.pricing[duration];
+        }
       }
     }
   }
@@ -89,111 +94,145 @@ export function Step4Payment({ data, onBack, onSubmit, loading }: Props) {
           <CardTitle className="text-lg">결제 내역</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <div className="flex items-center gap-2">
-              <span>줄광고</span>
-              <Badge variant="secondary" className="text-[10px]">
-                필수
-              </Badge>
-            </div>
-            <span>
-              {AD_PRODUCTS.LINE.pricing[durationDays].toLocaleString()}원
-            </span>
-          </div>
-          {productId !== "LINE" && (
-            <div className="flex justify-between">
-              <span>{product.name}</span>
-              <span>
-                {product.pricing[durationDays].toLocaleString()}원
-              </span>
-            </div>
-          )}
-          {options.map((optId) => {
-            const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
-            if (!opt) return null;
-            const isFree =
-              optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
-            return (
-              <div key={optId} className="flex justify-between">
-                <span>{opt.name}</span>
+          {isFreeProduct ? (
+            <>
+              <div className="flex justify-between">
+                <span>무료 광고</span>
+                <span className="font-semibold text-green-600">무료</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>기간</span>
+                <span>무제한</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between text-base font-bold">
+                <span>총 결제금액</span>
+                <span className="text-primary">무료</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between">
+                <div className="flex items-center gap-2">
+                  <span>줄광고</span>
+                  <Badge variant="secondary" className="text-[10px]">
+                    필수
+                  </Badge>
+                </div>
                 <span>
-                  {isFree
-                    ? "무료"
-                    : `${opt.pricing[durationDays].toLocaleString()}원`}
+                  {AD_PRODUCTS.LINE.pricing[durationDays as DurationDays].toLocaleString()}원
                 </span>
               </div>
-            );
-          })}
-          <div className="flex justify-between text-muted-foreground">
-            <span>기간</span>
-            <span>{durationDays}일</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between text-base font-bold">
-            <span>총 결제금액</span>
-            <span className="text-primary">
-              {totalPrice.toLocaleString()}원
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">VAT 포함</p>
+              {productId !== "LINE" && (
+                <div className="flex justify-between">
+                  <span>{product.name}</span>
+                  <span>
+                    {product.pricing[durationDays as DurationDays].toLocaleString()}원
+                  </span>
+                </div>
+              )}
+              {options.map((optId) => {
+                const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
+                if (!opt) return null;
+                const isFree =
+                  optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
+                return (
+                  <div key={optId} className="flex justify-between">
+                    <span>{opt.name}</span>
+                    <span>
+                      {isFree
+                        ? "무료"
+                        : `${opt.pricing[durationDays as DurationDays].toLocaleString()}원`}
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between text-muted-foreground">
+                <span>기간</span>
+                <span>{durationDays}일</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between text-base font-bold">
+                <span>총 결제금액</span>
+                <span className="text-primary">
+                  {totalPrice.toLocaleString()}원
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">VAT 포함</p>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      {/* 결제 수단 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">결제 수단</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* 카드결제 */}
-          <button
-            type="button"
-            onClick={() => setSelectedMethod("CARD")}
-            className={`w-full rounded-lg border p-4 text-left transition-all ${
-              selectedMethod === "CARD"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            }`}
-          >
-            <p className="font-medium">카드결제</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              신용/체크카드로 즉시 결제
-            </p>
-          </button>
+      {/* 결제 수단 - FREE일 때는 숨김 */}
+      {!isFreeProduct && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">결제 수단</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* 카드결제 */}
+            <button
+              type="button"
+              onClick={() => setSelectedMethod("CARD")}
+              className={`w-full rounded-lg border p-4 text-left transition-all ${
+                selectedMethod === "CARD"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <p className="font-medium">카드결제</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                신용/체크카드로 즉시 결제
+              </p>
+            </button>
 
-          {/* 카카오페이 */}
-          <button
-            type="button"
-            onClick={() => setSelectedMethod("KAKAO_PAY")}
-            className={`w-full rounded-lg border p-4 text-left transition-all ${
-              selectedMethod === "KAKAO_PAY"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            }`}
-          >
-            <p className="font-medium">카카오페이</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              카카오페이로 간편 결제
-            </p>
-          </button>
+            {/* 카카오페이 */}
+            <button
+              type="button"
+              onClick={() => setSelectedMethod("KAKAO_PAY")}
+              className={`w-full rounded-lg border p-4 text-left transition-all ${
+                selectedMethod === "KAKAO_PAY"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <p className="font-medium">카카오페이</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                카카오페이로 간편 결제
+              </p>
+            </button>
 
-          {/* 무통장 입금 */}
-          <button
-            type="button"
-            onClick={() => setSelectedMethod("BANK_TRANSFER")}
-            className={`w-full rounded-lg border p-4 text-left transition-all ${
-              selectedMethod === "BANK_TRANSFER"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            }`}
-          >
-            <p className="font-medium">무통장 입금</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              주문 완료 후 입금 안내 확인 / 48시간 이내 미입금 시 자동 취소
+            {/* 무통장 입금 */}
+            <button
+              type="button"
+              onClick={() => setSelectedMethod("BANK_TRANSFER")}
+              className={`w-full rounded-lg border p-4 text-left transition-all ${
+                selectedMethod === "BANK_TRANSFER"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <p className="font-medium">무통장 입금</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                주문 완료 후 입금 안내 확인 / 48시간 이내 미입금 시 자동 취소
+              </p>
+            </button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* FREE 전용 안내 카드 */}
+      {isFreeProduct && (
+        <Card>
+          <CardContent className="py-6 text-center">
+            <p className="text-lg font-semibold text-green-600">무료 광고를 등록합니다</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              결제 없이 바로 광고가 등록됩니다
             </p>
-          </button>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 약관 동의 및 결제 */}
       <div className="space-y-3">
@@ -207,14 +246,16 @@ export function Step4Payment({ data, onBack, onSubmit, loading }: Props) {
           </Button>
           <Button
             className="flex-1"
-            onClick={() => onSubmit(selectedMethod)}
+            onClick={() => onSubmit(isFreeProduct ? "CARD" : selectedMethod)}
             disabled={loading}
           >
             {loading
               ? "처리 중..."
-              : selectedMethod === "BANK_TRANSFER"
-                ? `${totalPrice.toLocaleString()}원 주문하기`
-                : `${totalPrice.toLocaleString()}원 결제하기`}
+              : isFreeProduct
+                ? "무료 광고 등록하기"
+                : selectedMethod === "BANK_TRANSFER"
+                  ? `${totalPrice.toLocaleString()}원 주문하기`
+                  : `${totalPrice.toLocaleString()}원 결제하기`}
           </Button>
         </div>
       </div>

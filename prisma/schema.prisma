@@ -42,6 +42,7 @@ enum PaymentMethod {
 }
 
 enum AdProductId {
+  FREE
   LINE
   RECOMMEND
   URGENT

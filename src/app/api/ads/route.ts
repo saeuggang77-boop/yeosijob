@@ -108,20 +108,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "노출 지역을 선택해주세요" }, { status: 400 });
     }
 
-    const duration = durationDays as DurationDays;
-    if (![30, 60, 90].includes(duration)) {
-      return NextResponse.json({ error: "올바른 기간을 선택해주세요" }, { status: 400 });
+    const isFreeProduct = productId === "FREE";
+
+    // FREE 상품은 durationDays가 0이어야 함, 나머지는 30, 60, 90만 허용
+    if (isFreeProduct) {
+      if (durationDays !== 0) {
+        return NextResponse.json({ error: "무료 광고는 기간이 0이어야 합니다" }, { status: 400 });
+      }
+    } else {
+      if (![30, 60, 90].includes(durationDays)) {
+        return NextResponse.json({ error: "올바른 기간을 선택해주세요" }, { status: 400 });
+      }
     }
+
+    const duration = durationDays as DurationDays;
 
     const product = AD_PRODUCTS[productId];
     if (!product) {
       return NextResponse.json({ error: "올바른 상품을 선택해주세요" }, { status: 400 });
     }
 
-    // 결제 수단 검증
-    const validMethods = ["CARD", "BANK_TRANSFER", "KAKAO_PAY"];
-    if (paymentMethod && !validMethods.includes(paymentMethod)) {
-      return NextResponse.json({ error: "올바른 결제 수단을 선택해주세요" }, { status: 400 });
+    // FREE 상품: 이미 활성화된 무료 광고가 있는지 확인
+    if (isFreeProduct) {
+      const existingFreeAd = await prisma.ad.count({
+        where: {
+          userId: session.user.id,
+          productId: "FREE",
+          status: "ACTIVE",
+        },
+      });
+      if (existingFreeAd > 0) {
+        return NextResponse.json({ error: "무료 광고는 1건만 등록할 수 있습니다" }, { status: 400 });
+      }
+    }
+
+    // 결제 수단 검증 (FREE 제외)
+    if (!isFreeProduct) {
+      const validMethods = ["CARD", "BANK_TRANSFER", "KAKAO_PAY"];
+      if (!paymentMethod || !validMethods.includes(paymentMethod)) {
+        return NextResponse.json({ error: "올바른 결제 수단을 선택해주세요" }, { status: 400 });
+      }
     }
 
     // 지역 수 확인
@@ -143,24 +169,27 @@ export async function POST(request: NextRequest) {
     }
 
     // 금액 계산
-    let totalAmount = AD_PRODUCTS.LINE.pricing[duration];
-    if (productId !== "LINE") {
-      totalAmount += product.pricing[duration];
-    }
-    for (const optId of options) {
-      const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
-      if (opt) {
-        const isFree = optId === "ICON" && product.includeIconFree;
-        if (!isFree) {
-          totalAmount += opt.pricing[duration];
+    let totalAmount = 0;
+    if (!isFreeProduct) {
+      totalAmount = AD_PRODUCTS.LINE.pricing[duration];
+      if (productId !== "LINE") {
+        totalAmount += product.pricing[duration];
+      }
+      for (const optId of options) {
+        const opt = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
+        if (opt) {
+          const isFree = optId === "ICON" && product.includeIconFree;
+          if (!isFree) {
+            totalAmount += opt.pricing[duration];
+          }
         }
       }
     }
 
-    // orderId 생성
+    // orderId 생성 (FREE는 불필요하지만 일관성을 위해 생성)
     const orderId = `YSA-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    // 트랜잭션으로 Ad + Payment 생성
+    // 트랜잭션으로 Ad + Payment 생성 (FREE는 Payment 생성 안 함)
     const result = await prisma.$transaction(async (tx) => {
       const ad = await tx.ad.create({
         data: {
@@ -180,7 +209,9 @@ export async function POST(request: NextRequest) {
           productId: productId as AdProductId,
           durationDays: duration,
           totalAmount,
-          status: "PENDING_DEPOSIT",
+          status: isFreeProduct ? "ACTIVE" : "PENDING_DEPOSIT",
+          startDate: isFreeProduct ? new Date() : null,
+          endDate: null,
           autoJumpPerDay: product.autoJumpPerDay,
           manualJumpPerDay: product.manualJumpPerDay,
           maxEdits: product.maxEdits,
@@ -193,6 +224,11 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+
+      // FREE 상품은 Payment 레코드를 생성하지 않음
+      if (isFreeProduct) {
+        return { ad, payment: null };
+      }
 
       const payment = await tx.payment.create({
         data: {
@@ -230,10 +266,20 @@ export async function POST(request: NextRequest) {
       return { ad, payment };
     });
 
+    // FREE 상품은 orderId와 amount 없이 반환
+    if (isFreeProduct) {
+      return NextResponse.json(
+        {
+          adId: result.ad.id,
+        },
+        { status: 201 }
+      );
+    }
+
     return NextResponse.json(
       {
         adId: result.ad.id,
-        orderId: result.payment.orderId,
+        orderId: result.payment?.orderId,
         amount: totalAmount,
         orderName: businessName + " 광고",
       },

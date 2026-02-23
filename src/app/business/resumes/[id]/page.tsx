@@ -51,9 +51,9 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch active ads to determine tier
+  // Fetch active ads to determine tier (exclude FREE)
   const activeAds = await prisma.ad.findMany({
-    where: { userId: session.user.id, status: "ACTIVE" },
+    where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
     select: { id: true, productId: true },
   });
 
@@ -145,7 +145,7 @@ export default async function ResumeDetailPage({ params }: PageProps) {
   // Reason for restriction
   let restrictionReason = "";
   if (!hasActiveAd) {
-    restrictionReason = "광고 등록 후 연락처를 확인할 수 있습니다";
+    restrictionReason = "이력서 열람은 유료 등급부터 가능합니다. 업그레이드하기";
   } else if (limitExceeded) {
     restrictionReason = `오늘 열람 가능 횟수(${dailyLimit}건)를 초과했습니다. 상위 등급 광고를 이용하면 더 많은 인재를 확인할 수 있습니다`;
   }

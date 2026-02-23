@@ -51,16 +51,27 @@ export default function NewAdPage() {
     setError("");
     setLoading(true);
     try {
+      const isFreeProduct = formData.productId === "FREE";
+
       const res = await fetch("/api/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, paymentMethod }),
+        body: JSON.stringify({
+          ...formData,
+          paymentMethod: isFreeProduct ? undefined : paymentMethod
+        }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
         setError(result.error || "광고 등록에 실패했습니다");
+        return;
+      }
+
+      // FREE 상품: 바로 대시보드로 이동
+      if (isFreeProduct) {
+        router.push("/business/dashboard");
         return;
       }
 

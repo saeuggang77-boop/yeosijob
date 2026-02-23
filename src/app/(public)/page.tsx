@@ -1,71 +1,29 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AdCard } from "@/components/ads/AdCard";
 import { AdBoxCard } from "@/components/ads/AdBoxCard";
+import { TierCard } from "@/components/ads/TierCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
-import { RegionChips } from "@/components/ads/RegionChips";
-import { BusinessTypeChips } from "@/components/ads/BusinessTypeChips";
 import { AdTierPreview } from "@/components/ads/AdTierPreview";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { FloatingChatButton } from "@/components/layout/FloatingChatButton";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
-import type { Region, BusinessType } from "@/generated/prisma/client";
 
 export const revalidate = 60;
 
 interface PageProps {
   searchParams: Promise<{
-    region?: string;
-    businessType?: string;
-    search?: string;
     page?: string;
   }>;
 }
 
-const BUSINESS_TYPE_EMOJIS: Record<BusinessType, string> = {
-  KARAOKE: "🎤",
-  ROOM_SALON: "🥂",
-  TEN_CAFE: "☕",
-  SHIRT_ROOM: "👔",
-  LEGGINGS_ROOM: "👗",
-  PUBLIC_BAR: "🍸",
-  HYPER_PUBLIC: "🎉",
-  BAR_LOUNGE: "🍷",
-  CLUB: "🎵",
-  MASSAGE: "💆",
-  GUANRI: "✨",
-  OTHER: "📋",
-};
-
 export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const region = params.region as Region | undefined;
-  const businessType = params.businessType as BusinessType | undefined;
-  const search = params.search;
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
-  const session = await auth();
-  const isJobseeker = session?.user?.role === "JOBSEEKER";
-  const hasResume = isJobseeker
-    ? await prisma.resume.findUnique({ where: { userId: session.user.id }, select: { id: true } }).then(r => !!r)
-    : false;
-  const showResumeCta = !session || (isJobseeker && !hasResume);
-
-  const baseWhere: Record<string, unknown> = { status: "ACTIVE" };
-  if (region) baseWhere.regions = { has: region };
-  if (businessType) baseWhere.businessType = businessType;
-  if (search) {
-    baseWhere.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { businessName: { contains: search, mode: "insensitive" } },
-    ];
-  }
+  const baseWhere = { status: "ACTIVE" as const };
 
   const adSelect = {
     id: true,
@@ -79,6 +37,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     lastJumpedAt: true,
     productId: true,
     thumbnailUrl: true,
+    description: true,
     options: {
       select: { optionId: true, value: true },
     },
@@ -92,10 +51,9 @@ export default async function HomePage({ searchParams }: PageProps) {
     urgentAds,
     recommendAds,
     lineAds,
+    freeAds,
     total,
-    totalActiveAds,
     totalResumes,
-    resumeCountsByType,
   ] = await Promise.all([
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "BANNER" },
@@ -140,20 +98,14 @@ export default async function HomePage({ searchParams }: PageProps) {
       take: limit,
       select: adSelect,
     }),
+    prisma.ad.findMany({
+      where: { ...baseWhere, productId: "FREE" },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: adSelect,
+    }),
     prisma.ad.count({ where: { ...baseWhere, productId: "LINE" } }),
-    prisma.ad.count({ where: { status: "ACTIVE" } }),
     prisma.resume.count({ where: { isPublic: true } }),
-    Promise.all(
-      Object.keys(BUSINESS_TYPES).map(async (type) => ({
-        type: type as BusinessType,
-        count: await prisma.resume.count({
-          where: {
-            isPublic: true,
-            desiredJobs: { has: type as BusinessType },
-          },
-        }),
-      }))
-    ),
   ]);
 
   const totalPages = Math.ceil(total / limit);
@@ -174,72 +126,46 @@ export default async function HomePage({ searchParams }: PageProps) {
             여시알바에서 최고의 일자리를 찾으세요
           </p>
 
-          {/* Trust Metrics */}
-          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <span>
-              등록업소 <strong className="text-primary">{totalActiveAds.toLocaleString()}</strong>건
-            </span>
-            <span className="text-border">|</span>
-            <span>
-              인재정보 <strong className="text-primary">{totalResumes.toLocaleString()}</strong>건
-            </span>
-          </div>
-
-          {/* Integrated Search Bar */}
-          <form className="mx-auto mt-8 max-w-4xl" action="/">
-            <div className="flex flex-col gap-2 rounded-lg border bg-card p-2 shadow-lg sm:flex-row sm:items-center">
-              <select
-                name="region"
-                defaultValue={region || ""}
-                className="h-10 rounded-md border-0 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-32"
-              >
-                <option value="">지역 전체</option>
-                {Object.entries(REGIONS).map(([key, val]) => (
-                  <option key={key} value={key}>
-                    {val.label}
-                  </option>
-                ))}
-              </select>
-              <div className="hidden h-6 w-px bg-border sm:block"></div>
-              <select
-                name="businessType"
-                defaultValue={businessType || ""}
-                className="h-10 rounded-md border-0 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-40"
-              >
-                <option value="">업종 전체</option>
-                {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
-                  <option key={key} value={key}>
-                    {val.label}
-                  </option>
-                ))}
-              </select>
-              <div className="hidden h-6 w-px bg-border sm:block"></div>
-              <input
-                type="text"
-                name="search"
-                defaultValue={search}
-                placeholder="업소명, 제목 검색"
-                className="h-10 flex-1 rounded-md border-0 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button
-                type="submit"
-                className="h-10 shrink-0 rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                검색
-              </button>
-            </div>
+          {/* Search Bar */}
+          <form
+            action="/jobs"
+            method="get"
+            className="mx-auto mt-8 flex max-w-3xl flex-col gap-2 sm:flex-row sm:gap-0"
+          >
+            <select
+              name="region"
+              defaultValue=""
+              className="h-12 rounded-t-lg border border-border bg-card px-3 text-sm text-foreground sm:rounded-l-lg sm:rounded-tr-none sm:border-r-0"
+            >
+              <option value="">지역 전체</option>
+              {Object.entries(REGIONS).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+            <select
+              name="businessType"
+              defaultValue=""
+              className="h-12 border border-border bg-card px-3 text-sm text-foreground sm:border-r-0"
+            >
+              <option value="">업종 전체</option>
+              {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              name="search"
+              placeholder="업소명 / 제목 검색"
+              className="h-12 min-w-0 flex-1 border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 sm:border-r-0"
+            />
+            <button
+              type="submit"
+              className="h-12 rounded-b-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:rounded-r-lg sm:rounded-bl-none"
+            >
+              검색
+            </button>
           </form>
         </div>
-      </section>
-
-      {/* Region Chips */}
-      <section className="border-b bg-muted/30 px-4 py-3">
-        <RegionChips current={region} />
-      </section>
-
-      {/* Business Type Chips */}
-      <section className="border-b bg-muted/30 px-4 py-3">
-        <BusinessTypeChips current={businessType} />
       </section>
 
       {/* Banner Slider - Full Width, Most Prominent */}
@@ -249,7 +175,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </section>
       )}
 
-      {/* VIP Section - Full-Width Banner Cards */}
+      {/* VIP Section - 2-Column Grid Cards */}
       {vipAds.length > 0 && (
         <section className="border-b bg-gradient-to-r from-primary/5 to-transparent">
           <div className="px-4 py-4">
@@ -258,50 +184,10 @@ export default async function HomePage({ searchParams }: PageProps) {
                 VIP
               </span>
             </h2>
-            <div className="space-y-3">
-              {vipAds.map((ad) => {
-                const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
-                const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
-                return (
-                  <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
-                    <div className="flex items-center gap-4 rounded-lg border border-primary bg-gradient-to-r from-primary/10 to-accent/10 p-4 transition-all hover:shadow-lg">
-                      {ad.thumbnailUrl && (
-                        <img
-                          src={ad.thumbnailUrl}
-                          alt={ad.title}
-                          className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                        />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="shrink-0 rounded bg-gradient-to-r from-primary to-amber px-2 py-0.5 text-xs font-bold text-primary-foreground">
-                            VIP
-                          </span>
-                          <h3 className="truncate text-base font-bold">{ad.title}</h3>
-                          {ad.isVerified && (
-                            <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-                              인증
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{ad.businessName}</span>
-                          <span>·</span>
-                          <span>{regionLabels}</span>
-                          <span>·</span>
-                          <span>{bizLabel}</span>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-base font-bold text-success">{ad.salaryText}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          조회 {ad.viewCount.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {vipAds.map((ad) => (
+                <TierCard key={ad.id} ad={ad} tier="VIP" />
+              ))}
             </div>
             <div className="px-4 pb-3 pt-2 text-right">
               <Link href="/jobs?productId=VIP" className="text-sm text-primary hover:underline">더보기 →</Link>
@@ -310,7 +196,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </section>
       )}
 
-      {/* PREMIUM Section - Full-Width Banner Cards */}
+      {/* PREMIUM Section - 2-Column Grid Cards */}
       {premiumAds.length > 0 && (
         <section className="border-b">
           <div className="px-4 py-4">
@@ -319,51 +205,10 @@ export default async function HomePage({ searchParams }: PageProps) {
                 ⭐ PREMIUM
               </span>
             </h2>
-            <div className="space-y-3">
-              {premiumAds.map((ad) => {
-                const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
-                const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
-                return (
-                  <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
-                    <div className="flex items-center gap-4 rounded-lg border border-primary/50 bg-primary/5 p-4 transition-all hover:shadow-lg">
-                      {ad.thumbnailUrl && (
-                        <img
-                          src={ad.thumbnailUrl}
-                          alt={ad.title}
-                          className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                        />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="shrink-0 rounded bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary">
-                            PREMIUM
-                          </span>
-                          <span className="text-sm">⭐</span>
-                          <h3 className="truncate text-base font-bold">{ad.title}</h3>
-                          {ad.isVerified && (
-                            <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-                              인증
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{ad.businessName}</span>
-                          <span>·</span>
-                          <span>{regionLabels}</span>
-                          <span>·</span>
-                          <span>{bizLabel}</span>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-base font-bold text-success">{ad.salaryText}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          조회 {ad.viewCount.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {premiumAds.map((ad) => (
+                <TierCard key={ad.id} ad={ad} tier="PREMIUM" />
+              ))}
             </div>
             <div className="px-4 pb-3 pt-2 text-right">
               <Link href="/jobs?productId=PREMIUM" className="text-sm text-primary hover:underline">더보기 →</Link>
@@ -372,7 +217,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </section>
       )}
 
-      {/* SPECIAL Section - List Style with Purple Border */}
+      {/* SPECIAL Section - 3-Column Grid Cards */}
       {specialAds.length > 0 && (
         <section className="border-b">
           <div className="px-4 py-4">
@@ -381,43 +226,10 @@ export default async function HomePage({ searchParams }: PageProps) {
                 스페셜
               </span>
             </h2>
-            <div className="space-y-2">
-              {specialAds.map((ad) => {
-                const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
-                const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
-                return (
-                  <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
-                    <div className="flex items-center gap-3 rounded-lg border-l-4 border-l-special bg-special/5 p-3 transition-colors hover:bg-special/10">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="shrink-0 rounded bg-special/20 px-2 py-0.5 text-xs font-bold text-special">
-                            SPECIAL
-                          </span>
-                          <h3 className="truncate text-sm font-bold">{ad.title}</h3>
-                          {ad.isVerified && (
-                            <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-                              인증
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{ad.businessName}</span>
-                          <span>·</span>
-                          <span>{regionLabels}</span>
-                          <span>·</span>
-                          <span>{bizLabel}</span>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-medium text-success">{ad.salaryText}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          조회 {ad.viewCount.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {specialAds.map((ad) => (
+                <TierCard key={ad.id} ad={ad} tier="SPECIAL" />
+              ))}
             </div>
             <div className="px-4 pb-3 pt-2 text-right">
               <Link href="/jobs?productId=SPECIAL" className="text-sm text-special hover:underline">더보기 →</Link>
@@ -482,11 +294,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         {lineAds.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">
             <p className="text-lg">등록된 채용정보가 없습니다</p>
-            <p className="mt-1 text-sm">
-              {search
-                ? "다른 검색어로 시도해보세요"
-                : "첫 광고를 등록해보세요!"}
-            </p>
+            <p className="mt-1 text-sm">첫 광고를 등록해보세요!</p>
           </div>
         ) : (
           <div className="divide-y divide-border">
@@ -504,7 +312,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     <span className="text-muted-foreground">|</span>
                     <span className="min-w-0 flex-1 truncate">{ad.title}</span>
                     <span className="text-muted-foreground">|</span>
-                    <span className="w-24 shrink-0 text-right font-medium text-primary">
+                    <span className="w-24 shrink-0 text-right font-medium text-success">
                       {ad.salaryText}
                     </span>
                     <span className="text-muted-foreground">|</span>
@@ -531,11 +339,6 @@ export default async function HomePage({ searchParams }: PageProps) {
               .map((p, idx, arr) => {
                 const prev = arr[idx - 1];
                 const showEllipsis = prev !== undefined && p - prev > 1;
-                const params = new URLSearchParams();
-                if (region) params.set("region", region);
-                if (businessType) params.set("businessType", businessType);
-                if (search) params.set("search", search);
-                params.set("page", String(p));
 
                 return (
                   <span key={p}>
@@ -543,7 +346,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                       <span className="px-2 text-muted-foreground">...</span>
                     )}
                     <a
-                      href={`/?${params.toString()}`}
+                      href={`/?page=${p}`}
                       className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
                         p === page
                           ? "bg-primary text-primary-foreground"
@@ -559,28 +362,45 @@ export default async function HomePage({ searchParams }: PageProps) {
         )}
       </section>
 
-      {/* Resume Info Section */}
-      {resumeCountsByType.some((r) => r.count > 0) && (
-        <section className="border-b bg-section-warm px-4 py-6">
-          <h2 className="mb-4 text-xl font-bold">인재정보</h2>
-          <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {resumeCountsByType
-              .filter((r) => r.count > 0)
-              .map((r) => (
-                <Link
-                  key={r.type}
-                  href={`/resumes?businessType=${r.type}`}
-                  className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4 transition-all hover:shadow-md"
-                >
-                  <span className="text-2xl">{BUSINESS_TYPE_EMOJIS[r.type]}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {BUSINESS_TYPES[r.type].shortLabel}
-                  </span>
-                  <span className="text-lg font-bold text-primary">
-                    {r.count}건
-                  </span>
+      {/* FREE Section - Basic Text List */}
+      {freeAds.length > 0 && (
+        <section className="border-b">
+          <div className="px-4 py-3">
+            <h2 className="border-l-4 border-muted-foreground/30 pl-3 text-lg font-bold text-muted-foreground">
+              무료 채용정보
+            </h2>
+          </div>
+          <div className="divide-y divide-border">
+            {freeAds.map((ad) => {
+              const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
+              const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
+              return (
+                <Link key={ad.id} href={`/jobs/${ad.id}`} className="block">
+                  <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50">
+                    <span className="w-28 truncate">{ad.businessName}</span>
+                    <span>|</span>
+                    <span className="w-16 shrink-0 text-xs">{regionLabels}</span>
+                    <span>|</span>
+                    <span className="min-w-0 flex-1 truncate text-foreground">{ad.title}</span>
+                    <span className="w-20 shrink-0 text-right text-xs">{ad.salaryText}</span>
+                  </div>
                 </Link>
-              ))}
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Resume Info Section - Simple */}
+      {totalResumes > 0 && (
+        <section className="border-b bg-section-warm px-4 py-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">
+              인재정보 <span className="text-primary">{totalResumes.toLocaleString()}</span>건
+            </h2>
+            <Link href="/business/resumes">
+              <Button variant="outline" size="sm">인재정보 보기</Button>
+            </Link>
           </div>
         </section>
       )}

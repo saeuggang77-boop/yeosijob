@@ -11,6 +11,7 @@ interface PageProps {
     status?: string;
     search?: string;
     page?: string;
+    productId?: string;
   }>;
 }
 
@@ -21,11 +22,13 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const status = params.status as AdStatus | undefined;
   const search = params.search;
+  const productId = params.productId;
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
   const where: Record<string, unknown> = {};
   if (status) where.status = status;
+  if (productId) where.productId = productId;
   if (search) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
@@ -71,13 +74,16 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
   };
 
   const statuses = ["ACTIVE", "PENDING_DEPOSIT", "PENDING_REVIEW", "PAUSED", "EXPIRED", "REJECTED"];
+  const products = ["FREE", "LINE", "RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"];
 
   function buildUrl(overrides: Record<string, string | undefined>) {
     const p = new URLSearchParams();
     const s = overrides.status ?? status;
     const q = overrides.search ?? search;
+    const prod = overrides.productId ?? productId;
     const pg = overrides.page ?? String(page);
     if (s) p.set("status", s);
+    if (prod) p.set("productId", prod);
     if (q) p.set("search", q);
     if (pg !== "1") p.set("page", pg);
     return `/admin/ads?${p.toString()}`;
@@ -104,9 +110,28 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
         ))}
       </div>
 
+      {/* Product tier filter */}
+      <div className="mt-4">
+        <label className="text-sm font-medium text-muted-foreground">광고 등급 필터</label>
+        <select
+          className="mt-1 h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+          value={productId || ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            window.location.href = buildUrl({ productId: val || undefined, page: "1" });
+          }}
+        >
+          <option value="">전체</option>
+          {products.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Search */}
       <form className="mt-4" action="/admin/ads">
         {status && <input type="hidden" name="status" value={status} />}
+        {productId && <input type="hidden" name="productId" value={productId} />}
         <div className="flex gap-2">
           <input
             type="text"

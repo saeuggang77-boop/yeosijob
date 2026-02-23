@@ -74,6 +74,8 @@ export default async function AdDetailPage({ params }: PageProps) {
     }
   };
 
+  const isFree = ad.productId === "FREE";
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       {/* Header */}
@@ -92,7 +94,7 @@ export default async function AdDetailPage({ params }: PageProps) {
           <Link href={`/business/ads/${id}/edit`}>
             <Button variant="outline">
               <Edit className="w-4 h-4 mr-2" />
-              수정
+              {isFree ? "수정 (무제한)" : "수정"}
             </Button>
           </Link>
           <Link href={`/business/ads/${id}/stats`}>
@@ -103,6 +105,28 @@ export default async function AdDetailPage({ params }: PageProps) {
           </Link>
         </div>
       </div>
+
+      {/* FREE 광고 업그레이드 안내 */}
+      {isFree && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle>무료 광고 등급</CardTitle>
+            <CardDescription>
+              유료 등급으로 업그레이드하면 자동점프, 수동점프, 이력서 열람 기능을 사용할 수 있습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+              <li>• 수동점프는 유료 등급부터 사용할 수 있습니다</li>
+              <li>• 이력서 열람은 유료 등급부터 가능합니다</li>
+              <li>• 무료 광고는 리스트 최하단에 노출됩니다</li>
+            </ul>
+            <Link href="/business/ads/new">
+              <Button>유료 광고로 업그레이드</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Status and Product */}
       <Card>
@@ -132,6 +156,22 @@ export default async function AdDetailPage({ params }: PageProps) {
               <dd className="text-lg font-semibold">{ad.viewCount}</dd>
             </div>
           </div>
+          {isFree && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  광고 금액
+                </dt>
+                <dd className="text-lg font-semibold">무료</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  광고 기간
+                </dt>
+                <dd className="text-lg font-semibold">무제한</dd>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -235,7 +275,7 @@ export default async function AdDetailPage({ params }: PageProps) {
                 시작일
               </dt>
               <dd className="text-lg font-semibold">
-                {ad.startDate
+                {isFree ? "무제한" : ad.startDate
                   ? new Date(ad.startDate).toLocaleDateString("ko-KR")
                   : "-"}
               </dd>
@@ -245,7 +285,7 @@ export default async function AdDetailPage({ params }: PageProps) {
                 종료일
               </dt>
               <dd className="text-lg font-semibold">
-                {ad.endDate
+                {isFree ? "무제한" : ad.endDate
                   ? new Date(ad.endDate).toLocaleDateString("ko-KR")
                   : "-"}
               </dd>

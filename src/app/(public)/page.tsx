@@ -33,7 +33,7 @@ interface PageProps {
 export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
-  const limit = 20;
+  const limit = 10;
 
   const baseWhere = { status: "ACTIVE" as const };
 

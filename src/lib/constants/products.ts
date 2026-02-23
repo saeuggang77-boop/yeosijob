@@ -103,7 +103,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeIconFree: true,
     resumeViewLimit: 3,
     maxEdits: 1,
-    pricing: { 30: 100_000, 60: 185_000, 90: 240_000 },
+    pricing: { 30: 130_000, 60: 235_000, 90: 310_000 },
     vsQueen: "자동점프 +20%, 수동점프 5회, 아이콘 무료(퀸알바 3만원)",
   },
 
@@ -124,7 +124,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeIconFree: false,
     resumeViewLimit: 10,
     maxEdits: 2,
-    pricing: { 30: 130_000, 60: 235_000, 90: 310_000 },
+    pricing: { 30: 150_000, 60: 270_000, 90: 360_000 },
     vsQueen: "자동점프 +40%, 수동점프 8회, 수정 2회",
   },
 

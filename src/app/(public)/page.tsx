@@ -115,14 +115,14 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* Announcement Bar */}
       <AnnouncementBar />
 
-      {/* Hero Section with Mesh Gradient */}
-      <section className="hero-mesh relative overflow-hidden px-4 py-16 text-center">
+      {/* Hero Section with Bokeh Effect */}
+      <section className="hero-mesh relative overflow-hidden px-4 py-20 text-center md:py-24">
         <div className="relative z-10">
           <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
-            유흥업계 No.1 구인구직
+            당신의 새로운 시작, 여시알바
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-            여시알바에서 최고의 일자리를 찾으세요
+          <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
+            밤여시 카페 기반 신뢰할 수 있는 구인구직 플랫폼
           </p>
 
           {/* Search Bar */}
@@ -168,9 +168,9 @@ export default async function HomePage({ searchParams }: PageProps) {
       </section>
       <div className="hero-divider" />
 
-      {/* Banner Slider - Full Width, Most Prominent */}
+      {/* Banner Slider - Premium Full Width */}
       {bannerAds.length > 0 && (
-        <section className="border-b">
+        <section className="border-b bg-gradient-to-r from-background via-primary/3 to-background">
           <BannerSlider ads={bannerAds} />
         </section>
       )}

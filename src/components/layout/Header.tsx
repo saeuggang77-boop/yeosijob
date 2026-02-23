@@ -21,6 +21,11 @@ export function Header() {
               채용정보
             </Button>
           </Link>
+          <Link href="/community">
+            <Button variant="ghost" size="sm">
+              커뮤니티
+            </Button>
+          </Link>
           {session?.user.role === "JOBSEEKER" && (
             <>
               <Link href="/jobseeker/my-resume">

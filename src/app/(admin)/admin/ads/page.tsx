@@ -111,21 +111,15 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
       </div>
 
       {/* Product tier filter */}
-      <div className="mt-4">
-        <label className="text-sm font-medium text-muted-foreground">광고 등급 필터</label>
-        <select
-          className="mt-1 h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-          value={productId || ""}
-          onChange={(e) => {
-            const val = e.target.value;
-            window.location.href = buildUrl({ productId: val || undefined, page: "1" });
-          }}
-        >
-          <option value="">전체</option>
-          {products.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href={buildUrl({ productId: undefined, page: "1" })}>
+          <Button variant={!productId ? "default" : "outline"} size="sm">전체 등급</Button>
+        </Link>
+        {products.map((p) => (
+          <Link key={p} href={buildUrl({ productId: p, page: "1" })}>
+            <Button variant={productId === p ? "default" : "outline"} size="sm">{p}</Button>
+          </Link>
+        ))}
       </div>
 
       {/* Search */}

@@ -5,9 +5,20 @@ import {
   registerJobseekerSchema,
   registerBusinessSchema,
 } from "@/lib/validators/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = checkRateLimit(`register:${ip}`, 5, 60 * 1000); // 5 requests per minute
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { type } = body;
 

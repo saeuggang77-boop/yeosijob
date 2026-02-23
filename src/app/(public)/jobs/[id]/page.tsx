@@ -155,8 +155,48 @@ export default async function JobDetailPage({ params }: PageProps) {
         ).toFixed(1)
       : null;
 
+  // JSON-LD structured data for SEO
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: ad.title,
+    description: ad.description,
+    datePosted: ad.createdAt.toISOString(),
+    employmentType: "FULL_TIME",
+    hiringOrganization: {
+      "@type": "Organization",
+      name: ad.businessName,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressRegion: regionLabels,
+        addressCountry: "KR",
+      },
+    },
+    baseSalary: {
+      "@type": "MonetaryAmount",
+      currency: "KRW",
+      value: {
+        "@type": "QuantitativeValue",
+        value: ad.salaryText,
+      },
+    },
+  };
+
+  // Add validThrough if endDate exists
+  if (ad.endDate) {
+    (jsonLd as any).validThrough = ad.endDate.toISOString();
+  }
+
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* 상단 정보 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

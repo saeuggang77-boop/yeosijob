@@ -4,6 +4,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AgeVerification } from "@/components/AgeVerification";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${jakartaSans.variable} antialiased`}>
+        <GoogleAnalytics />
         <ThemeProvider>
           <SessionProvider>
             <AgeVerification />

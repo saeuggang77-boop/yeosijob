@@ -146,7 +146,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-16 text-center md:py-24">
         <div className="relative z-10">
           <h1 className="text-gradient-gold text-3xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
-            밤을 빛내는 여시들의 일자리, 여시잡
+            밤에 빛나는 여시들의 일자리, 여시잡
           </h1>
           <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
             가장 어울리는 곳에서 당신이 더 빛날 수 있게

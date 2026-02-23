@@ -324,7 +324,7 @@ export function Step3ProductSelector({
           <CardContent>
             {isBanner ? (
               <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                특수배너는 전국 노출됩니다. 지역 선택이 필요하지 않습니다.
+                노블레스는 전국 노출됩니다. 지역 선택이 필요하지 않습니다.
               </div>
             ) : (
               <>

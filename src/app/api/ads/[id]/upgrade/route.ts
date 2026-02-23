@@ -77,7 +77,7 @@ export async function POST(
 
       if (bannerCount >= (AD_PRODUCTS.BANNER.maxSlots || 12)) {
         return NextResponse.json(
-          { error: "특수배너 슬롯이 모두 찼습니다 (12건 한정)" },
+          { error: "노블레스 슬롯이 모두 찼습니다 (12건 한정)" },
           { status: 400 }
         );
       }

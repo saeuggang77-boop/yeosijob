@@ -271,13 +271,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 특수배너 12건 한정 확인
+    // 노블레스 12건 한정 확인
     if (productId === "BANNER") {
       const activeCount = await prisma.ad.count({
         where: { productId: "BANNER", status: "ACTIVE" },
       });
       if (activeCount >= 12) {
-        return NextResponse.json({ error: "특수배너는 현재 만석입니다" }, { status: 400 });
+        return NextResponse.json({ error: "노블레스는 현재 만석입니다" }, { status: 400 });
       }
     }
 

@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
       // 등급별 랜덤 증가량 (rank 높을수록 상위 광고)
       let min: number, max: number;
       switch (ad.productId) {
-        case "BANNER":  // 특수배너
-        case "VIP":     // 우대
+        case "BANNER":  // 노블레스
+        case "VIP":     // VIP
           min = 1; max = 3;
           break;
         case "PREMIUM": // 프리미엄

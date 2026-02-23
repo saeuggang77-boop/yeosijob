@@ -125,6 +125,25 @@ export default function RegisterJobseekerPage() {
               minLength={6}
             />
           </div>
+
+          <div className="space-y-3 rounded-md border p-3">
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="agreeTerms" required className="mt-0.5 h-4 w-4 shrink-0 rounded border" />
+              <span>
+                <Link href="/terms" target="_blank" className="font-medium text-primary underline">이용약관</Link>에 동의합니다 (필수)
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="agreePrivacy" required className="mt-0.5 h-4 w-4 shrink-0 rounded border" />
+              <span>
+                <Link href="/privacy" target="_blank" className="font-medium text-primary underline">개인정보처리방침</Link>에 동의합니다 (필수)
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="agreeAge" required className="mt-0.5 h-4 w-4 shrink-0 rounded border" />
+              <span>만 19세 이상입니다 (필수)</span>
+            </label>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading}>

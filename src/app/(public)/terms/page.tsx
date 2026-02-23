@@ -50,7 +50,16 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제5조 (회원가입)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제5조 (이용 자격 및 연령 제한)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>본 서비스는 만 19세 이상의 성인만 이용할 수 있습니다.</li>
+            <li>회원가입 시 만 19세 이상임을 확인하는 절차에 동의해야 합니다.</li>
+            <li>미성년자가 허위로 연령을 기재하여 가입한 경우, 회사는 해당 계정을 즉시 삭제할 수 있습니다.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제6조 (회원가입)</h2>
           <p>
             이용자는 회사가 정한 양식에 따라 회원정보를 기입한 후 이 약관에 동의한다는 의사표시를 함으로써
             회원가입을 신청합니다. 회사는 회원가입 신청자가 다음 각 호에 해당하지 않는 한 회원으로 등록합니다.
@@ -58,7 +67,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제6조 (회원 탈퇴 및 자격 상실)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제7조 (회원 탈퇴 및 자격 상실)</h2>
           <p>
             회원은 언제든지 탈퇴를 요청할 수 있으며, 회사는 즉시 회원탈퇴를 처리합니다.
             허위 정보 등록, 타인의 서비스 이용 방해, 법령 위반 시 회원 자격이 제한될 수 있습니다.
@@ -66,7 +75,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제7조 (이용자의 의무)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제8조 (이용자의 의무)</h2>
           <ul className="list-disc space-y-1 pl-5">
             <li>회원정보 변경 시 즉시 수정해야 합니다.</li>
             <li>타인의 정보를 도용하거나 허위 정보를 등록해서는 안 됩니다.</li>
@@ -76,7 +85,24 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제8조 (면책조항)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제9조 (금지 콘텐츠)</h2>
+          <p>이용자는 다음 각 호에 해당하는 콘텐츠를 게시하거나 전송할 수 없습니다.</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>성매매를 알선, 권유, 유인 또는 강요하는 내용</li>
+            <li>음란물 또는 선정적인 표현이 포함된 구인·구직 게시물</li>
+            <li>허가되지 않은 불법 업소의 광고</li>
+            <li>청소년 고용을 유도하거나 연령을 속이도록 하는 내용</li>
+            <li>타인의 명예를 훼손하거나 개인정보를 침해하는 내용</li>
+            <li>기타 관련 법령에 위반되는 내용</li>
+          </ul>
+          <p className="mt-2">
+            회사는 위 각 호에 해당하는 게시물을 사전 통보 없이 삭제할 수 있으며,
+            해당 이용자의 서비스 이용을 제한할 수 있습니다.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제10조 (면책조항)</h2>
           <p>
             회사는 천재지변 또는 이에 준하는 불가항력으로 인해 서비스를 제공할 수 없는 경우에는
             서비스 제공에 관한 책임이 면제됩니다. 회사는 이용자의 귀책사유로 인한 서비스 이용의

@@ -145,8 +145,8 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* Hero Section with Bokeh Effect */}
       <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-16 text-center md:py-24">
         <div className="relative z-10">
-          <h1 className="text-gradient-gold text-4xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
-            당신의 새로운 시작, 여시잡
+          <h1 className="text-gradient-gold text-3xl font-bold md:text-5xl lg:text-6xl font-[family-name:var(--font-heading)]">
+            밤을 빛내는 여시들의 일자리, 여시잡
           </h1>
           <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
             <span className="font-semibold text-primary/80">밤여시(여시)</span> +{" "}

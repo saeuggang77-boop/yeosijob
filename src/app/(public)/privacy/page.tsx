@@ -85,8 +85,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">8. 개인정보 보호책임자</h2>
           <ul className="list-disc space-y-1 pl-5">
-            <li>담당: 여시잡 고객센터</li>
-            <li>연락처: 카카오톡 @yeosijob</li>
+            <li>성명: 박상만</li>
+            <li>직위: 대표</li>
+            <li>연락처: 1588-7928</li>
+            <li>이메일: samsungcu@naver.com</li>
           </ul>
         </section>
 

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, BarChart3 } from "lucide-react";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
+import DeleteAccountSection from "@/components/DeleteAccountSection";
 
 async function LogoutButton() {
   return (
@@ -71,6 +72,11 @@ export default async function BusinessProfilePage() {
 
         {/* 비밀번호 변경 */}
         {hasPassword && <ChangePasswordSection />}
+      </div>
+
+      {/* 회원 탈퇴 */}
+      <div className="mt-8">
+        <DeleteAccountSection hasPassword={hasPassword} />
       </div>
 
       {/* 로그아웃 버튼 */}

@@ -26,6 +26,16 @@ export function Header() {
               커뮤니티
             </Button>
           </Link>
+          <Link href="/pricing">
+            <Button variant="ghost" size="sm">
+              광고안내
+            </Button>
+          </Link>
+          <Link href="/notice">
+            <Button variant="ghost" size="sm">
+              공지사항
+            </Button>
+          </Link>
           {session?.user.role === "JOBSEEKER" && (
             <>
               <Link href="/jobseeker/my-resume">

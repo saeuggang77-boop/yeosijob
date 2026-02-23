@@ -19,6 +19,8 @@ interface Props {
   onUpdate: (data: Partial<AdFormData>) => void;
   onNext: () => void;
   onBack: () => void;
+  onFreeSubmit?: () => void;
+  freeSubmitLoading?: boolean;
 }
 
 // Phase 2-16: 모든 등급 오픈 (FREE 추가)
@@ -51,23 +53,24 @@ export function Step3ProductSelector({
   onUpdate,
   onNext,
   onBack,
+  onFreeSubmit,
+  freeSubmitLoading,
 }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const productId = data.productId || "LINE";
-  const durationDays = data.durationDays ?? 30;
+  const productId = data.productId || "";
+  const durationDays = data.durationDays ?? 0;
   const isFreeProduct = productId === "FREE";
   const regions = data.regions || [];
   const options = data.options || [];
   const optionValues = data.optionValues || {};
 
-  const product = AD_PRODUCTS[productId];
+  const product = productId ? AD_PRODUCTS[productId] : AD_PRODUCTS.FREE;
 
   const totalPrice = useMemo(() => {
     // FREE 상품은 0원
-    if (productId === "FREE") {
-      return 0;
-    }
+    if (productId === "FREE" || productId === "") return 0;
+    if (durationDays === 0) return 0;
 
     let total = 0;
     const duration = durationDays as DurationDays;
@@ -149,18 +152,13 @@ export function Step3ProductSelector({
 
   return (
     <div className="space-y-4">
-      {/* 기간 선택 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">광고 기간</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isFreeProduct ? (
-            <div className="rounded-md border border-muted bg-muted/30 p-4 text-center">
-              <p className="text-lg font-semibold text-primary">무제한</p>
-              <p className="mt-1 text-xs text-muted-foreground">무료 광고는 기간 제한이 없습니다</p>
-            </div>
-          ) : (
+      {/* 기간 선택 - 유료만 */}
+      {!isFreeProduct && productId !== "" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">광고 기간</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="flex gap-2">
               {DURATION_OPTIONS.map((d) => (
                 <button
@@ -177,9 +175,9 @@ export function Step3ProductSelector({
                 </button>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 노출 지역 선택 */}
       <Card>
@@ -249,14 +247,14 @@ export function Step3ProductSelector({
                       const lineMax = AD_PRODUCTS.LINE.maxRegions;
                       onUpdate({
                         productId: "LINE",
-                        durationDays: isFreeProduct ? 30 : durationDays,
+                        durationDays: isFreeProduct ? 0 : durationDays,
                         regions: regions.length > lineMax ? regions.slice(0, lineMax) : regions,
                       });
                     } else if (!isFree) {
                       // 선택: 상위 등급으로 변경
                       onUpdate({
                         productId: pid,
-                        durationDays: isFreeProduct ? 30 : durationDays,
+                        durationDays: isFreeProduct ? 0 : durationDays,
                         regions: regions.length > p.maxRegions ? regions.slice(0, p.maxRegions) : regions,
                       });
                     }
@@ -298,12 +296,12 @@ export function Step3ProductSelector({
                       {isFree
                         ? "무료"
                         : isLine
-                          ? `${p.pricing[durationDays as DurationDays].toLocaleString()}원`
-                          : `+${p.pricing[durationDays as DurationDays].toLocaleString()}원`}
+                          ? `${p.pricing[(durationDays || 30) as DurationDays].toLocaleString()}원`
+                          : `+${p.pricing[(durationDays || 30) as DurationDays].toLocaleString()}원`}
                     </p>
                     {!isFree && (
                       <p className="text-xs text-muted-foreground">
-                        {durationDays}일
+                        {durationDays > 0 ? `${durationDays}일` : "30일 기준"}
                       </p>
                     )}
                   </div>
@@ -319,24 +317,19 @@ export function Step3ProductSelector({
         </CardContent>
       </Card>
 
-      {/* 부가 옵션 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            부가 옵션{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              (선택)
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {isFreeProduct ? (
-            <div className="rounded-md border border-muted bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-              부가옵션은 유료 등급에서 사용할 수 있습니다
-            </div>
-          ) : (
-            <>
-          {Object.entries(AD_OPTIONS).map(([optId, opt]) => {
+      {/* 부가 옵션 - 유료만 */}
+      {!isFreeProduct && productId !== "" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              부가 옵션{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                (선택)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.entries(AD_OPTIONS).map(([optId, opt]) => {
             // 급구 등급이면 아이콘 무료
             const isFreeIcon =
               optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
@@ -427,10 +420,9 @@ export function Step3ProductSelector({
               </div>
             );
           })}
-            </>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 합산 금액 고정 바 */}
       <div className="sticky bottom-[68px] md:bottom-0 rounded-lg border bg-background p-4 shadow-lg">
@@ -447,6 +439,14 @@ export function Step3ProductSelector({
                 <span className="text-primary">무료</span>
               </div>
             </>
+          ) : productId === "" ? (
+            <div className="py-2 text-center text-sm text-muted-foreground">
+              상품을 선택해주세요
+            </div>
+          ) : durationDays === 0 ? (
+            <div className="py-2 text-center text-sm text-muted-foreground">
+              기간을 선택해주세요
+            </div>
           ) : (
             <>
               <div className="flex justify-between">
@@ -493,9 +493,23 @@ export function Step3ProductSelector({
           <Button variant="outline" className="flex-1" onClick={onBack}>
             이전
           </Button>
-          <Button className="flex-1" onClick={handleSubmit}>
-            다음 단계
-          </Button>
+          {isFreeProduct ? (
+            <Button
+              className="flex-1"
+              onClick={onFreeSubmit}
+              disabled={regions.length === 0 || freeSubmitLoading}
+            >
+              {freeSubmitLoading ? "등록 중..." : "무료 광고 등록하기"}
+            </Button>
+          ) : (
+            <Button
+              className="flex-1"
+              onClick={handleSubmit}
+              disabled={productId === "" || (!isFreeProduct && durationDays === 0) || regions.length === 0}
+            >
+              다음 단계
+            </Button>
+          )}
         </div>
       </div>
     </div>

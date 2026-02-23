@@ -12,19 +12,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { AdFormData } from "@/lib/validators/ad";
 
-const STEP_LABELS = ["업소 정보", "채용 정보", "상품 선택", "결제"];
-
 export default function NewAdPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
     regions: [],
-    durationDays: 30,
-    productId: "LINE",
+    durationDays: 0,
+    productId: "",
     options: [],
     optionValues: {},
   });
+
+  const isFreeProduct = formData.productId === "FREE";
+  const STEP_LABELS = isFreeProduct
+    ? ["업소 정보", "채용 정보", "상품 선택"]
+    : ["업소 정보", "채용 정보", "상품 선택", "결제"];
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -40,14 +43,15 @@ export default function NewAdPage() {
   }
 
   function handleNext() {
-    setStep((s) => Math.min(s + 1, 4));
+    const maxStep = formData.productId === "FREE" ? 3 : 4;
+    setStep((s) => Math.min(s + 1, maxStep));
   }
 
   function handleBack() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  async function handleSubmit(paymentMethod: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
+  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
     setError("");
     setLoading(true);
     try {
@@ -69,17 +73,17 @@ export default function NewAdPage() {
         return;
       }
 
-      // FREE 상품: 바로 대시보드로 이동
+      // FREE 상품: 성공 페이지로 이동
       if (isFreeProduct) {
-        router.push("/business/dashboard");
+        router.push("/business/ads/new/success?free=true");
         return;
       }
 
-      // 무통장 입금: 기존 결제 안내 페이지로 이동
+      // 무통장 입금
       if (paymentMethod === "BANK_TRANSFER") {
         router.push(`/business/ads/${result.adId}/payment?orderId=${result.orderId}`);
       } else {
-        // 카드/카카오페이: 결제 위젯 표시
+        // 카드/카카오페이
         setPaymentInfo({
           orderId: result.orderId,
           amount: result.amount,
@@ -200,9 +204,11 @@ export default function NewAdPage() {
             onUpdate={updateData}
             onNext={handleNext}
             onBack={handleBack}
+            onFreeSubmit={() => handleSubmit()}
+            freeSubmitLoading={loading}
           />
         )}
-        {step === 4 && (
+        {step === 4 && formData.productId !== "FREE" && (
           <Step4Payment
             data={formData}
             onBack={handleBack}

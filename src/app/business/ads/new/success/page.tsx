@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const isFree = searchParams.get("free") === "true";
   const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
+    isFree ? "success" : "loading"
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const [adId, setAdId] = useState("");
 
   useEffect(() => {
+    // FREE 광고는 결제 검증 불필요
+    if (isFree) return;
+
     const paymentKey = searchParams.get("paymentKey");
     const orderId = searchParams.get("orderId");
     const amount = searchParams.get("amount");
@@ -40,14 +42,13 @@ export default function PaymentSuccessPage() {
         if (!res.ok) {
           throw new Error(data.error || "결제 승인 실패");
         }
-        setAdId(data.adId);
         setStatus("success");
       })
       .catch((err) => {
         setStatus("error");
         setErrorMessage(err.message);
       });
-  }, [searchParams]);
+  }, [searchParams, isFree]);
 
   if (status === "loading") {
     return (
@@ -91,7 +92,9 @@ export default function PaymentSuccessPage() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">
           ✓
         </div>
-        <h1 className="mt-4 text-2xl font-bold">결제 완료</h1>
+        <h1 className="mt-4 text-2xl font-bold">
+          {isFree ? "광고 등록 완료" : "결제 완료"}
+        </h1>
         <p className="mt-2 text-muted-foreground">
           광고가 정상적으로 등록되었습니다
         </p>
@@ -99,12 +102,25 @@ export default function PaymentSuccessPage() {
 
       <Card className="mt-6">
         <CardContent className="py-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            결제가 완료되어 광고가 즉시 게재됩니다.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            광고 관리 페이지에서 상태를 확인하세요.
-          </p>
+          {isFree ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                무료 광고가 등록되어 즉시 게재됩니다.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                유료 등급으로 업그레이드하면 더 많은 노출과 기능을 이용할 수 있습니다.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                결제가 완료되어 광고가 즉시 게재됩니다.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                광고 관리 페이지에서 상태를 확인하세요.
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 

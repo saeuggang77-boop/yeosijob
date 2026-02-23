@@ -433,12 +433,47 @@ async function main() {
     },
   });
 
+  // 공지사항 시드
+  const adminUser = await prisma.user.findUnique({ where: { email: "admin@yeosialba.com" } });
+  if (adminUser) {
+    await prisma.notice.deleteMany();
+    const notices = [
+      {
+        title: "여시알바 오픈 안내",
+        content: "안녕하세요, 여시알바입니다.\n\n밤여시 카페 기반의 신뢰할 수 있는 구인구직 플랫폼 '여시알바'가 오픈했습니다.\n\n사장님은 합리적인 가격에 구인 광고를, 구직자는 믿을 수 있는 채용정보를 만나보세요.\n\n많은 이용 부탁드립니다. 감사합니다.",
+        isPinned: true,
+        viewCount: 156,
+      },
+      {
+        title: "광고 등록 가이드",
+        content: "광고 등록 방법을 안내합니다.\n\n1. 사장님 회원가입 후 로그인\n2. 상단 '광고등록' 버튼 클릭\n3. 업소 정보 입력 (업소명, 업종, 연락처, 근무조건 등)\n4. 광고 등급 선택 (무료~특수배너)\n5. 결제 후 광고 게시\n\n무료 등급도 있으니 부담 없이 시작하세요!\n문의사항은 고객센터로 연락 주세요.",
+        isPinned: true,
+        viewCount: 89,
+      },
+      {
+        title: "이용약관 안내",
+        content: "여시알바 이용약관을 안내합니다.\n\n1. 서비스 이용 시 허위 정보 기재를 금지합니다.\n2. 타인의 개인정보를 무단으로 수집/이용하는 행위를 금지합니다.\n3. 불법적인 업소 광고는 즉시 삭제되며, 계정이 정지될 수 있습니다.\n4. 구직자와 사장님 모두 상호 존중하며 건전한 거래 환경을 만들어 주세요.\n\n자세한 내용은 고객센터로 문의 주세요.",
+        isPinned: false,
+        viewCount: 42,
+      },
+    ];
+    for (const notice of notices) {
+      await prisma.notice.create({
+        data: {
+          ...notice,
+          authorId: adminUser.id,
+        },
+      });
+    }
+  }
+
   console.log("Seed complete!");
   console.log("  - 1 Business user: boss@yeosialba.com / test1234");
   console.log("  - 3 Jobseeker users: job@, job2@, job3@yeosialba.com / test1234");
   console.log("  - 1 Admin user: admin@yeosialba.com / admin1234");
   console.log(`  - ${SAMPLE_ADS.length} sample ads (including 3 FREE tier)`);
   console.log("  - 3 sample resumes");
+  console.log("  - 3 sample notices");
 }
 
 main()

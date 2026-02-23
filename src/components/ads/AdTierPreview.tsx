@@ -1,14 +1,47 @@
+import { AD_PRODUCTS } from "@/lib/constants/products";
+
 export function AdTierPreview() {
-  const tiers = [
-    { id: "BANNER", label: "특수배너", price: "35만원/30일", style: "border-2 border-primary bg-gradient-to-r from-primary/15 to-accent/10", desc: "모든 페이지 최상단 배너 노출" },
-    { id: "VIP", label: "VIP(우대)", price: "23만원/30일", style: "border border-primary bg-gradient-to-r from-primary/10 to-accent/10", desc: "최상단 골드 카드 노출" },
-    { id: "PREMIUM", label: "프리미엄", price: "18만원/30일", style: "border border-primary/50 bg-primary/5", desc: "골드 테두리 + 카드 노출" },
-    { id: "SPECIAL", label: "스페셜", price: "15만원/30일", style: "border-t-2 border-t-special bg-special/5", desc: "퍼플 강조 + 상단 노출" },
-    { id: "URGENT", label: "급구", price: "13만원/30일", style: "border-l-4 border-l-urgent bg-urgent/5", desc: "빨간 급구뱃지 + 펄스" },
-    { id: "RECOMMEND", label: "추천", price: "10만원/30일", style: "border-l-4 border-l-recommend bg-card", desc: "블루 강조 + 추천섹션" },
-    { id: "LINE", label: "줄광고", price: "7만원/30일", style: "border bg-card", desc: "기본 텍스트 노출" },
-    { id: "FREE", label: "무료", price: "0원", style: "border bg-muted/30", desc: "기본 텍스트 노출, 기간무제한, 점프/이력서 열람 없음" },
-  ];
+  const formatPrice = (amount: number): string => {
+    if (amount === 0) return "0원";
+    return `${(amount / 10000).toLocaleString()}만원/30일`;
+  };
+
+  // Order: BANNER → VIP → PREMIUM → SPECIAL → URGENT → RECOMMEND → LINE → FREE
+  const tierOrder = ["BANNER", "VIP", "PREMIUM", "SPECIAL", "URGENT", "RECOMMEND", "LINE", "FREE"];
+
+  const tiers = tierOrder.map((id) => {
+    const product = AD_PRODUCTS[id];
+    return {
+      id: product.id,
+      label: product.name,
+      price: formatPrice(product.pricing[30]),
+      style: getStyleForTier(product.id),
+      desc: product.description,
+    };
+  });
+
+  function getStyleForTier(id: string): string {
+    switch (id) {
+      case "BANNER":
+        return "border-2 border-primary bg-gradient-to-r from-primary/15 to-accent/10";
+      case "VIP":
+        return "border border-primary bg-gradient-to-r from-primary/10 to-accent/10";
+      case "PREMIUM":
+        return "border border-primary/50 bg-primary/5";
+      case "SPECIAL":
+        return "border-t-2 border-t-special bg-special/5";
+      case "URGENT":
+        return "border-l-4 border-l-urgent bg-urgent/5";
+      case "RECOMMEND":
+        return "border-l-4 border-l-recommend bg-card";
+      case "LINE":
+        return "border bg-card";
+      case "FREE":
+        return "border bg-muted/30";
+      default:
+        return "border bg-card";
+    }
+  }
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

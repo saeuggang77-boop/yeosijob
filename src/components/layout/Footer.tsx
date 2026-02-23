@@ -11,8 +11,8 @@ export function Footer() {
             <p className="mt-2 text-sm text-muted-foreground">유흥업계 No.1 구인구직 플랫폼</p>
             <div className="mt-4 space-y-1 text-xs text-muted-foreground">
               <p>상호: 여시잡</p>
-              <p>대표: -</p>
-              <p>사업자등록번호: 준비중</p>
+              <p>사업자등록번호: 408-70-43230</p>
+              <p>통신판매신고번호: 제2023-서울동작-1252</p>
               <p>고객센터: 카카오톡 @yeosijob</p>
             </div>
           </div>

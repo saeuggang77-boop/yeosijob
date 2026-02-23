@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PaymentActions } from "@/components/admin/PaymentActions";
+import { PaymentFilters } from "@/components/admin/PaymentFilters";
+import Link from "next/link";
 
 const STATUS_LABELS: Record<
   string,
@@ -14,16 +17,101 @@ const STATUS_LABELS: Record<
   REFUNDED: { label: "환불", variant: "outline" },
 };
 
-export default async function AdminPaymentsPage() {
-  const payments = await prisma.payment.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      user: { select: { email: true, name: true, businessName: true } },
-      ad: { select: { id: true, title: true, businessName: true, durationDays: true } },
-    },
-  });
+interface PageProps {
+  searchParams: Promise<{
+    status?: string;
+    method?: string;
+    period?: string;
+    search?: string;
+    page?: string;
+  }>;
+}
 
+export default async function AdminPaymentsPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const { status, method, period, search, page = "1" } = params;
+  const currentPage = parseInt(page, 10);
+  const itemsPerPage = 20;
+
+  // Build where clause from filters
+  const where: any = {};
+
+  if (status && status !== "ALL") {
+    where.status = status;
+  }
+
+  if (method && method !== "ALL") {
+    where.method = method;
+  }
+
+  if (period && period !== "ALL") {
+    const now = new Date();
+    let periodStart: Date | undefined;
+
+    if (period === "today") {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === "week") {
+      periodStart = new Date(now);
+      periodStart.setDate(now.getDate() - 7);
+    } else if (period === "month") {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    if (periodStart) {
+      where.createdAt = { gte: periodStart };
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      { orderId: { contains: search, mode: "insensitive" } },
+      { ad: { title: { contains: search, mode: "insensitive" } } },
+      { ad: { businessName: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  // Fetch revenue summary stats
+  const [totalRevenue, monthRevenue, avgAmount, totalCount, approvedCount] =
+    await Promise.all([
+      prisma.payment.aggregate({
+        where: { status: "APPROVED" },
+        _sum: { amount: true },
+      }),
+      prisma.payment.aggregate({
+        where: {
+          status: "APPROVED",
+          paidAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.payment.aggregate({
+        where: { status: "APPROVED" },
+        _avg: { amount: true },
+      }),
+      prisma.payment.count(),
+      prisma.payment.count({ where: { status: "APPROVED" } }),
+    ]);
+
+  const approvalRate = totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
+
+  // Fetch payments with pagination
+  const [payments, totalPayments] = await Promise.all([
+    prisma.payment.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (currentPage - 1) * itemsPerPage,
+      take: itemsPerPage,
+      include: {
+        user: { select: { email: true, name: true, businessName: true } },
+        ad: { select: { id: true, title: true, businessName: true, durationDays: true } },
+      },
+    }),
+    prisma.payment.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(totalPayments / itemsPerPage);
   const pendingCount = payments.filter((p) => p.status === "PENDING").length;
 
   return (
@@ -37,6 +125,63 @@ export default async function AdminPaymentsPage() {
         )}
       </div>
 
+      {/* Revenue Summary Cards */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">
+              총 승인 매출
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {(totalRevenue._sum.amount || 0).toLocaleString()}원
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">
+              이번 달 매출
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {(monthRevenue._sum.amount || 0).toLocaleString()}원
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">
+              평균 결제 금액
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {Math.round(avgAmount._avg.amount || 0).toLocaleString()}원
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">승인율</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{approvalRate.toFixed(1)}%</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="mt-6">
+        <PaymentFilters />
+      </div>
+
+      {/* Payment List */}
       <div className="mt-6 space-y-3">
         {payments.length === 0 ? (
           <Card>
@@ -103,6 +248,62 @@ export default async function AdminPaymentsPage() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            전체 {totalPayments.toLocaleString()}건 중 {((currentPage - 1) * itemsPerPage) + 1}-
+            {Math.min(currentPage * itemsPerPage, totalPayments)}건
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              asChild={currentPage > 1}
+            >
+              {currentPage > 1 ? (
+                <Link
+                  href={`/admin/payments?${new URLSearchParams({
+                    ...(status && status !== "ALL" ? { status } : {}),
+                    ...(method && method !== "ALL" ? { method } : {}),
+                    ...(period && period !== "ALL" ? { period } : {}),
+                    ...(search ? { search } : {}),
+                    page: (currentPage - 1).toString(),
+                  }).toString()}`}
+                >
+                  이전
+                </Link>
+              ) : (
+                <span>이전</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              asChild={currentPage < totalPages}
+            >
+              {currentPage < totalPages ? (
+                <Link
+                  href={`/admin/payments?${new URLSearchParams({
+                    ...(status && status !== "ALL" ? { status } : {}),
+                    ...(method && method !== "ALL" ? { method } : {}),
+                    ...(period && period !== "ALL" ? { period } : {}),
+                    ...(search ? { search } : {}),
+                    page: (currentPage + 1).toString(),
+                  }).toString()}`}
+                >
+                  다음
+                </Link>
+              ) : (
+                <span>다음</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

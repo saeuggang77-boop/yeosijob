@@ -56,10 +56,10 @@ export async function POST(
       return NextResponse.json({ error: "댓글은 1-500자로 입력해주세요" }, { status: 400 });
     }
 
-    // Check if post exists
+    // Check if post exists and get author for notification
     const post = await prisma.post.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, authorId: true, title: true },
     });
 
     if (!post) {
@@ -83,6 +83,21 @@ export async function POST(
         },
       },
     });
+
+    // Send notification to post author (skip if commenting on own post)
+    if (post.authorId !== session.user.id) {
+      const titlePreview = post.title && post.title.length > 20
+        ? post.title.slice(0, 20) + "..."
+        : post.title || "게시글";
+      await prisma.notification.create({
+        data: {
+          userId: post.authorId,
+          title: "새 댓글",
+          message: `내 글 '${titlePreview}'에 댓글이 달렸습니다.`,
+          link: `/community/${id}`,
+        },
+      }).catch(() => {}); // Don't fail comment creation if notification fails
+    }
 
     return NextResponse.json(
       {

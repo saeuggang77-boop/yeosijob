@@ -67,31 +67,31 @@
   --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A1A;
-  --primary: #D4A853;
+  --primary: #B8922E;
   --primary-foreground: #0F0F0F;
   --secondary: #F0F0F0;
   --secondary-foreground: #1A1A1A;
   --muted: #F0F0F0;
-  --muted-foreground: #888888;
+  --muted-foreground: #6B6B6B;
   --accent: #E8C547;
   --accent-foreground: #0F0F0F;
   --destructive: #FF4444;
-  --border: #E5E5E5;
-  --input: #E5E5E5;
-  --ring: #D4A853;
-  --chart-1: #D4A853;
+  --border: #D9D9D9;
+  --input: #D9D9D9;
+  --ring: #B8922E;
+  --chart-1: #B8922E;
   --chart-2: #3B82F6;
   --chart-3: #8B5CF6;
   --chart-4: #22C55E;
   --chart-5: #F59E0B;
   --sidebar: #F0F0F0;
   --sidebar-foreground: #1A1A1A;
-  --sidebar-primary: #D4A853;
+  --sidebar-primary: #B8922E;
   --sidebar-primary-foreground: #0F0F0F;
   --sidebar-accent: #E8C547;
   --sidebar-accent-foreground: #0F0F0F;
-  --sidebar-border: #E5E5E5;
-  --sidebar-ring: #D4A853;
+  --sidebar-border: #D9D9D9;
+  --sidebar-ring: #B8922E;
 }
 
 /* ===== DARK MODE (default) ===== */
@@ -137,6 +137,14 @@
     @apply bg-background text-foreground;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
+}
+
+/* Light mode card shadow for depth */
+:root [data-slot="card"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.dark [data-slot="card"] {
+  box-shadow: none;
 }
 
 /* ===== Custom Animations ===== */
@@ -261,7 +269,7 @@
 .dark .bg-section-warm { background-color: #1F1F1F; }
 
 /* Alternating section background for visual separation */
-.bg-section-alt { background-color: #F5F5F5; }
+.bg-section-alt { background-color: #EFEFEF; }
 .dark .bg-section-alt { background-color: #181818; }
 
 /* Hero bokeh animation */

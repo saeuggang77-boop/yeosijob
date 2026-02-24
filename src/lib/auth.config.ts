@@ -48,6 +48,9 @@ export const authConfig = {
         token.phone = user.phone ?? undefined;
         token.businessName = user.businessName ?? undefined;
         token.isVerifiedBiz = user.isVerifiedBiz;
+        token.ageVerified = user.ageVerified
+          ? new Date(user.ageVerified).toISOString()
+          : undefined;
       }
       return token;
     },
@@ -58,6 +61,8 @@ export const authConfig = {
         session.user.phone = token.phone as string | undefined;
         session.user.businessName = token.businessName as string | undefined;
         session.user.isVerifiedBiz = token.isVerifiedBiz as boolean;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).ageVerified = token.ageVerified;
       }
       return session;
     },

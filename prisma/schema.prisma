@@ -175,22 +175,47 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  ads           Ad[]
-  payments      Payment[]
-  resumes       Resume[]
-  reviews       Review[]
-  scraps        Scrap[]
-  jumpLogs      JumpLog[]
-  notifications  Notification[]
-  resumeViews    ResumeViewLog[] @relation("resumeViews")
-  posts          Post[]
-  comments       Comment[]
-  notices        Notice[]
+  // 본인인증
+  ageVerified    DateTime?
+
+  accounts         Account[]
+  sessions         Session[]
+  ads              Ad[]
+  payments         Payment[]
+  resumes          Resume[]
+  reviews          Review[]
+  scraps           Scrap[]
+  jumpLogs         JumpLog[]
+  notifications    Notification[]
+  resumeViews      ResumeViewLog[] @relation("resumeViews")
+  posts            Post[]
+  comments         Comment[]
+  notices          Notice[]
+  ageVerifications AgeVerification[]
 
   @@index([role])
   @@map("users")
+}
+
+// ── AGE VERIFICATION (본인인증) ──
+
+model AgeVerification {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  name      String
+  birthDate String
+  phone     String
+  carrier   String?
+  impUid    String   @unique
+  userId    String?
+  verified  Boolean  @default(true)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("age_verifications")
 }
 
 // ── AD (광고 = 채용공고) ──

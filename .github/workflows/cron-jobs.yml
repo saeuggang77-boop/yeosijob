@@ -67,3 +67,10 @@ jobs:
         run: |
           curl -s -X GET "https://yeosijob.com/api/cron/notify-expiry" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      # 매일 03:00 UTC (12:00 KST) - 만료 본인인증 토큰 정리
+      - name: Cleanup Age Tokens
+        if: steps.check.outputs.minute == '00' && steps.check.outputs.hour == '03'
+        run: |
+          curl -s -X GET "https://yeosijob.com/api/cron/cleanup-age-tokens" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

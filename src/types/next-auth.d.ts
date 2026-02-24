@@ -9,6 +9,7 @@ declare module "next-auth" {
       phone?: string;
       businessName?: string;
       isVerifiedBiz: boolean;
+      ageVerified?: string;
     } & DefaultSession["user"];
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
     phone?: string | null;
     businessName?: string | null;
     isVerifiedBiz: boolean;
+    ageVerified?: Date | null;
   }
 }
 
@@ -27,5 +29,6 @@ declare module "next-auth/jwt" {
     phone?: string;
     businessName?: string;
     isVerifiedBiz: boolean;
+    ageVerified?: string;
   }
 }

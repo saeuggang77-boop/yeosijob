@@ -31,8 +31,9 @@ function maskPhoneNumber(phone: string): string {
 
 export default async function ResumeDetailPage({ params }: PageProps) {
   const session = await auth();
-  if (!session || session.user.role !== "BUSINESS") redirect("/login");
+  if (!session || (session.user.role !== "BUSINESS" && session.user.role !== "ADMIN")) redirect("/login");
 
+  const isAdmin = session.user.role === "ADMIN";
   const { id } = await params;
 
   const resume = await prisma.resume.findUnique({
@@ -51,21 +52,21 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch active ads to determine tier (exclude FREE)
-  const activeAds = await prisma.ad.findMany({
+  // Fetch active ads to determine tier (exclude FREE) - skip for admin
+  const activeAds = isAdmin ? [] : await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
     select: { id: true, productId: true },
   });
 
-  const hasActiveAd = activeAds.length > 0;
+  const hasActiveAd = isAdmin || activeAds.length > 0;
 
   // Determine best product tier
   let bestProductId = "";
   let bestAdId = "";
   let dailyLimit = 0;
-  let isUnlimited = false;
+  let isUnlimited = isAdmin; // Admin always has unlimited access
 
-  if (hasActiveAd) {
+  if (!isAdmin && activeAds.length > 0) {
     bestProductId = activeAds.reduce((best, ad) => {
       const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
       const bestRank = AD_PRODUCTS[best]?.rank ?? 999;

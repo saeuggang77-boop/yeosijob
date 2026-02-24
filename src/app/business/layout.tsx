@@ -16,7 +16,7 @@ export default async function BusinessLayout({
 }) {
   const session = await auth();
 
-  if (!session || session.user.role !== "BUSINESS") {
+  if (!session || (session.user.role !== "BUSINESS" && session.user.role !== "ADMIN")) {
     redirect("/login");
   }
 

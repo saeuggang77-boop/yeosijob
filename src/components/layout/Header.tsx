@@ -50,6 +50,7 @@ export function Header() {
               <Separator />
               <nav className="flex flex-col gap-1 p-4">
                 {navLink("/jobs", "채용정보")}
+                {navLink("/resumes", "인재정보")}
                 {navLink("/community", "커뮤니티")}
                 {navLink("/pricing", "광고안내")}
                 {navLink("/notice", "공지사항")}
@@ -66,7 +67,6 @@ export function Header() {
                 {session?.user.role === "BUSINESS" && (
                   <>
                     {navLink("/business/dashboard", "광고관리")}
-                    {navLink("/business/resumes", "인재정보")}
                     {navLink("/business/ads/new", "광고등록")}
                   </>
                 )}
@@ -114,6 +114,11 @@ export function Header() {
               채용정보
             </Button>
           </Link>
+          <Link href="/resumes">
+            <Button variant="ghost" size="sm">
+              인재정보
+            </Button>
+          </Link>
           <Link href="/community">
             <Button variant="ghost" size="sm">
               커뮤니티
@@ -122,11 +127,6 @@ export function Header() {
           <Link href="/pricing">
             <Button variant="ghost" size="sm">
               광고안내
-            </Button>
-          </Link>
-          <Link href="/notice">
-            <Button variant="ghost" size="sm">
-              공지사항
             </Button>
           </Link>
           {session?.user.role === "JOBSEEKER" && (
@@ -148,11 +148,6 @@ export function Header() {
               <Link href="/business/dashboard">
                 <Button variant="ghost" size="sm">
                   광고관리
-                </Button>
-              </Link>
-              <Link href="/business/resumes">
-                <Button variant="ghost" size="sm">
-                  인재정보
                 </Button>
               </Link>
             </>

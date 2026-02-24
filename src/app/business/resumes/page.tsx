@@ -25,10 +25,12 @@ interface PageProps {
 
 export default async function ResumesPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (!session || session.user.role !== "BUSINESS") redirect("/login");
+  if (!session || (session.user.role !== "BUSINESS" && session.user.role !== "ADMIN")) redirect("/login");
 
-  // Fetch active ads to determine tier (exclude FREE)
-  const activeAds = await prisma.ad.findMany({
+  const isAdmin = session.user.role === "ADMIN";
+
+  // Fetch active ads to determine tier (exclude FREE) - skip for admin
+  const activeAds = isAdmin ? [] : await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
     select: { id: true, productId: true },
   });
@@ -36,9 +38,9 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   // Determine best product tier
   let bestProductId = "";
   let dailyLimit = 0;
-  let isUnlimited = false;
+  let isUnlimited = isAdmin; // Admin always has unlimited access
 
-  if (activeAds.length > 0) {
+  if (!isAdmin && activeAds.length > 0) {
     bestProductId = activeAds.reduce((best, ad) => {
       const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
       const bestRank = AD_PRODUCTS[best]?.rank ?? 999;
@@ -50,7 +52,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
 
   // Count today's views (use $queryRaw with explicit KST midnight to avoid PrismaPg date issues)
   let viewedTodayCount = 0;
-  if (activeAds.length > 0) {
+  if (!isAdmin && activeAds.length > 0) {
     const now = new Date();
     const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
     const kstMidnightUTC = new Date(
@@ -119,7 +121,9 @@ export default async function ResumesPage({ searchParams }: PageProps) {
       {/* View quota display */}
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <span className="text-sm text-muted-foreground">{total}건의 이력서</span>
-        {activeAds.length === 0 ? (
+        {isAdmin ? (
+          <Badge variant="default">관리자 · 무제한 열람</Badge>
+        ) : activeAds.length === 0 ? (
           <Badge variant="destructive">광고 등록 후 열람 가능</Badge>
         ) : isUnlimited ? (
           <Badge variant="default">
@@ -133,7 +137,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {activeAds.length === 0 && (
+      {!isAdmin && activeAds.length === 0 && (
         <Card className="mt-4 border-orange-200 bg-orange-50">
           <CardContent className="py-4">
             <p className="text-sm font-medium text-orange-800">

@@ -9,6 +9,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { FloatingChatButton } from "@/components/layout/FloatingChatButton";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
 
 export const revalidate = 60;
 
@@ -65,7 +66,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     lineAds,
     freeAds,
     total,
-    totalResumes,
+    recentResumes,
     recentPosts,
   ] = await Promise.all([
     prisma.ad.findMany({
@@ -118,7 +119,24 @@ export default async function HomePage({ searchParams }: PageProps) {
       select: adSelect,
     }),
     prisma.ad.count({ where: { ...baseWhere, productId: "LINE" } }),
-    prisma.resume.count({ where: { isPublic: true } }),
+    prisma.resume.findMany({
+      where: { isPublic: true },
+      orderBy: [
+        { lastBumpedAt: { sort: "desc", nulls: "last" } },
+        { updatedAt: "desc" },
+      ],
+      take: 5,
+      select: {
+        id: true,
+        nickname: true,
+        title: true,
+        age: true,
+        region: true,
+        desiredJobs: true,
+        experienceLevel: true,
+        updatedAt: true,
+      },
+    }),
     prisma.post.findMany({
       where: { isHidden: false },
       orderBy: { createdAt: "desc" },
@@ -485,16 +503,51 @@ export default async function HomePage({ searchParams }: PageProps) {
         </section>
       )}
 
-      {/* Resume Info Section - Simple */}
-      {totalResumes > 0 && (
+      {/* Resume Info Section */}
+      {recentResumes.length > 0 && (
         <section className="border-b bg-section-warm px-4 py-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">
-              인재정보
-            </h2>
-            <Link href="/business/resumes">
-              <Button variant="outline" size="sm">인재정보 보기</Button>
+            <h2 className="text-xl font-bold">인재정보</h2>
+            <Link href="/resumes">
+              <Button variant="outline" size="sm">더보기</Button>
             </Link>
+          </div>
+          <div className="mt-3 divide-y divide-border rounded-lg border bg-card">
+            {recentResumes.map((resume) => {
+              const regionLabel = REGIONS[resume.region]?.shortLabel || resume.region;
+              const expLabel = EXPERIENCE_LEVELS.find((e) => e.value === resume.experienceLevel)?.label || "";
+              const jobLabels = (resume.desiredJobs || []).slice(0, 2).map((j) => BUSINESS_TYPES[j]?.shortLabel || j);
+              return (
+                <div key={resume.id} className="px-4 py-2.5 text-sm">
+                  {/* Mobile */}
+                  <div className="flex items-center gap-1.5 md:hidden">
+                    <span className="font-medium">{resume.nickname}</span>
+                    {resume.age && <span className="text-muted-foreground">{resume.age}세</span>}
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">{regionLabel}</span>
+                    {jobLabels.length > 0 && (
+                      <>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="truncate text-muted-foreground">{jobLabels.join(", ")}</span>
+                      </>
+                    )}
+                  </div>
+                  {/* Desktop */}
+                  <div className="hidden items-center gap-3 text-muted-foreground md:flex">
+                    <span className="w-20 shrink-0 font-medium text-foreground">{resume.nickname}</span>
+                    {resume.age && <span className="w-12 shrink-0">{resume.age}세</span>}
+                    <span className="w-14 shrink-0">{regionLabel}</span>
+                    {jobLabels.length > 0 && (
+                      <span className="w-28 truncate">{jobLabels.join(", ")}</span>
+                    )}
+                    {expLabel && <span className="w-20 shrink-0 text-xs">{expLabel}</span>}
+                    {resume.title && (
+                      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/70">{resume.title}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}

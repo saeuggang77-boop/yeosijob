@@ -592,6 +592,19 @@ export default function MyResumePage() {
         <h1 className="text-2xl font-bold">나의 이력서</h1>
       </div>
 
+      {/* Privacy notice */}
+      <div className="mb-4 flex items-start gap-3 rounded-lg border border-green-500/20 bg-green-500/5 p-4">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-green-400">안심하고 등록하세요</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            연락처, 사진 등 상세정보는 <strong className="text-foreground">유료 광고를 등록한 인증 사장님만</strong> 열람할 수 있습니다. 목록에는 닉네임, 지역, 희망업종 등 기본정보만 공개됩니다.
+          </p>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 

@@ -23,6 +23,24 @@ export const metadata: Metadata = {
   },
   description: "여시잡에서 유흥업소 채용정보와 인재를 만나보세요. 룸싸롱, 노래방, 텐카페, 바, 클럽 등 전국 유흥알바 구인구직",
   keywords: ["유흥알바", "밤알바", "룸알바", "구인구직", "여시잡", "룸싸롱", "노래방", "텐카페", "바", "클럽"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "여시잡",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",
@@ -35,6 +53,10 @@ export const metadata: Metadata = {
     title: "여시잡 | 유흥알바 밤알바 룸알바 No.1 구인구직",
     description: "여시잡에서 유흥업소 채용정보와 인재를 만나보세요.",
   },
+};
+
+export const viewport = {
+  themeColor: "#D4A853",
 };
 
 export default function RootLayout({

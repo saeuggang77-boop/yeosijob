@@ -3,7 +3,7 @@
 export function FloatingChatButton() {
   return (
     <a
-      href="http://pf.kakao.com/_zEqYG/chat"
+      href="https://pf.kakao.com/_zEqYG/chat"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-20 right-4 z-50 flex items-center gap-2 rounded-full bg-[#FEE500] px-4 py-3 font-medium text-[#3C1E1E] shadow-lg transition-transform hover:scale-105 md:bottom-6"

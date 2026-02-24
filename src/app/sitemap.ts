@@ -1,16 +1,16 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.AUTH_URL || "https://yeosijob.com";
+const baseUrl = process.env.AUTH_URL || "https://yeosijob.com";
 
-  // 정적 페이지
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 1,
+      changeFrequency: "hourly",
+      priority: 1.0,
     },
     {
       url: `${baseUrl}/jobs`,
@@ -19,9 +19,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/pricing`,
+      url: `${baseUrl}/resumes`,
       lastModified: new Date(),
-      changeFrequency: "monthly",
+      changeFrequency: "daily",
       priority: 0.7,
     },
     {
@@ -37,6 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -44,60 +50,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
-      priority: 0.3,
+      priority: 0.2,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
-      priority: 0.3,
+      priority: 0.2,
     },
   ];
 
-  // 활성 광고 (채용정보) 동적 페이지
+  // Dynamic: active job postings
   const activeAds = await prisma.ad.findMany({
     where: { status: "ACTIVE" },
     select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-    take: 5000,
+    orderBy: { lastJumpedAt: "desc" },
   });
 
-  const adPages: MetadataRoute.Sitemap = activeAds.map((ad) => ({
+  const jobPages: MetadataRoute.Sitemap = activeAds.map((ad) => ({
     url: `${baseUrl}/jobs/${ad.id}`,
     lastModified: ad.updatedAt,
     changeFrequency: "daily" as const,
     priority: 0.8,
   }));
 
-  // 커뮤니티 게시글
-  const communityPosts = await prisma.post.findMany({
-    where: { isHidden: false },
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-    take: 1000,
-  });
-
-  const communityPages: MetadataRoute.Sitemap = communityPosts.map((post) => ({
-    url: `${baseUrl}/community/${post.id}`,
-    lastModified: post.updatedAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.5,
-  }));
-
-  // 공지사항 개별 페이지
-  const notices = await prisma.notice.findMany({
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  const noticePages: MetadataRoute.Sitemap = notices.map((notice) => ({
-    url: `${baseUrl}/notice/${notice.id}`,
-    lastModified: notice.updatedAt,
-    changeFrequency: "monthly" as const,
-    priority: 0.4,
-  }));
-
-  return [...staticPages, ...adPages, ...communityPages, ...noticePages];
+  return [...staticPages, ...jobPages];
 }

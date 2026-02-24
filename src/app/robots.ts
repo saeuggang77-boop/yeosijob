@@ -1,22 +1,26 @@
 import type { MetadataRoute } from "next";
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.AUTH_URL || "https://yeosijob.com";
+const baseUrl = process.env.AUTH_URL || "https://yeosijob.com";
 
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
         disallow: [
-          "/api/",
           "/admin/",
           "/business/",
           "/jobseeker/",
           "/login",
           "/register",
+          "/register/",
           "/forgot-password",
           "/reset-password",
+          "/verify-email",
+          "/verify-age/",
+          "/api/",
+          "/notifications",
         ],
       },
     ],

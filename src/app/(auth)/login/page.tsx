@@ -123,20 +123,6 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={() => signIn("naver", { callbackUrl: "/" })}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#03C75A] text-sm font-medium text-white transition-colors hover:bg-[#02b351]"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path
-                fill="#fff"
-                d="M12.13 9.72l-4.12-6.07H4v12.7h5.87V10.3l4.13 6.05H18V3.65h-5.87z"
-              />
-            </svg>
-            네이버 로그인
-          </button>
-
-          <button
-            type="button"
             onClick={() => signIn("google", { callbackUrl: "/" })}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-md border bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >

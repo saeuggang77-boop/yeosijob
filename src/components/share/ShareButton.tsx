@@ -59,8 +59,9 @@ export function ShareButton({ title, description }: ShareButtonProps) {
   }, [open]);
 
   async function handleShare() {
-    // Mobile: use native Web Share API (includes KakaoTalk, SMS, etc.)
-    if (navigator.share) {
+    // 모바일에서만 네이티브 공유 시트 사용 (데스크톱은 커스텀 드롭다운)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && navigator.share) {
       try {
         await navigator.share({
           title,

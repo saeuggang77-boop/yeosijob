@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { writeFile, unlink, mkdir, readdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
@@ -9,6 +10,11 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session || session.user.role !== "JOBSEEKER") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
+    }
+
+    const { success } = checkRateLimit(`upload:${session.user.id}`, 10, 60_000);
+    if (!success) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }
 
     let formData: FormData;

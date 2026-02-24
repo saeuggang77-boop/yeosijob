@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { stripHtml } from "@/lib/utils/format";
 
 export async function GET(
   request: NextRequest,
@@ -47,9 +49,14 @@ export async function POST(
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
+    const { success } = checkRateLimit(`comment:${session.user.id}`, 10, 60_000);
+    if (!success) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
+    }
+
     const { id } = await params;
     const body = await request.json();
-    const { content } = body;
+    const content = stripHtml(body.content || "");
 
     // Validation
     if (!content || content.length < 1 || content.length > 500) {

@@ -12,6 +12,7 @@ import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
+import { ShareButton } from "@/components/share/ShareButton";
 import type { Region } from "@/generated/prisma/client";
 
 interface PageProps {
@@ -195,7 +196,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       {/* 상단 정보 */}
       <div className="mb-6">
@@ -209,9 +210,15 @@ export default async function JobDetailPage({ params }: PageProps) {
 
         <div className="mt-3 flex items-start justify-between gap-3">
           <h1 className="text-2xl font-bold">{ad.title}</h1>
-          {session?.user?.role === "JOBSEEKER" && (
-            <ScrapButton adId={id} initialScraped={isScraped} />
-          )}
+          <div className="flex shrink-0 items-center gap-1">
+            <ShareButton
+              title={`${ad.title} - ${ad.businessName}`}
+              description={`${regionLabels} ${bizLabel} | ${ad.salaryText}`}
+            />
+            {session?.user?.role === "JOBSEEKER" && (
+              <ScrapButton adId={id} initialScraped={isScraped} />
+            )}
+          </div>
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">

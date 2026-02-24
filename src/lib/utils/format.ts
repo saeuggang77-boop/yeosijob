@@ -1,3 +1,8 @@
+/** Strip HTML tags from user input to prevent stored XSS */
+export function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, "");
+}
+
 export function formatPhone(phone: string): string {
   if (phone.length === 11) {
     return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;

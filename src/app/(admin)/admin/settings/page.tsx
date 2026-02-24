@@ -22,7 +22,7 @@ export default async function AdminSettingsPage() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     dbConnected = true;
-  } catch (error) {
+  } catch {
     dbConnected = false;
   }
 

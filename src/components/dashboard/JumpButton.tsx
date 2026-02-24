@@ -86,6 +86,7 @@ export function JumpButton({ adId, manualJumpPerDay, manualJumpUsedToday, lastMa
         disabled={isDisabled}
         onClick={handleJump}
         className="shrink-0"
+        aria-label="광고 수동점프"
       >
         {loading ? "점프 중..." : cooldownEnd ? cooldownText : "수동점프"}
       </Button>

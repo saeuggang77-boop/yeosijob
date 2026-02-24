@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     const isBusinessHours = kstHour >= 18 || kstHour < 6;
 
     // 10분 간격 = 하루 144 슬롯, 영업/비영업 각 72 슬롯
-    const slotsInPeriod = 72;
 
     // ACTIVE 광고 중 기간 내인 것 조회
     const ads = await prisma.ad.findMany({

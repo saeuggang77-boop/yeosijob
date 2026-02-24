@@ -24,7 +24,9 @@ export function AgeVerification() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setIsMounted(true);
+    queueMicrotask(() => {
+      setIsMounted(true);
+    });
 
     if (HAS_PORTONE) {
       // 쿠키 기반: 서버에서 상태 확인
@@ -32,20 +34,26 @@ export function AgeVerification() {
         .then((res) => res.json())
         .then((data) => {
           if (!data.verified) {
-            setIsVisible(true);
-            document.body.style.overflow = "hidden";
+            queueMicrotask(() => {
+              setIsVisible(true);
+              document.body.style.overflow = "hidden";
+            });
           }
         })
         .catch(() => {
-          setIsVisible(true);
-          document.body.style.overflow = "hidden";
+          queueMicrotask(() => {
+            setIsVisible(true);
+            document.body.style.overflow = "hidden";
+          });
         });
     } else {
       // 폴백: localStorage 기반 (개발용)
       const isVerified = localStorage.getItem(AGE_VERIFIED_KEY);
       if (!isVerified) {
-        setIsVisible(true);
-        document.body.style.overflow = "hidden";
+        queueMicrotask(() => {
+          setIsVisible(true);
+          document.body.style.overflow = "hidden";
+        });
       }
     }
   }, []);

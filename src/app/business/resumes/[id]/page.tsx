@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -172,9 +173,11 @@ export default async function ResumeDetailPage({ params }: PageProps) {
           <Card>
             <CardContent className="py-6">
               <div className="flex justify-center">
-                <img
+                <Image
                   src={resume.photoUrl}
                   alt="프로필 사진"
+                  width={320}
+                  height={320}
                   className="max-w-xs rounded-lg"
                 />
               </div>

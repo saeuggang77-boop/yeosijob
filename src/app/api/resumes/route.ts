@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resumeSchema } from "@/lib/validators/resume";
 import type { Region, BusinessType } from "@/generated/prisma/client";
-import { z } from "zod";
+
 
 // POST: Create/update my resume (for JOBSEEKER users)
 export async function POST(request: NextRequest) {

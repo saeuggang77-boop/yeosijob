@@ -187,14 +187,14 @@ ${ad.description}
           <div>
             <p className="font-medium">3. 글 작성</p>
             <p className="text-muted-foreground">
-              위 광고 목록에서 "카페 등록용 텍스트 보기"를 클릭하여 복사 후
+              위 광고 목록에서 &quot;카페 등록용 텍스트 보기&quot;를 클릭하여 복사 후
               카페에 붙여넣기합니다.
             </p>
           </div>
           <div>
             <p className="font-medium">4. 제목 형식</p>
             <p className="text-muted-foreground">
-              제목은 "[등급] 업소명 - 간단한 설명" 형식을 권장합니다.
+              제목은 &quot;[등급] 업소명 - 간단한 설명&quot; 형식을 권장합니다.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               예: [프리미엄] 강남 OO룸 - 일급 30만원 / 급여 당일지급

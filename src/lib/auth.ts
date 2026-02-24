@@ -6,6 +6,17 @@ import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
 
+interface ExtendedUser {
+  id?: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
+  role?: string;
+  phone?: string | null;
+  businessName?: string | null;
+  isVerifiedBiz?: boolean;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   trustHost: true,
@@ -37,14 +48,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           });
           user.id = newUser.id;
-          (user as any).role = newUser.role;
-          (user as any).isVerifiedBiz = false;
+          (user as ExtendedUser).role = newUser.role;
+          (user as ExtendedUser).isVerifiedBiz = false;
         } else {
           user.id = existingUser.id;
-          (user as any).role = existingUser.role;
-          (user as any).phone = existingUser.phone;
-          (user as any).businessName = existingUser.businessName;
-          (user as any).isVerifiedBiz = existingUser.isVerifiedBiz;
+          (user as ExtendedUser).role = existingUser.role;
+          (user as ExtendedUser).phone = existingUser.phone;
+          (user as ExtendedUser).businessName = existingUser.businessName;
+          (user as ExtendedUser).isVerifiedBiz = existingUser.isVerifiedBiz;
         }
 
         // Upsert account link

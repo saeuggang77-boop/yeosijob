@@ -28,7 +28,7 @@ export function ResumeActions({ resumeId, isPublic }: ResumeActionsProps) {
 
       toast.success(isPublic ? "이력서를 숨겼습니다" : "이력서를 공개했습니다");
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("작업에 실패했습니다");
     } finally {
       setIsToggling(false);
@@ -48,7 +48,7 @@ export function ResumeActions({ resumeId, isPublic }: ResumeActionsProps) {
 
       toast.success("이력서가 삭제되었습니다");
       router.push("/admin/resumes");
-    } catch (error) {
+    } catch {
       toast.error("삭제에 실패했습니다");
     } finally {
       setIsDeleting(false);

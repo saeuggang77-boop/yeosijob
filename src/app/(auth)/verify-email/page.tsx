@@ -14,8 +14,10 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) {
-      setStatus("error");
-      setMessage("인증 토큰이 없습니다.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setMessage("인증 토큰이 없습니다.");
+      });
       return;
     }
 

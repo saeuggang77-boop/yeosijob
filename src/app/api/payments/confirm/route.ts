@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
 
       // Ad 활성화 또는 업그레이드/연장
       if (payment.adId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const snapshot = payment.itemSnapshot as any;
         const isUpgrade = snapshot?.type === "upgrade";
         const isRenew = snapshot?.type === "renew";

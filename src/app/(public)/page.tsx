@@ -472,7 +472,6 @@ export default async function HomePage({ searchParams }: PageProps) {
           <div className="divide-y divide-border">
             {freeAds.map((ad) => {
               const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
-              const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
               return (
                 <Link key={ad.id} href={`/jobs/${ad.id}`} className="block transition-colors hover:bg-muted/50">
                   {/* Mobile: 2-line card */}

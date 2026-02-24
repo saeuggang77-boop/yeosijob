@@ -29,6 +29,8 @@ export function RegionChips({ current }: { current?: string }) {
             ? "bg-primary text-primary-foreground"
             : "bg-muted text-muted-foreground hover:bg-muted/80"
         }`}
+        aria-label="전체 지역"
+        aria-pressed={selected === "ALL"}
       >
         전체
       </button>
@@ -41,6 +43,8 @@ export function RegionChips({ current }: { current?: string }) {
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground hover:bg-muted/80"
           }`}
+          aria-label={`${r.label} 지역 필터`}
+          aria-pressed={selected === r.value}
         >
           {r.label}
         </button>

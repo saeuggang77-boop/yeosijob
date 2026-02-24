@@ -54,7 +54,7 @@ export function NotificationBell() {
     if (!session) return;
 
     // Initial fetch
-    fetchNotifications();
+    queueMicrotask(() => fetchNotifications());
 
     // Poll every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
@@ -112,6 +112,7 @@ export function NotificationBell() {
         size="icon"
         className="relative"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={unreadCount > 0 ? `알림 ${unreadCount}개` : "알림"}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -129,6 +130,7 @@ export function NotificationBell() {
               <button
                 onClick={handleMarkAllAsRead}
                 className="text-xs text-primary hover:underline"
+                aria-label="모든 알림 읽음 처리"
               >
                 모두 읽음
               </button>
@@ -146,6 +148,7 @@ export function NotificationBell() {
                   key={notification.id}
                   onClick={() => handleMarkAsRead(notification.id, notification.link)}
                   className="flex w-full items-start gap-3 border-b px-4 py-3 text-left hover:bg-accent"
+                  aria-label={`${notification.title} 알림 읽기`}
                 >
                   {!notification.isRead && (
                     <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
@@ -172,6 +175,7 @@ export function NotificationBell() {
                   router.push("/notifications");
                 }}
                 className="text-xs text-primary hover:underline"
+                aria-label="모든 알림 보기"
               >
                 전체보기
               </button>

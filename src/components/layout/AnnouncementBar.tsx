@@ -7,7 +7,7 @@ export function AnnouncementBar() {
 
   useEffect(() => {
     const dismissed = localStorage.getItem("announcement-dismissed");
-    if (!dismissed) setVisible(true);
+    if (!dismissed) queueMicrotask(() => setVisible(true));
   }, []);
 
   function dismiss() {

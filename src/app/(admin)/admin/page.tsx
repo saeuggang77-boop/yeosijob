@@ -25,7 +25,7 @@ export default async function AdminDashboardPage() {
   weekStart.setDate(now.getDate() - 7);
 
   // Section 1: Revenue Summary
-  const [thisMonthRevenue, lastMonthRevenue, todayRevenue, totalRevenue] =
+  const [thisMonthRevenue, lastMonthRevenue, todayRevenue] =
     await Promise.all([
       prisma.payment.aggregate({
         where: { status: "APPROVED", paidAt: { gte: thisMonthStart } },
@@ -40,10 +40,6 @@ export default async function AdminDashboardPage() {
       }),
       prisma.payment.aggregate({
         where: { status: "APPROVED", paidAt: { gte: todayStart } },
-        _sum: { amount: true },
-      }),
-      prisma.payment.aggregate({
-        where: { status: "APPROVED" },
         _sum: { amount: true },
       }),
     ]);

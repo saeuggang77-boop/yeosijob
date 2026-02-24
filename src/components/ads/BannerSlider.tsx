@@ -135,6 +135,8 @@ export function BannerSlider({ ads }: Props) {
                   ? "w-6 bg-primary shadow-[0_0_8px_rgba(212,168,83,0.5)]"
                   : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
               }`}
+              aria-label={`${i + 1}번 광고로 이동`}
+              aria-current={i === current ? "true" : "false"}
             />
           ))}
         </div>

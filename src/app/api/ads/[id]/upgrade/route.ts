@@ -21,6 +21,7 @@ export async function POST(
       options,
       optionValues,
       paymentMethod,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       regions,
     } = await request.json();
 

@@ -188,7 +188,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
   // Add validThrough if endDate exists
   if (ad.endDate) {
-    (jsonLd as any).validThrough = ad.endDate.toISOString();
+    (jsonLd as Record<string, unknown>).validThrough = ad.endDate.toISOString();
   }
 
   return (

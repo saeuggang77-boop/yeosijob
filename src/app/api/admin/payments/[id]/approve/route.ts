@@ -32,6 +32,7 @@ export async function POST(
 
     const now = new Date();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const snapshot = payment.itemSnapshot as any;
     const isUpgrade = snapshot?.type === "upgrade";
     const durationDays = isUpgrade

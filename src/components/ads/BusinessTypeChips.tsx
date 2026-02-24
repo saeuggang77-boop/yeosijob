@@ -29,6 +29,8 @@ export function BusinessTypeChips({ current }: { current?: string }) {
             ? "bg-primary text-primary-foreground"
             : "bg-muted text-muted-foreground hover:bg-muted/80"
         }`}
+        aria-label="전체 업종"
+        aria-pressed={selected === "ALL"}
       >
         전체
       </button>
@@ -41,6 +43,8 @@ export function BusinessTypeChips({ current }: { current?: string }) {
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground hover:bg-muted/80"
           }`}
+          aria-label={`${b.label} 업종 필터`}
+          aria-pressed={selected === b.value}
         >
           {b.label}
         </button>

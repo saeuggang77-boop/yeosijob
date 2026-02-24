@@ -15,8 +15,10 @@ function VerifyAgeCallbackContent() {
   useEffect(() => {
     // PortOne에서 에러 코드와 함께 리다이렉트된 경우
     if (code) {
-      setStatus("error");
-      setMessage("본인인증이 취소되었거나 실패했습니다.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setMessage("본인인증이 취소되었거나 실패했습니다.");
+      });
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);
@@ -24,8 +26,10 @@ function VerifyAgeCallbackContent() {
     }
 
     if (!identityVerificationId) {
-      setStatus("error");
-      setMessage("인증 정보가 없습니다.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setMessage("인증 정보가 없습니다.");
+      });
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);

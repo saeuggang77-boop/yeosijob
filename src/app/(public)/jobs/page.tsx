@@ -1,9 +1,6 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AdCard } from "@/components/ads/AdCard";
 import { DebouncedSearch } from "@/components/ads/DebouncedSearch";
-import { REGIONS } from "@/lib/constants/regions";
-import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 export const revalidate = 60;

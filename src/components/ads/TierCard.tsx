@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
@@ -54,9 +55,11 @@ export function TierCard({ ad, tier }: TierCardProps) {
         {/* Thumbnail / Fallback Icon */}
         <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
           {ad.thumbnailUrl ? (
-            <img
+            <Image
               src={ad.thumbnailUrl}
               alt={ad.title}
+              width={64}
+              height={64}
               className="h-full w-full object-cover"
             />
           ) : (

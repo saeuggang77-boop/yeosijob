@@ -53,7 +53,7 @@ export default async function PublicResumesPage({ searchParams }: PageProps) {
   const limit = 20;
 
   // Build where clause
-  const where: any = {
+  const where: Record<string, unknown> = {
     isPublic: true,
   };
 

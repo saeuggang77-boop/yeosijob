@@ -8,6 +8,12 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+interface WindowWithNavigator extends Window {
+  navigator: Navigator & {
+    standalone?: boolean;
+  };
+}
+
 export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -17,10 +23,12 @@ export function InstallPrompt() {
   useEffect(() => {
     // Check if already installed (standalone mode)
     const isInStandalone = window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone ||
+      (window as WindowWithNavigator).navigator.standalone ||
       document.referrer.includes("android-app://");
 
-    setIsStandalone(isInStandalone);
+    queueMicrotask(() => {
+      setIsStandalone(isInStandalone);
+    });
 
     if (isInStandalone) {
       return; // Don't show prompt if already installed
@@ -39,7 +47,9 @@ export function InstallPrompt() {
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isIOSDevice);
+    queueMicrotask(() => {
+      setIsIOS(isIOSDevice);
+    });
 
     // Android Chrome: beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -111,7 +121,7 @@ export function InstallPrompt() {
                     <Share className="h-4 w-4 flex-shrink-0 text-gold-500" />
                     <span>
                       하단 <strong className="text-white">공유 버튼</strong>을 누른 후{" "}
-                      <strong className="text-white">"홈 화면에 추가"</strong>를 선택하세요
+                      <strong className="text-white">&quot;홈 화면에 추가&quot;</strong>를 선택하세요
                     </span>
                   </div>
                 </div>

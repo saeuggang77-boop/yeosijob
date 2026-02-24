@@ -28,7 +28,7 @@ export default function EditNoticePage({ params }: PageProps) {
       setNoticeId(p.id);
       fetchNotice(p.id);
     });
-  }, []);
+  }, [params]);
 
   if (status === "loading") {
     return null;

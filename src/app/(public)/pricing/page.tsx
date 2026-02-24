@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
+import { AD_PRODUCTS, AD_OPTIONS } from "@/lib/constants/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";

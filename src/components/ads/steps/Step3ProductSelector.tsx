@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -68,6 +67,7 @@ export function Step3ProductSelector({
   const durationDays = data.durationDays ?? 0;
   const isFreeProduct = productId === "FREE";
   const regions = data.regions || [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const options = data.options || [];
   const optionValues = data.optionValues || {};
 

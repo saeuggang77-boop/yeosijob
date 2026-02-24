@@ -33,7 +33,7 @@ export default function RenewAdPage() {
   const [step, setStep] = useState(1);
   const [durationDays, setDurationDays] = useState<DurationDays>(30);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [optionValues, setOptionValues] = useState<Record<string, string>>({});
+  const [optionValues] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);

@@ -47,6 +47,7 @@ export default function EditAdPage() {
   }, []);
 
   const openPostcode = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(window as any).daum?.Postcode) {
       alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
@@ -54,7 +55,9 @@ export default function EditAdPage() {
     setShowPostcode(true);
     setTimeout(() => {
       if (!postcodeRef.current) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       new (window as any).daum.Postcode({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         oncomplete: (result: any) => {
           const addr = result.roadAddress || result.jibunAddress;
           setForm((prev) => ({ ...prev, address: addr }));

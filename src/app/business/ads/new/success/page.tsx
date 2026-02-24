@@ -24,8 +24,10 @@ export default function PaymentSuccessPage() {
     const amount = searchParams.get("amount");
 
     if (!paymentKey || !orderId || !amount) {
-      setStatus("error");
-      setErrorMessage("결제 정보가 올바르지 않습니다");
+      queueMicrotask(() => {
+        setStatus("error");
+        setErrorMessage("결제 정보가 올바르지 않습니다");
+      });
       return;
     }
 

@@ -36,7 +36,7 @@ export function Header() {
           {/* Mobile hamburger */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="메뉴 열기">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -93,6 +93,7 @@ export function Header() {
                         signOut({ callbackUrl: "/" });
                       }}
                       className="rounded-md px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-muted"
+                      aria-label="로그아웃"
                     >
                       로그아웃
                     </button>

@@ -34,7 +34,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
   const itemsPerPage = 20;
 
   // Build where clause from filters
-  const where: any = {};
+  const where: Record<string, unknown> = {};
 
   if (status && status !== "ALL") {
     where.status = status;

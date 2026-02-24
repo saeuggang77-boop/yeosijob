@@ -12,18 +12,31 @@ interface ShareButtonProps {
 
 const KAKAO_JS_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "";
 
+interface KakaoSDK {
+  init: (key: string) => void;
+  isInitialized: () => boolean;
+  Share?: {
+    sendDefault: (options: Record<string, unknown>) => void;
+  };
+}
+
+interface WindowWithKakao extends Window {
+  Kakao?: KakaoSDK;
+}
+
 function loadKakaoSdk(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined") return reject();
-    if ((window as any).Kakao) {
-      const Kakao = (window as any).Kakao;
+    const win = window as WindowWithKakao;
+    if (win.Kakao) {
+      const Kakao = win.Kakao;
       if (!Kakao.isInitialized() && KAKAO_JS_KEY) Kakao.init(KAKAO_JS_KEY);
       return resolve();
     }
     const script = document.createElement("script");
     script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js";
     script.onload = () => {
-      const Kakao = (window as any).Kakao;
+      const Kakao = (window as WindowWithKakao).Kakao;
       if (Kakao && !Kakao.isInitialized() && KAKAO_JS_KEY) Kakao.init(KAKAO_JS_KEY);
       resolve();
     };
@@ -89,7 +102,7 @@ export function ShareButton({ title, description }: ShareButtonProps) {
   }
 
   function handleKakao() {
-    const Kakao = (window as any).Kakao;
+    const Kakao = (window as WindowWithKakao).Kakao;
     if (!Kakao?.Share) return;
     Kakao.Share.sendDefault({
       objectType: "feed",
@@ -123,6 +136,7 @@ export function ShareButton({ title, description }: ShareButtonProps) {
           <button
             onClick={handleCopyUrl}
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+            aria-label="URL 복사"
           >
             {copied ? <Check className="h-4 w-4 text-green-500" /> : <Link2 className="h-4 w-4" />}
             URL 복사
@@ -131,6 +145,7 @@ export function ShareButton({ title, description }: ShareButtonProps) {
             <button
               onClick={handleKakao}
               className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+              aria-label="카카오톡으로 공유"
             >
               <MessageCircle className="h-4 w-4 text-yellow-500" />
               카카오톡

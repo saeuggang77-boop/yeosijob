@@ -11,6 +11,7 @@ import { EXPERIENCE_LEVELS, SALARY_TYPES } from "@/lib/constants/resume";
 import { formatPhone, formatPrice } from "@/lib/utils/format";
 import { ResumeActions } from "@/components/admin/ResumeActions";
 import type { BusinessType } from "@/generated/prisma/client";
+import Image from "next/image";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -73,9 +74,11 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
           <Card>
             <CardContent className="py-6">
               <div className="flex justify-center">
-                <img
+                <Image
                   src={resume.photoUrl}
                   alt="프로필 사진"
+                  width={300}
+                  height={400}
                   className="max-w-xs rounded-lg"
                 />
               </div>

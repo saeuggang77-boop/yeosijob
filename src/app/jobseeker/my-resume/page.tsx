@@ -406,6 +406,7 @@ export default function MyResumePage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4">
               {resumeData.photoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={resumeData.photoUrl}
                   alt="프로필 사진"
@@ -927,6 +928,7 @@ export default function MyResumePage() {
             {photoPreview ? (
               <div className="flex flex-col items-center gap-3">
                 <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoPreview}
                     alt="프로필 사진"

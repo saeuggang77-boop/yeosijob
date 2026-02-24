@@ -518,7 +518,7 @@ export default async function HomePage({ searchParams }: PageProps) {
               const expLabel = EXPERIENCE_LEVELS.find((e) => e.value === resume.experienceLevel)?.label || "";
               const jobLabels = (resume.desiredJobs || []).slice(0, 2).map((j) => BUSINESS_TYPES[j]?.shortLabel || j);
               return (
-                <div key={resume.id} className="px-4 py-2.5 text-sm">
+                <Link key={resume.id} href="/resumes" className="block px-4 py-2.5 text-sm transition-colors hover:bg-muted/50">
                   {/* Mobile */}
                   <div className="flex items-center gap-1.5 md:hidden">
                     <span className="font-medium">{resume.nickname}</span>
@@ -545,7 +545,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                       <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/70">{resume.title}</span>
                     )}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

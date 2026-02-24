@@ -58,48 +58,15 @@ export function AgeVerification() {
       const PortOne = await import("@portone/browser-sdk/v2");
 
       const identityVerificationId = `identity-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const redirectUrl = `${window.location.origin}/verify-age/callback`;
 
-      const response = await PortOne.requestIdentityVerification({
+      // 리다이렉트 방식: 팝업 차단 문제 없음
+      await PortOne.requestIdentityVerification({
         storeId: STORE_ID,
         identityVerificationId,
         channelKey: CHANNEL_KEY,
+        redirectUrl,
       });
-
-      if (response?.code) {
-        if (response.code === "IDENTITY_VERIFICATION_STOPPED") {
-          setIsLoading(false);
-          return;
-        }
-        setError(response.message || "본인인증에 실패했습니다");
-        setIsLoading(false);
-        return;
-      }
-
-      // 서버에서 인증 결과 확인
-      const verifyRes = await fetch("/api/auth/verify-age", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identityVerificationId: response?.identityVerificationId || identityVerificationId,
-        }),
-      });
-
-      const verifyData = await verifyRes.json();
-
-      if (!verifyRes.ok) {
-        if (verifyData.underage) {
-          // 미성년자 → 리다이렉트
-          window.location.href = "https://www.google.com";
-          return;
-        }
-        setError(verifyData.error || "인증 처리 중 오류가 발생했습니다");
-        setIsLoading(false);
-        return;
-      }
-
-      // 인증 성공 → 페이지 리로드
-      document.body.style.overflow = "unset";
-      window.location.reload();
     } catch (err) {
       console.error("PortOne verification error:", err);
       setError("본인인증 처리 중 오류가 발생했습니다");

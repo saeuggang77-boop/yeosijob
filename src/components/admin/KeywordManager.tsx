@@ -26,12 +26,49 @@ import {
   Trash2,
   CheckSquare,
   Square,
+  ClipboardPaste,
 } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
+interface ParsedKeyword {
+  keyword: string;
+  count: number | null;
+  percent: string | null;
+}
+
 interface KeywordManagerProps {
   initialKeywords: string[];
+}
+
+/**
+ * 네이버 카페 통계 형식 파싱
+ * "밤여시381.94%" → { keyword: "밤여시", count: 38, percent: "1.94%" }
+ */
+function parseNaverStats(text: string): ParsedKeyword[] {
+  const lines = text.split(/[\n\r]+/).filter((l) => l.trim().length > 0);
+  const results: ParsedKeyword[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // 네이버 통계 형식: 키워드 + 숫자 + 퍼센트
+    const match = trimmed.match(/^(.+?)(\d+)(\d+\.\d{2}%)$/);
+    if (match) {
+      results.push({
+        keyword: match[1].trim(),
+        count: parseInt(match[2]),
+        percent: match[3],
+      });
+    } else {
+      // 숫자/퍼센트 없는 일반 텍스트도 키워드로 처리
+      const clean = trimmed.replace(/[\d.%]+$/g, "").trim();
+      if (clean.length > 0) {
+        results.push({ keyword: clean, count: null, percent: null });
+      }
+    }
+  }
+
+  return results;
 }
 
 export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
@@ -42,6 +79,11 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+
+  // 클립보드 미리보기 상태
+  const [pastePreview, setPastePreview] = useState<ParsedKeyword[]>([]);
+  const [pasteSelected, setPasteSelected] = useState<Set<string>>(new Set());
+  const [showPastePreview, setShowPastePreview] = useState(false);
 
   // 필터링된 키워드
   const filtered = searchQuery
@@ -186,6 +228,68 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
     URL.revokeObjectURL(url);
   };
 
+  // --- 클립보드 붙여넣기 ---
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text.trim()) {
+        toast.error("클립보드가 비어있습니다");
+        return;
+      }
+
+      const parsed = parseNaverStats(text);
+      if (parsed.length === 0) {
+        toast.error("파싱 가능한 키워드가 없습니다");
+        return;
+      }
+
+      // 이미 등록된 키워드 제외
+      const newOnly = parsed.filter((p) => !keywords.includes(p.keyword));
+      if (newOnly.length === 0) {
+        toast.error("모든 키워드가 이미 등록되어 있습니다");
+        return;
+      }
+
+      setPastePreview(newOnly);
+      setPasteSelected(new Set(newOnly.map((p) => p.keyword)));
+      setShowPastePreview(true);
+    } catch {
+      toast.error("클립보드 접근 권한이 필요합니다");
+    }
+  };
+
+  const togglePasteSelect = (keyword: string) => {
+    const next = new Set(pasteSelected);
+    if (next.has(keyword)) next.delete(keyword);
+    else next.add(keyword);
+    setPasteSelected(next);
+  };
+
+  const togglePasteSelectAll = () => {
+    if (pasteSelected.size === pastePreview.length) {
+      setPasteSelected(new Set());
+    } else {
+      setPasteSelected(new Set(pastePreview.map((p) => p.keyword)));
+    }
+  };
+
+  const handlePasteConfirm = async () => {
+    const selectedKeywords = [...pasteSelected];
+    if (selectedKeywords.length === 0) {
+      toast.error("선택된 키워드가 없습니다");
+      return;
+    }
+
+    try {
+      await addKeywords(selectedKeywords);
+      setShowPastePreview(false);
+      setPastePreview([]);
+      setPasteSelected(new Set());
+    } catch {
+      // addKeywords에서 에러 처리됨
+    }
+  };
+
   // --- 선택/삭제 ---
   const toggleSelect = (keyword: string) => {
     const next = new Set(selected);
@@ -210,7 +314,9 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
     try {
       await saveKeywords(remaining);
       setSelected(new Set());
-      toast.success(`${keywords.length - remaining.length}개 키워드가 삭제되었습니다`);
+      toast.success(
+        `${keywords.length - remaining.length}개 키워드가 삭제되었습니다`
+      );
     } catch {
       // saveKeywords에서 에러 처리됨
     }
@@ -251,7 +357,7 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
         <CardHeader>
           <CardTitle className="text-[#D4A853]">키워드 추가</CardTitle>
           <CardDescription>
-            직접 입력하거나 파일(xlsx/txt/csv)을 업로드하세요
+            직접 입력, 파일 업로드, 또는 네이버 카페 통계를 붙여넣기하세요
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -278,6 +384,15 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
             </Button>
             <Button
               variant="outline"
+              onClick={handlePaste}
+              disabled={saving}
+              className="border-[#D4A853]/50 text-[#D4A853] hover:bg-[#D4A853]/10"
+            >
+              <ClipboardPaste className="mr-1 size-4" />
+              붙여넣기
+            </Button>
+            <Button
+              variant="outline"
               disabled={extracting}
               onClick={() =>
                 document.getElementById("keyword-file-input")?.click()
@@ -291,7 +406,7 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
               ) : (
                 <>
                   <Upload className="mr-1 size-4" />
-                  파일 업로드
+                  파일
                 </>
               )}
             </Button>
@@ -311,6 +426,92 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* 붙여넣기 미리보기 */}
+      {showPastePreview && (
+        <Card className="border-[#D4A853]/50 bg-zinc-800">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-[#D4A853]">
+                  키워드 미리보기
+                </CardTitle>
+                <CardDescription>
+                  등록할 키워드를 선택하세요 ({pasteSelected.size}/
+                  {pastePreview.length}개 선택)
+                </CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowPastePreview(false);
+                  setPastePreview([]);
+                  setPasteSelected(new Set());
+                }}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 전체 선택 + 등록 버튼 */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={togglePasteSelectAll}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors"
+              >
+                {pasteSelected.size === pastePreview.length ? (
+                  <CheckSquare className="size-4 text-[#D4A853]" />
+                ) : (
+                  <Square className="size-4" />
+                )}
+                전체 선택
+              </button>
+              <Button
+                size="sm"
+                onClick={handlePasteConfirm}
+                disabled={saving || pasteSelected.size === 0}
+                className="bg-[#D4A853] text-black hover:bg-[#C49A48]"
+              >
+                {saving ? (
+                  <Loader2 className="mr-1 size-4 animate-spin" />
+                ) : null}
+                {pasteSelected.size}개 등록
+              </Button>
+            </div>
+
+            {/* 키워드 리스트 */}
+            <div className="max-h-80 overflow-y-auto space-y-1 rounded-md border border-zinc-700 p-2">
+              {pastePreview.map((item) => (
+                <button
+                  key={item.keyword}
+                  onClick={() => togglePasteSelect(item.keyword)}
+                  className={`flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm transition-colors ${
+                    pasteSelected.has(item.keyword)
+                      ? "bg-[#D4A853]/10 text-white"
+                      : "text-zinc-500 line-through"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {pasteSelected.has(item.keyword) ? (
+                      <CheckSquare className="size-4 shrink-0 text-[#D4A853]" />
+                    ) : (
+                      <Square className="size-4 shrink-0" />
+                    )}
+                    <span>{item.keyword}</span>
+                  </div>
+                  {item.count !== null && (
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {item.count}회 · {item.percent}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 키워드 목록 */}
       <Card className="border-zinc-700 bg-zinc-800">

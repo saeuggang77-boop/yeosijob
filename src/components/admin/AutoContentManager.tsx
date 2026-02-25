@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Upload, Download } from "lucide-react";
+import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, ExternalLink } from "lucide-react";
 
 interface Config {
   enabled: boolean;
@@ -123,7 +123,6 @@ export function AutoContentManager({
   const [deletingSelected, setDeletingSelected] = useState(false);
   const [selectedGhostIds, setSelectedGhostIds] = useState<Set<string>>(new Set());
   const [deletingSelectedGhosts, setDeletingSelectedGhosts] = useState(false);
-  const [keywordInput, setKeywordInput] = useState("");
 
   const refreshStats = async () => {
     try {
@@ -324,96 +323,7 @@ export function AutoContentManager({
     }
   };
 
-  const handleAddKeyword = () => {
-    const keyword = keywordInput.trim();
-    if (!keyword) return;
-    if (config.seoKeywords.includes(keyword)) {
-      toast.error("이미 등록된 키워드입니다");
-      return;
-    }
-    setConfig({ ...config, seoKeywords: [...config.seoKeywords, keyword] });
-    setKeywordInput("");
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setConfig({
-      ...config,
-      seoKeywords: config.seoKeywords.filter(k => k !== keyword),
-    });
-  };
-
-  const [extractingKeywords, setExtractingKeywords] = useState(false);
-
-  const addKeywords = (keywords: string[]) => {
-    const newKeywords = keywords
-      .map(k => k.trim())
-      .filter(k => k.length > 0 && !config.seoKeywords.includes(k));
-
-    if (newKeywords.length === 0) {
-      toast.error("추가할 새 키워드가 없습니다");
-      return;
-    }
-
-    const unique = [...new Set(newKeywords)];
-    setConfig({
-      ...config,
-      seoKeywords: [...config.seoKeywords, ...unique],
-    });
-    toast.success(`${unique.length}개 키워드가 추가되었습니다`);
-  };
-
-  const extractAndAddKeywords = async (texts: string[]) => {
-    const cleaned = texts.map(t => t.trim()).filter(t => t.length > 0);
-    if (cleaned.length === 0) {
-      toast.error("추출할 텍스트가 없습니다");
-      return;
-    }
-
-    setExtractingKeywords(true);
-    try {
-      const res = await fetch("/api/admin/auto-content/extract-keywords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: cleaned }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      addKeywords(data.keywords);
-    } catch (err) {
-      toast.error(`키워드 추출 실패: ${err instanceof Error ? err.message : "알 수 없는 오류"}`);
-    } finally {
-      setExtractingKeywords(false);
-    }
-  };
-
-  const handleKeywordFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const ext = file.name.split(".").pop()?.toLowerCase();
-
-    if (ext === "xlsx" || ext === "xls") {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: string[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        const texts = rows.flat().map(String);
-        extractAndAddKeywords(texts);
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (!text) return;
-        const texts = text.split(/[\n\r,\t]+/);
-        extractAndAddKeywords(texts);
-      };
-      reader.readAsText(file);
-    }
-    e.target.value = "";
-  };
+  // 키워드 관리는 /admin/auto-content/keywords 전용 페이지로 이동
 
   const loadPoolItems = async () => {
     setLoadingPoolItems(true);
@@ -665,85 +575,38 @@ export function AutoContentManager({
           </div>
 
           <div className="space-y-2">
-            <div>
-              <Label className="text-base font-medium">
-                SEO 키워드 ({config.seoKeywords.length}개)
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                자동 생성 콘텐츠에 포함할 키워드
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={keywordInput}
-                onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddKeyword();
-                  }
-                }}
-                placeholder="키워드 입력"
-                className="bg-zinc-900 border-zinc-700"
-              />
-              <Button
-                onClick={handleAddKeyword}
-                variant="outline"
-                className="shrink-0"
-              >
-                추가
-              </Button>
-              <Button
-                variant="outline"
-                className="shrink-0"
-                disabled={extractingKeywords}
-                onClick={() => document.getElementById("keyword-file-input")?.click()}
-              >
-                {extractingKeywords ? (
-                  <><Loader2 className="mr-1 size-4 animate-spin" />추출 중...</>
-                ) : (
-                  <><Upload className="mr-1 size-4" />파일</>
-                )}
-              </Button>
-              {config.seoKeywords.length > 0 && (
-                <Button
-                  variant="outline"
-                  className="shrink-0"
-                  onClick={() => {
-                    const blob = new Blob([config.seoKeywords.join("\n")], { type: "text/plain" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "seo-keywords.txt";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  <Download className="mr-1 size-4" />
-                  다운로드
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-medium">
+                  SEO 키워드 ({config.seoKeywords.length}개)
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  자동 생성 콘텐츠에 포함할 키워드
+                </p>
+              </div>
+              <Link href="/admin/auto-content/keywords">
+                <Button variant="outline" size="sm">
+                  키워드 관리
+                  <ExternalLink className="ml-1 size-3.5" />
                 </Button>
-              )}
-              <input
-                id="keyword-file-input"
-                type="file"
-                accept=".txt,.csv,.xlsx,.xls"
-                onChange={handleKeywordFileUpload}
-                className="hidden"
-              />
+              </Link>
             </div>
             {config.seoKeywords.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {config.seoKeywords.map((keyword) => (
+              <div className="flex flex-wrap gap-1.5">
+                {config.seoKeywords.slice(0, 10).map((keyword) => (
                   <Badge
                     key={keyword}
                     variant="secondary"
-                    className="text-[#D4A853] cursor-pointer"
-                    onClick={() => handleRemoveKeyword(keyword)}
+                    className="text-[#D4A853]"
                   >
                     {keyword}
-                    <X className="ml-1 size-3 hover:text-red-500" />
                   </Badge>
                 ))}
+                {config.seoKeywords.length > 10 && (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    +{config.seoKeywords.length - 10}개 더
+                  </Badge>
+                )}
               </div>
             )}
           </div>

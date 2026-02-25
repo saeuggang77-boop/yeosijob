@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import {
   getContextualCommentPrompt,
   getContextualReplyPrompt,
+  getConversationThreadPrompt,
 } from "./prompts";
 import { logAiUsage } from "@/lib/ai-usage";
 
@@ -89,9 +90,10 @@ export function getSlotQuota(dailyQuota: number, totalSlots: number): number {
 /**
  * 랜덤 유령회원 조회
  */
-export async function getRandomGhostUsers(count: number, personality?: GhostPersonality) {
+export async function getRandomGhostUsers(count: number, personality?: GhostPersonality, excludeUserId?: string) {
   const where: Record<string, unknown> = { isGhost: true, isActive: true };
   if (personality) where.ghostPersonality = personality;
+  if (excludeUserId) where.id = { not: excludeUserId };
 
   const ghosts = await prisma.user.findMany({
     where,
@@ -263,5 +265,134 @@ export async function generateContextualReplies(
   } catch (error) {
     console.error("실시간 답글 생성 실패:", error);
     return [];
+  }
+}
+
+/**
+ * 게시글에 대한 전체 대화 스레드 생성 (댓글+답글 통합)
+ */
+export async function generateConversationThread(
+  post: { id: string; title: string; content: string; authorId: string },
+  threadSize: number
+): Promise<{ commentCount: number; replyCount: number }> {
+  try {
+    // 1. 글쓴이 정보 조회
+    const author = await prisma.user.findUnique({
+      where: { id: post.authorId },
+      select: { name: true, ghostPersonality: true },
+    });
+
+    if (!author || !author.ghostPersonality) {
+      throw new Error("Author not found or not a ghost user");
+    }
+
+    // 2. 랜덤 유령회원 2~4명 선택 (글쓴이 제외)
+    const commenterCount = Math.min(Math.max(2, Math.floor(Math.random() * 3) + 2), 4);
+    const commenters = await getRandomGhostUsers(commenterCount, undefined, post.authorId);
+
+    if (commenters.length === 0) {
+      throw new Error("No commenters available");
+    }
+
+    const commenterNames = commenters.map(c => c.name || "익명");
+    const commenterPersonalities = commenters.map(c => c.ghostPersonality || "CALM");
+
+    // 3. AI로 대화 스레드 생성
+    const anthropic = new Anthropic();
+    const prompt = getConversationThreadPrompt(
+      author.ghostPersonality,
+      author.name || "익명",
+      post.title,
+      post.content,
+      commenterNames,
+      commenterPersonalities,
+      threadSize
+    );
+
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 3000,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    // AI 사용량 로깅
+    await logAiUsage(
+      message.model,
+      message.usage.input_tokens,
+      message.usage.output_tokens,
+      "conversation-thread"
+    );
+
+    const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+    const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsed = JSON.parse(cleaned) as Array<{
+      name: string;
+      content: string;
+      replyTo: number | null;
+    }>;
+
+    // 4. name → userId 매핑
+    const nameToUserId = new Map<string, string>();
+    nameToUserId.set(author.name || "익명", post.authorId);
+    commenters.forEach(c => {
+      nameToUserId.set(c.name || "익명", c.id);
+    });
+
+    // 5. DB에 저장 (순서대로 생성하면서 인덱스→실제ID 매핑)
+    const indexToCommentId = new Map<number, string>();
+    const messagesByIndex = new Map<number, { name: string; content: string }>();
+    let commentCount = 0;
+    let replyCount = 0;
+
+    for (let i = 0; i < parsed.length; i++) {
+      const msg = parsed[i];
+      const userId = nameToUserId.get(msg.name) || post.authorId;
+
+      // replyTo가 가리키는 메시지 정보 저장
+      messagesByIndex.set(i, { name: msg.name, content: msg.content });
+
+      let parentId: string | null = null;
+      let finalContent = msg.content;
+
+      if (msg.replyTo !== null && msg.replyTo !== undefined) {
+        // 답글인 경우
+        parentId = indexToCommentId.get(msg.replyTo) || null;
+
+        // @이름 prefix 추가 (답글이고, content에 @가 없고, 글쓴이가 댓글자에게 답글하는 경우)
+        const replyToMsg = messagesByIndex.get(msg.replyTo);
+        if (parentId && replyToMsg && !msg.content.startsWith('@')) {
+          // 글쓴이가 다른 사람에게 답글하는 경우만 @를 붙임
+          if (msg.name === (author.name || "익명") && replyToMsg.name !== msg.name) {
+            finalContent = `@${replyToMsg.name} ${msg.content}`;
+          }
+          // 댓글자끼리 대화하는 경우에도 @를 붙임
+          else if (msg.name !== (author.name || "익명") && replyToMsg.name !== msg.name) {
+            finalContent = `@${replyToMsg.name} ${msg.content}`;
+          }
+        }
+      }
+
+      const comment = await prisma.comment.create({
+        data: {
+          authorId: userId,
+          postId: post.id,
+          content: finalContent,
+          parentId,
+        },
+      });
+
+      indexToCommentId.set(i, comment.id);
+
+      if (parentId === null) {
+        commentCount++;
+      } else {
+        replyCount++;
+      }
+    }
+
+    return { commentCount, replyCount };
+  } catch (error) {
+    console.error("대화 스레드 생성 실패:", error);
+    throw error;
   }
 }

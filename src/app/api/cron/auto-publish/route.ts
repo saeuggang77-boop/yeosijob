@@ -11,7 +11,7 @@ import {
   getUnusedContent,
   getTodayGhostCounts,
   generateContextualComments,
-  generateContextualReplies,
+  generateConversationThread,
 } from "@/lib/auto-content/scheduler";
 
 /**
@@ -106,12 +106,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // === 2. 댓글 발행 (게시글당 편중 분배) ===
+    // === 2. 대화 스레드 발행 (댓글+답글 통합) ===
     const dailyCommentTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost, 1);
+    const dailyReplyTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost * config.repliesPerComment, 2);
     const remainingComments = Math.max(0, dailyCommentTarget - todayCounts.comments);
-    const commentQuota = getSlotQuota(remainingComments, totalSlots);
+    const remainingReplies = Math.max(0, dailyReplyTarget - todayCounts.replies);
+    const totalRemaining = remainingComments + remainingReplies;
+    const threadQuota = getSlotQuota(totalRemaining, totalSlots);
 
-    if (commentQuota > 0) {
+    if (threadQuota > 0) {
+      // 최근 7일간 고스트 작성 게시글 중 대화가 부족한 것 선택
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -119,136 +123,46 @@ export async function GET(request: NextRequest) {
         where: {
           createdAt: { gte: sevenDaysAgo },
           isHidden: false,
+          author: { isGhost: true }, // 고스트 작성 게시글만 (글쓴이가 답글해야 하므로)
         },
-        select: { id: true, title: true, content: true },
+        select: { id: true, title: true, content: true, authorId: true },
         orderBy: { createdAt: "desc" },
-        take: 50,
+        take: 20,
       });
 
-      // 각 게시글의 고스트 댓글 수 집계
-      const commentCounts = await prisma.comment.groupBy({
+      // 각 게시글의 총 댓글+답글 수 집계
+      const allCommentCounts = await prisma.comment.groupBy({
         by: ["postId"],
         where: {
           author: { isGhost: true },
-          parentId: null,
           postId: { in: existingPosts.map(p => p.id) },
         },
         _count: true,
       });
-      const countMap = new Map(commentCounts.map(c => [c.postId, c._count]));
+      const totalCountMap = new Map(allCommentCounts.map(c => [c.postId, c._count]));
 
-      // 편중 분배: 게시글별 목표 vs 현재 → 부족한 글만 선별
-      const needComments = existingPosts
+      // 댓글이 부족한 게시글 선별
+      const needThreads = existingPosts
         .map(post => ({
           ...post,
-          current: countMap.get(post.id) || 0,
-          target: getContentTarget(post.id, config.commentsPerPost),
+          current: totalCountMap.get(post.id) || 0,
+          target: config.commentsPerPost + config.commentsPerPost * config.repliesPerComment,
         }))
-        .filter(p => p.target > p.current)
+        .filter(p => p.current < p.target)
         .sort((a, b) => (b.target - b.current) - (a.target - a.current))
-        .slice(0, commentQuota);
+        .slice(0, Math.min(threadQuota, 3)); // 한 번에 최대 3개 게시글
 
-      const ghostUsers = await getRandomGhostUsers(needComments.length);
-
-      for (let i = 0; i < Math.min(needComments.length, ghostUsers.length); i++) {
-        const post = needComments[i];
-        const ghost = ghostUsers[i];
-
+      for (const post of needThreads) {
         try {
-          const comments = await generateContextualComments(post.title, post.content, 1);
-          if (comments.length === 0) continue;
+          // 한 게시글당 4~6개 메시지 생성
+          const threadSize = Math.min(Math.floor(Math.random() * 3) + 4, 6);
 
-          await prisma.comment.create({
-            data: {
-              authorId: ghost.id,
-              postId: post.id,
-              content: comments[0],
-              parentId: null,
-            },
-          });
+          const result = await generateConversationThread(post, threadSize);
 
-          published.comments++;
+          published.comments += result.commentCount;
+          published.replies += result.replyCount;
         } catch (error) {
-          console.error(`Comment generation failed for post ${post.id}:`, error);
-          continue;
-        }
-      }
-    }
-
-    // === 3. 답글 발행 (댓글당 편중 분배) ===
-    const dailyReplyTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost * config.repliesPerComment, 2);
-    const remainingReplies = Math.max(0, dailyReplyTarget - todayCounts.replies);
-    const replyQuota = getSlotQuota(remainingReplies, totalSlots);
-
-    if (replyQuota > 0) {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const existingComments = await prisma.comment.findMany({
-        where: {
-          createdAt: { gte: sevenDaysAgo },
-          parentId: null,
-        },
-        select: {
-          id: true,
-          postId: true,
-          content: true,
-          author: { select: { name: true } },
-          post: { select: { title: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      });
-
-      // 각 댓글의 고스트 답글 수 집계
-      const replyCounts = await prisma.comment.groupBy({
-        by: ["parentId"],
-        where: {
-          author: { isGhost: true },
-          parentId: { in: existingComments.map(c => c.id) },
-        },
-        _count: true,
-      });
-      const replyCountMap = new Map(replyCounts.map(r => [r.parentId, r._count]));
-
-      // 편중 분배: 댓글별 목표 vs 현재 → 부족한 댓글만 선별
-      const needReplies = existingComments
-        .map(comment => ({
-          ...comment,
-          current: replyCountMap.get(comment.id) || 0,
-          target: getContentTarget(comment.id, config.repliesPerComment),
-        }))
-        .filter(c => c.target > c.current)
-        .sort((a, b) => (b.target - b.current) - (a.target - a.current))
-        .slice(0, replyQuota);
-
-      const ghostUsers = await getRandomGhostUsers(needReplies.length);
-
-      for (let i = 0; i < Math.min(needReplies.length, ghostUsers.length); i++) {
-        const parentComment = needReplies[i];
-        const ghost = ghostUsers[i];
-        const authorName = parentComment.author.name || "익명";
-
-        try {
-          const replies = await generateContextualReplies(
-            parentComment.post.title,
-            parentComment.content,
-            1
-          );
-          if (replies.length === 0) continue;
-
-          await prisma.comment.create({
-            data: {
-              authorId: ghost.id,
-              postId: parentComment.postId,
-              content: `@${authorName} ${replies[0]}`,
-              parentId: parentComment.id,
-            },
-          });
-
-          published.replies++;
-        } catch (error) {
-          console.error(`Reply generation failed for comment ${parentComment.id}:`, error);
+          console.error(`Thread generation failed for post ${post.id}:`, error);
           continue;
         }
       }

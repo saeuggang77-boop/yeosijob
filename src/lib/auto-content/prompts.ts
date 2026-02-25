@@ -152,4 +152,58 @@ ${count}개의 답글을 생성해주세요.
 [{"content": "답글내용"}]`;
 }
 
+/**
+ * 게시글에 대한 전체 대화 스레드 생성 프롬프트
+ */
+export function getConversationThreadPrompt(
+  authorPersonality: GhostPersonality,
+  authorName: string,
+  postTitle: string,
+  postContent: string,
+  commenterNames: string[],
+  commenterPersonalities: GhostPersonality[],
+  threadSize: number
+): string {
+  const authorPersonalityDesc = PERSONALITY_PROMPTS[authorPersonality]
+    .split('\n')[0]
+    .replace('성격: ', '');
+
+  const commenterList = commenterNames
+    .map((name, i) => {
+      const personalityDesc = PERSONALITY_PROMPTS[commenterPersonalities[i]]
+        .split('\n')[0]
+        .replace('성격: ', '');
+      return `- ${name}: ${personalityDesc}`;
+    })
+    .join('\n');
+
+  return `${MASTER_SYSTEM_PROMPT}
+
+다음 게시글에 대한 자연스러운 댓글 대화를 생성합니다.
+
+게시글 작성자: ${authorName} (${authorPersonalityDesc})
+게시글 제목: ${postTitle}
+게시글 내용: ${postContent}
+
+댓글 참여자:
+${commenterList}
+
+대화 규칙:
+1. 댓글 참여자가 게시글에 댓글을 달고, 글쓴이(${authorName})가 답글로 반응하는 패턴
+2. 글쓴이는 자기 글에 달린 댓글에 감사/반응/추가설명 등으로 답글
+3. 가끔 댓글자끼리 대화하는 것도 자연스러움 (20~30%)
+4. 각 메시지는 20~100자
+5. 총 ${threadSize}개의 메시지를 생성
+
+반드시 아래 JSON 배열 형식으로만 반환하세요:
+[
+  {"name": "댓글자이름", "content": "댓글내용", "replyTo": null},
+  {"name": "${authorName}", "content": "답글내용", "replyTo": 0},
+  ...
+]
+
+replyTo: null이면 게시글에 대한 댓글, 숫자면 해당 인덱스의 메시지에 대한 답글
+name: 반드시 위에 명시된 이름(${[authorName, ...commenterNames].join(', ')}) 중 하나만 사용`;
+}
+
 export { MASTER_SYSTEM_PROMPT, PERSONALITY_PROMPTS };

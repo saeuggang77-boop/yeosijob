@@ -125,10 +125,6 @@ export default async function PricingPage() {
                     <span className="text-muted-foreground">최대 지역</span>
                     <span>{tier.maxRegions === 0 ? "제한없음" : tier.maxRegions}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">최대 수정</span>
-                    <span>{formatNumber(tier.maxEdits)}</span>
-                  </div>
                   <div className="pt-2 border-t">
                     <span className="text-muted-foreground">노출 위치</span>
                     <p className="mt-1">{tier.position}</p>
@@ -153,7 +149,6 @@ export default async function PricingPage() {
                   <th className="text-left p-3 font-bold">노출 위치</th>
                   <th className="text-center p-3 font-bold">디자인 포함</th>
                   <th className="text-center p-3 font-bold">최대 지역</th>
-                  <th className="text-center p-3 font-bold">최대 수정</th>
                 </tr>
               </thead>
               <tbody>
@@ -175,7 +170,6 @@ export default async function PricingPage() {
                     <td className="p-3 text-sm">{tier.position}</td>
                     <td className="text-center p-3">{formatNumber(tier.includeDesignCount)}</td>
                     <td className="text-center p-3">{tier.maxRegions === 0 ? "제한없음" : tier.maxRegions}</td>
-                    <td className="text-center p-3">{formatNumber(tier.maxEdits)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -45,8 +45,6 @@ export default async function DashboardPage() {
         manualJumpPerDay: true,
         manualJumpUsedToday: true,
         lastManualJumpAt: true,
-        editCount: true,
-        maxEdits: true,
       },
     }),
   ]);
@@ -179,21 +177,11 @@ export default async function DashboardPage() {
                             통계
                           </Button>
                         </Link>
-                        {ad.productId === "FREE" ? (
-                          <Link href={`/business/ads/${ad.id}/edit`}>
-                            <Button size="sm" variant="ghost" className="text-xs">
-                              수정 (무제한)
-                            </Button>
-                          </Link>
-                        ) : (
-                          ad.editCount < ad.maxEdits && (
-                            <Link href={`/business/ads/${ad.id}/edit`}>
-                              <Button size="sm" variant="ghost" className="text-xs">
-                                수정 ({ad.maxEdits - ad.editCount}회 남음)
-                              </Button>
-                            </Link>
-                          )
-                        )}
+                        <Link href={`/business/ads/${ad.id}/edit`}>
+                          <Button size="sm" variant="ghost" className="text-xs">
+                            수정
+                          </Button>
+                        </Link>
                       </div>
                     )}
                     {ad.status === "EXPIRED" && ad.productId !== "FREE" && (

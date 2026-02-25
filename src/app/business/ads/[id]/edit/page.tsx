@@ -5,7 +5,6 @@ import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 
 interface AdData {
   id: string;
@@ -18,8 +17,6 @@ interface AdData {
   contactKakao: string | null;
   address: string | null;
   addressDetail: string | null;
-  editCount: number;
-  maxEdits: number;
   status: string;
 }
 
@@ -125,9 +122,7 @@ export default function EditAdPage() {
         setError(data.error || "수정에 실패했습니다");
         return;
       }
-      setSuccess(`광고가 수정되었습니다 (${data.editCount}/${data.maxEdits}회 사용)`);
-      // Update local ad state
-      setAd((prev) => prev ? { ...prev, editCount: data.editCount } : prev);
+      setSuccess("광고가 수정되었습니다");
     } catch {
       setError("서버 오류가 발생했습니다");
     } finally {
@@ -155,30 +150,10 @@ export default function EditAdPage() {
     );
   }
 
-  const remainingEdits = ad.maxEdits - ad.editCount;
-
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">광고 수정</h1>
-        <Badge variant="secondary">
-          수정 {ad.editCount}/{ad.maxEdits}회 사용
-        </Badge>
-      </div>
+      <h1 className="text-2xl font-bold">광고 수정</h1>
 
-      {remainingEdits <= 0 ? (
-        <Card className="mt-6">
-          <CardContent className="py-12 text-center">
-            <p className="text-lg font-medium">수정 가능 횟수를 모두 사용했습니다</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {ad.maxEdits}회 수정을 모두 사용했습니다
-            </p>
-            <Button className="mt-4" variant="outline" onClick={() => router.push("/business/dashboard")}>
-              돌아가기
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
@@ -313,11 +288,10 @@ export default function EditAdPage() {
               취소
             </Button>
             <Button type="submit" className="flex-1" disabled={saving}>
-              {saving ? "저장 중..." : `수정하기 (${remainingEdits}회 남음)`}
+              {saving ? "저장 중..." : "수정하기"}
             </Button>
           </div>
         </form>
-      )}
     </div>
   );
 }

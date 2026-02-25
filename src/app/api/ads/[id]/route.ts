@@ -71,8 +71,6 @@ export async function PUT(
         id: true,
         userId: true,
         status: true,
-        editCount: true,
-        maxEdits: true,
       },
     });
 
@@ -86,13 +84,6 @@ export async function PUT(
 
     if (ad.status !== "ACTIVE") {
       return NextResponse.json({ error: "게재중인 광고만 수정할 수 있습니다" }, { status: 400 });
-    }
-
-    if (ad.editCount >= ad.maxEdits) {
-      return NextResponse.json(
-        { error: `수정 가능 횟수를 초과했습니다 (${ad.maxEdits}회)` },
-        { status: 400 }
-      );
     }
 
     const body = await request.json();
@@ -125,14 +116,11 @@ export async function PUT(
         contactKakao: contactKakao || null,
         address: address || null,
         addressDetail: addressDetail || null,
-        editCount: { increment: 1 },
       },
     });
 
     return NextResponse.json({
       message: "광고가 수정되었습니다",
-      editCount: updated.editCount,
-      maxEdits: updated.maxEdits,
     });
   } catch (error) {
     console.error("Ad update error:", error);

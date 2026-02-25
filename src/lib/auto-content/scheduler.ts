@@ -18,14 +18,29 @@ export function isWithinActiveHours(kstHour: number, start: number, end: number)
 }
 
 /**
- * 일일 목표에 ±30% 랜덤 변동 적용
- * 날짜 기반 시드로 같은 날에는 같은 값 유지
+ * 일일 목표에 요일별 + 타입별 랜덤 변동 적용
+ * - 금토: +20~30%, 월화: -10~20%, 수목일: ±10%
+ * - 콘텐츠 타입별로 독립 변동 (게시글/댓글/답글 각각 다른 값)
+ * - 날짜 기반 시드로 같은 날에는 같은 값 유지
  */
-export function getDailyTarget(base: number): number {
+export function getDailyTarget(base: number, typeOffset: number = 0): number {
   const today = new Date();
-  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const kstDay = new Date(today.getTime() + 9 * 60 * 60 * 1000).getUTCDay(); // KST 요일
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate() + typeOffset * 7;
   const pseudo = Math.sin(seed) * 10000;
-  const ratio = 0.7 + (pseudo - Math.floor(pseudo)) * 0.6; // 0.7 ~ 1.3
+  const rand = pseudo - Math.floor(pseudo); // 0~1
+
+  // 요일별 기본 배율 (금=5, 토=6)
+  let min: number, max: number;
+  if (kstDay === 5 || kstDay === 6) {
+    min = 1.2; max = 1.3; // 금토: +20~30%
+  } else if (kstDay === 1 || kstDay === 2) {
+    min = 0.8; max = 0.9; // 월화: -10~20%
+  } else {
+    min = 0.9; max = 1.1; // 수목일: ±10%
+  }
+
+  const ratio = min + rand * (max - min);
   return Math.max(1, Math.round(base * ratio));
 }
 

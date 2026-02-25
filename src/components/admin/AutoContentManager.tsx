@@ -548,9 +548,14 @@ export function AutoContentManager({
             />
           </div>
 
+          <div className="rounded-md bg-zinc-900 border border-zinc-700 p-3 text-xs text-muted-foreground space-y-1">
+            <p>기준값에 요일별 자동 변동이 적용됩니다.</p>
+            <p>금·토: +20~30% | 월·화: -10~20% | 수·목·일: ±10%</p>
+            <p>콘텐츠 타입별로 각각 독립 변동됩니다.</p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label>일일 게시글 수</Label>
+              <Label>일일 게시글 수 (기준값)</Label>
               <Input
                 type="number"
                 min="0"
@@ -566,7 +571,7 @@ export function AutoContentManager({
               />
             </div>
             <div className="space-y-2">
-              <Label>일일 댓글 수</Label>
+              <Label>일일 댓글 수 (기준값)</Label>
               <Input
                 type="number"
                 min="0"
@@ -582,7 +587,7 @@ export function AutoContentManager({
               />
             </div>
             <div className="space-y-2">
-              <Label>일일 답글 수</Label>
+              <Label>일일 답글 수 (기준값)</Label>
               <Input
                 type="number"
                 min="0"

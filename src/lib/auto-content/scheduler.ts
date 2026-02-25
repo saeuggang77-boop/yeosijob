@@ -73,13 +73,14 @@ export function getActiveHoursCount(start: number, end: number): number {
 
 /**
  * 슬롯별 할당량 계산 (+-50% 랜덤 분산)
- * base < 1일 때 확률적으로 1을 반환 (예: 0.2면 20% 확률로 1)
+ * base < 1일 때 최소 40% 확률로 1을 반환
+ * (remainingPosts가 소진되면 자연히 0이 되므로 초과 발행 없음)
  */
 export function getSlotQuota(dailyQuota: number, totalSlots: number): number {
   if (totalSlots === 0 || dailyQuota <= 0) return 0;
   const base = dailyQuota / totalSlots;
   if (base < 1) {
-    return Math.random() < base ? 1 : 0;
+    return Math.random() < Math.max(base, 0.4) ? 1 : 0;
   }
   const variance = base * 0.5;
   return Math.max(1, Math.round(base + (Math.random() * 2 - 1) * variance));

@@ -19,7 +19,7 @@ export default async function AutoContentPage() {
     });
   }
 
-  // Get stats
+  // Get stats - Number()로 감싸서 bigint → number 변환
   const contentTypes: ContentType[] = ["POST", "COMMENT", "REPLY"];
   const poolStats = await Promise.all(
     contentTypes.map(async (type) => {
@@ -29,9 +29,9 @@ export default async function AutoContentPage() {
       ]);
       return {
         type,
-        total,
-        used,
-        remaining: total - used,
+        total: Number(total),
+        used: Number(used),
+        remaining: Number(total) - Number(used),
       };
     })
   );
@@ -47,15 +47,15 @@ export default async function AutoContentPage() {
   const ghostStats = await Promise.all(
     personalities.map(async (personality) => ({
       personality,
-      count: await prisma.user.count({
+      count: Number(await prisma.user.count({
         where: { isGhost: true, ghostPersonality: personality },
-      }),
+      })),
     }))
   );
 
-  const totalGhostUsers = await prisma.user.count({
+  const totalGhostUsers = Number(await prisma.user.count({
     where: { isGhost: true },
-  });
+  }));
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -106,9 +106,9 @@ export default async function AutoContentPage() {
             ghostStats,
             totalGhostUsers,
             todayActivity: {
-              posts: todayPosts,
-              comments: todayComments,
-              replies: todayReplies,
+              posts: Number(todayPosts),
+              comments: Number(todayComments),
+              replies: Number(todayReplies),
             },
           }}
         />

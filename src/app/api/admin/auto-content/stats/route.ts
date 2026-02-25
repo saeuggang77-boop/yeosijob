@@ -20,9 +20,9 @@ export async function GET() {
         ]);
         return {
           type,
-          total,
-          used,
-          remaining: total - used,
+          total: Number(total),
+          used: Number(used),
+          remaining: Number(total) - Number(used),
         };
       })
     );
@@ -39,15 +39,15 @@ export async function GET() {
     const ghostStats = await Promise.all(
       personalities.map(async (personality) => ({
         personality,
-        count: await prisma.user.count({
+        count: Number(await prisma.user.count({
           where: { isGhost: true, ghostPersonality: personality },
-        }),
+        })),
       }))
     );
 
-    const totalGhostUsers = await prisma.user.count({
+    const totalGhostUsers = Number(await prisma.user.count({
       where: { isGhost: true },
-    });
+    }));
 
     // Today's activity (posts, comments, replies created by ghost users)
     const today = new Date();
@@ -81,9 +81,9 @@ export async function GET() {
       ghostStats,
       totalGhostUsers,
       todayActivity: {
-        posts: todayPosts,
-        comments: todayComments,
-        replies: todayReplies,
+        posts: Number(todayPosts),
+        comments: Number(todayComments),
+        replies: Number(todayReplies),
       },
     });
   } catch (error) {

@@ -65,6 +65,21 @@ enum JumpType {
   MANUAL
 }
 
+enum GhostPersonality {
+  CHATTY
+  ADVISOR
+  QUESTIONER
+  EMOJI_LOVER
+  CALM
+  SASSY
+}
+
+enum ContentType {
+  POST
+  COMMENT
+  REPLY
+}
+
 enum BusinessType {
   KARAOKE
   ROOM_SALON
@@ -178,6 +193,10 @@ model User {
   // 본인인증
   ageVerified    DateTime?
 
+  // 유령회원
+  isGhost          Boolean          @default(false)
+  ghostPersonality GhostPersonality?
+
   accounts         Account[]
   sessions         Session[]
   ads              Ad[]
@@ -194,6 +213,7 @@ model User {
   ageVerifications AgeVerification[]
 
   @@index([role])
+  @@index([isGhost])
   @@map("users")
 }
 
@@ -529,14 +549,51 @@ model Comment {
   content   String
   authorId  String
   postId    String
+  parentId  String?
   createdAt DateTime @default(now())
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
 
   @@index([postId, createdAt(sort: Desc)])
   @@index([authorId])
+  @@index([parentId])
   @@map("comments")
+}
+
+// ── CONTENT POOL (자동 콘텐츠) ──
+
+model ContentPool {
+  id          String           @id @default(cuid())
+  type        ContentType
+  personality GhostPersonality
+  title       String?
+  content     String           @db.Text
+  category    String?
+  isUsed      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@index([type, personality, isUsed])
+  @@index([type, isUsed])
+  @@map("content_pool")
+}
+
+// ── AUTO CONTENT CONFIG ──
+
+model AutoContentConfig {
+  id                String   @id @default("singleton")
+  enabled           Boolean  @default(false)
+  postsPerDay       Int      @default(8)
+  commentsPerDay    Int      @default(30)
+  repliesPerDay     Int      @default(15)
+  activeStartHour   Int      @default(14)
+  activeEndHour     Int      @default(4)
+  realPostAutoReply Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+
+  @@map("auto_content_config")
 }
 
 // ── NOTICE (공지사항) ──

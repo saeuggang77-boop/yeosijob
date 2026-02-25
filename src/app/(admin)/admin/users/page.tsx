@@ -24,7 +24,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { isGhost: false };
   if (role) where.role = role;
   if (search) {
     where.OR = [

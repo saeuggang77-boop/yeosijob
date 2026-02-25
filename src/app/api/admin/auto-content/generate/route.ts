@@ -1,0 +1,105 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import Anthropic from "@anthropic-ai/sdk";
+import { GhostPersonality, ContentType } from "@/generated/prisma/client";
+import {
+  getPostGenerationPrompt,
+  getCommentGenerationPrompt,
+  getReplyGenerationPrompt,
+} from "@/lib/auto-content/prompts";
+
+const anthropic = new Anthropic();
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({ error: "AI 서비스를 사용할 수 없습니다" }, { status: 503 });
+    }
+
+    const body = await request.json();
+    const { type, count = 10 } = body as { type: ContentType; count: number };
+
+    if (!type || !["POST", "COMMENT", "REPLY"].includes(type)) {
+      return NextResponse.json({ error: "유효하지 않은 타입입니다" }, { status: 400 });
+    }
+
+    if (count < 1 || count > 100) {
+      return NextResponse.json({ error: "생성 수는 1~100 사이여야 합니다" }, { status: 400 });
+    }
+
+    const personalities: GhostPersonality[] = [
+      "CHATTY", "ADVISOR", "QUESTIONER", "EMOJI_LOVER", "CALM", "SASSY",
+    ];
+
+    let totalGenerated = 0;
+    const perPersonality = Math.ceil(count / personalities.length);
+
+    for (const personality of personalities) {
+      const toGenerate = Math.min(perPersonality, count - totalGenerated);
+      if (toGenerate <= 0) break;
+
+      let prompt: string;
+      if (type === "POST") {
+        prompt = getPostGenerationPrompt(personality, toGenerate);
+      } else if (type === "COMMENT") {
+        prompt = getCommentGenerationPrompt(personality, toGenerate);
+      } else {
+        prompt = getReplyGenerationPrompt(personality, toGenerate);
+      }
+
+      try {
+        const message = await anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 4000,
+          messages: [{ role: "user", content: prompt }],
+        });
+
+        const text = message.content[0].type === "text" ? message.content[0].text : "";
+
+        // Parse JSON from response
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) continue;
+
+        const items = JSON.parse(jsonMatch[0]) as Array<{
+          title?: string;
+          content: string;
+        }>;
+
+        // Save to ContentPool in batch
+        await prisma.contentPool.createMany({
+          data: items.map((item) => ({
+            type,
+            personality,
+            title: item.title || null,
+            content: item.content,
+            category: type === "POST" ? "FREE_TALK" : null,
+            isUsed: false,
+          })),
+        });
+
+        totalGenerated += items.length;
+      } catch (err) {
+        console.error(`AI generation error for ${personality}:`, err);
+        continue;
+      }
+    }
+
+    return NextResponse.json({
+      message: `${totalGenerated}개의 콘텐츠가 생성되었습니다`,
+      generated: totalGenerated,
+      type,
+    });
+  } catch (error) {
+    console.error("Content generation error:", error);
+    return NextResponse.json(
+      { error: "콘텐츠 생성 중 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
+}

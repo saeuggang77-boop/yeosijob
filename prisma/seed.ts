@@ -2,6 +2,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { hash } from "bcryptjs";
+import { seedGhostUsers } from "./seed-ghosts";
 
 const pool = new Pool({
   connectionString:
@@ -1534,6 +1535,9 @@ async function main() {
     });
   }
 
+  // 유령회원 시드
+  await seedGhostUsers(prisma);
+
   console.log("Seed complete!");
   console.log("  - 1 Business user: boss@yeosialba.com / test1234");
   console.log("  - 3 Jobseeker users: job@, job2@, job3@yeosialba.com / test1234");
@@ -1542,6 +1546,7 @@ async function main() {
   console.log("  - 3 sample resumes");
   console.log("  - 3 sample notices");
   console.log("  - 15 community posts (4 categories)");
+  console.log("  - 100 ghost users");
 }
 
 main()

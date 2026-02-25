@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CommentForm } from "@/components/community/CommentForm";
 import { PostActions } from "@/components/community/PostActions";
 import { CommentDeleteButton } from "@/components/community/CommentDeleteButton";
+import { ReplyButton } from "@/components/community/ReplyButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -57,6 +58,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         select: { name: true },
       },
       comments: {
+        where: { parentId: null },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -66,10 +68,25 @@ export default async function PostDetailPage({ params }: PageProps) {
           author: {
             select: { name: true },
           },
+          replies: {
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              content: true,
+              createdAt: true,
+              authorId: true,
+              author: {
+                select: { name: true },
+              },
+            },
+          },
         },
       },
     },
   });
+
+  // Get total comment count (including replies)
+  const commentCount = await prisma.comment.count({ where: { postId: id } });
 
   if (!post) {
     notFound();
@@ -113,7 +130,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       {/* Comments Section */}
       <div className="mt-8">
         <h2 className="mb-4 text-xl font-bold">
-          댓글 <span className="text-primary">{post.comments.length}</span>
+          댓글 <span className="text-primary">{commentCount}</span>
         </h2>
 
         {/* Comment Form */}
@@ -131,26 +148,84 @@ export default async function PostDetailPage({ params }: PageProps) {
             {post.comments.map((comment) => {
               const isCommentAuthor = session?.user?.id === comment.authorId;
               return (
-                <Card key={comment.id}>
-                  <CardContent className="pt-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">{comment.author.name}</span>
-                          <span className="text-muted-foreground">
-                            {comment.createdAt.toLocaleDateString("ko-KR")}
-                          </span>
+                <div key={comment.id} className="space-y-2">
+                  {/* Top-level Comment */}
+                  <Card>
+                    <CardContent className="pt-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">{comment.author.name}</span>
+                            <span className="text-muted-foreground">
+                              {comment.createdAt.toLocaleDateString("ko-KR")}
+                            </span>
+                          </div>
+                          <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                            {comment.content}
+                          </div>
+                          <div className="mt-2">
+                            <ReplyButton
+                              postId={post.id}
+                              parentId={comment.id}
+                              replyToName={comment.author.name || "익명"}
+                            />
+                          </div>
                         </div>
-                        <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
-                          {comment.content}
-                        </div>
+                        {isCommentAuthor && (
+                          <CommentDeleteButton postId={post.id} commentId={comment.id} />
+                        )}
                       </div>
-                      {isCommentAuthor && (
-                        <CommentDeleteButton postId={post.id} commentId={comment.id} />
-                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Replies */}
+                  {comment.replies && comment.replies.length > 0 && (
+                    <div className="ml-8 space-y-2 border-l-2 border-primary/20 pl-4">
+                      {comment.replies.map((reply) => {
+                        const isReplyAuthor = session?.user?.id === reply.authorId;
+                        // Highlight @mentions in gold
+                        const contentParts = reply.content.split(/(@\S+)/g);
+                        return (
+                          <Card key={reply.id} className="bg-muted/30">
+                            <CardContent className="py-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className="font-medium">{reply.author.name}</span>
+                                    <span className="text-muted-foreground">
+                                      {reply.createdAt.toLocaleDateString("ko-KR")}
+                                    </span>
+                                  </div>
+                                  <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                                    {contentParts.map((part, idx) =>
+                                      part.startsWith("@") ? (
+                                        <span key={idx} className="text-primary font-medium">
+                                          {part}
+                                        </span>
+                                      ) : (
+                                        <span key={idx}>{part}</span>
+                                      )
+                                    )}
+                                  </div>
+                                  <div className="mt-2">
+                                    <ReplyButton
+                                      postId={post.id}
+                                      parentId={comment.id}
+                                      replyToName={reply.author.name || "익명"}
+                                    />
+                                  </div>
+                                </div>
+                                {isReplyAuthor && (
+                                  <CommentDeleteButton postId={post.id} commentId={reply.id} />
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
-                  </CardContent>
-                </Card>
+                  )}
+                </div>
               );
             })}
           </div>

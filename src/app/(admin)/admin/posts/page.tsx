@@ -41,7 +41,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         isHidden: true,
         viewCount: true,
         createdAt: true,
-        author: { select: { name: true, email: true } },
+        author: { select: { name: true, email: true, isGhost: true } },
         _count: { select: { comments: true } },
       },
     }),
@@ -113,6 +113,11 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
                   {post.isHidden && (
                     <Badge variant="outline" className="ml-2 text-xs">
                       숨김
+                    </Badge>
+                  )}
+                  {post.author.isGhost && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      🤖 자동
                     </Badge>
                   )}
                 </td>

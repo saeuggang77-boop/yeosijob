@@ -12,15 +12,30 @@ export async function GET(
     const { id } = await params;
 
     const comments = await prisma.comment.findMany({
-      where: { postId: id },
+      where: { postId: id, parentId: null },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
         content: true,
         createdAt: true,
+        authorId: true,
         author: {
           select: {
             name: true,
+          },
+        },
+        replies: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            authorId: true,
+            author: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -56,7 +71,8 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const content = stripHtml(body.content || "");
+    let content = stripHtml(body.content || "");
+    const parentId = body.parentId;
 
     // Validation
     if (!content || content.length < 1 || content.length > 500) {
@@ -73,11 +89,44 @@ export async function POST(
       return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
 
+    let finalParentId = parentId;
+    let notificationUserId = post.authorId;
+
+    // Handle nested replies
+    if (parentId) {
+      const parentComment = await prisma.comment.findUnique({
+        where: { id: parentId },
+        select: {
+          id: true,
+          postId: true,
+          parentId: true,
+          authorId: true,
+          author: { select: { name: true } },
+        },
+      });
+
+      if (!parentComment || parentComment.postId !== id) {
+        return NextResponse.json({ error: "댓글을 찾을 수 없습니다" }, { status: 404 });
+      }
+
+      // Flatten to 2 levels: if replying to a reply, use the parent's parentId
+      if (parentComment.parentId) {
+        finalParentId = parentComment.parentId;
+        // Prepend @mention to content
+        const mentionName = parentComment.author.name || "익명";
+        content = `@${mentionName} ${content}`;
+      }
+
+      // Notify the parent comment author
+      notificationUserId = parentComment.authorId;
+    }
+
     const comment = await prisma.comment.create({
       data: {
         content: content.trim(),
         authorId: session.user.id,
         postId: id,
+        parentId: finalParentId,
       },
       select: {
         id: true,
@@ -91,16 +140,20 @@ export async function POST(
       },
     });
 
-    // Send notification to post author (skip if commenting on own post)
-    if (post.authorId !== session.user.id) {
+    // Send notification (skip if commenting on own post/comment)
+    if (notificationUserId !== session.user.id) {
       const titlePreview = post.title && post.title.length > 20
         ? post.title.slice(0, 20) + "..."
         : post.title || "게시글";
+      const notificationMessage = finalParentId
+        ? `내 댓글에 답글이 달렸습니다. (${titlePreview})`
+        : `내 글 '${titlePreview}'에 댓글이 달렸습니다.`;
+
       await prisma.notification.create({
         data: {
-          userId: post.authorId,
-          title: "새 댓글",
-          message: `내 글 '${titlePreview}'에 댓글이 달렸습니다.`,
+          userId: notificationUserId,
+          title: finalParentId ? "새 답글" : "새 댓글",
+          message: notificationMessage,
           link: `/community/${id}`,
         },
       }).catch(() => {}); // Don't fail comment creation if notification fails

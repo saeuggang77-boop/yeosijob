@@ -8,6 +8,8 @@ import {
   getRandomGhostUsers,
   getUnusedContent,
   getTodayGhostCounts,
+  generateContextualComments,
+  generateContextualReplies,
 } from "@/lib/auto-content/scheduler";
 
 /**
@@ -116,7 +118,7 @@ export async function GET(request: NextRequest) {
           createdAt: { gte: sevenDaysAgo },
           isHidden: false,
         },
-        select: { id: true },
+        select: { id: true, title: true, content: true },
         take: commentQuota * 3,
         orderBy: { createdAt: "desc" },
       });
@@ -130,32 +132,31 @@ export async function GET(request: NextRequest) {
 
       const targetPosts = shuffledPosts.slice(0, commentQuota);
       const ghostUsers = await getRandomGhostUsers(commentQuota);
-      const commentContents = await getUnusedContent("COMMENT", commentQuota);
 
-      for (let i = 0; i < Math.min(targetPosts.length, ghostUsers.length, commentContents.length); i++) {
+      for (let i = 0; i < Math.min(targetPosts.length, ghostUsers.length); i++) {
         const post = targetPosts[i];
         const ghost = ghostUsers[i];
-        const poolItem = commentContents[i];
 
-        await prisma.$transaction(async (tx) => {
+        try {
+          // AI로 실시간 댓글 생성
+          const comments = await generateContextualComments(post.title, post.content, 1);
+          if (comments.length === 0) continue;
+
           // 댓글 생성
-          await tx.comment.create({
+          await prisma.comment.create({
             data: {
               authorId: ghost.id,
               postId: post.id,
-              content: poolItem.content,
+              content: comments[0],
               parentId: null,
             },
           });
 
-          // ContentPool 사용 표시
-          await tx.contentPool.update({
-            where: { id: poolItem.id },
-            data: { isUsed: true },
-          });
-        });
-
-        published.comments++;
+          published.comments++;
+        } catch (error) {
+          console.error(`Comment generation failed for post ${post.id}:`, error);
+          continue;
+        }
       }
     }
 
@@ -176,7 +177,9 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           postId: true,
+          content: true,
           author: { select: { name: true } },
+          post: { select: { title: true } },
         },
         take: replyQuota * 3,
         orderBy: { createdAt: "desc" },
@@ -191,34 +194,37 @@ export async function GET(request: NextRequest) {
 
       const targetComments = shuffledComments.slice(0, replyQuota);
       const ghostUsers = await getRandomGhostUsers(replyQuota);
-      const replyContents = await getUnusedContent("REPLY", replyQuota);
 
-      for (let i = 0; i < Math.min(targetComments.length, ghostUsers.length, replyContents.length); i++) {
+      for (let i = 0; i < Math.min(targetComments.length, ghostUsers.length); i++) {
         const parentComment = targetComments[i];
         const ghost = ghostUsers[i];
-        const poolItem = replyContents[i];
 
         const authorName = parentComment.author.name || "익명";
 
-        await prisma.$transaction(async (tx) => {
+        try {
+          // AI로 실시간 답글 생성
+          const replies = await generateContextualReplies(
+            parentComment.post.title,
+            parentComment.content,
+            1
+          );
+          if (replies.length === 0) continue;
+
           // 답글 생성 (@멘션 포함)
-          await tx.comment.create({
+          await prisma.comment.create({
             data: {
               authorId: ghost.id,
               postId: parentComment.postId,
-              content: `@${authorName} ${poolItem.content}`,
+              content: `@${authorName} ${replies[0]}`,
               parentId: parentComment.id,
             },
           });
 
-          // ContentPool 사용 표시
-          await tx.contentPool.update({
-            where: { id: poolItem.id },
-            data: { isUsed: true },
-          });
-        });
-
-        published.replies++;
+          published.replies++;
+        } catch (error) {
+          console.error(`Reply generation failed for comment ${parentComment.id}:`, error);
+          continue;
+        }
       }
     }
 
@@ -234,7 +240,7 @@ export async function GET(request: NextRequest) {
           author: { isGhost: false },
           isHidden: false,
         },
-        select: { id: true },
+        select: { id: true, title: true, content: true },
         take: 10,
         orderBy: { createdAt: "desc" },
       });
@@ -252,34 +258,34 @@ export async function GET(request: NextRequest) {
           // 1~3개 댓글 추가
           const numComments = Math.floor(Math.random() * 3) + 1;
           const ghostUsers = await getRandomGhostUsers(numComments);
-          const commentContents = await getUnusedContent("COMMENT", numComments);
 
-          for (let i = 0; i < Math.min(ghostUsers.length, commentContents.length); i++) {
+          for (let i = 0; i < ghostUsers.length; i++) {
             const ghost = ghostUsers[i];
-            const poolItem = commentContents[i];
 
-            // 약간의 시간 오프셋 (자연스러운 간격)
-            const offsetMinutes = Math.floor(Math.random() * 30) + 1;
-            const createdAt = new Date(now.getTime() + offsetMinutes * 60 * 1000);
+            try {
+              // AI로 실시간 댓글 생성
+              const comments = await generateContextualComments(post.title, post.content, 1);
+              if (comments.length === 0) continue;
 
-            await prisma.$transaction(async (tx) => {
-              await tx.comment.create({
+              // 약간의 시간 오프셋 (자연스러운 간격)
+              const offsetMinutes = Math.floor(Math.random() * 30) + 1;
+              const createdAt = new Date(now.getTime() + offsetMinutes * 60 * 1000);
+
+              await prisma.comment.create({
                 data: {
                   authorId: ghost.id,
                   postId: post.id,
-                  content: poolItem.content,
+                  content: comments[0],
                   parentId: null,
                   createdAt,
                 },
               });
 
-              await tx.contentPool.update({
-                where: { id: poolItem.id },
-                data: { isUsed: true },
-              });
-            });
-
-            realPostReplies++;
+              realPostReplies++;
+            } catch (error) {
+              console.error(`Real post comment generation failed for post ${post.id}:`, error);
+              continue;
+            }
           }
         }
       }

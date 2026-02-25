@@ -348,7 +348,7 @@ export function AutoContentManager({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {stat.remaining}
-                      {stat.remaining < 20 && (
+                      {stat.remaining < 20 && stat.type === "POST" && (
                         <Badge variant="destructive" className="gap-1">
                           <AlertTriangle className="size-3" />
                           부족
@@ -357,17 +357,21 @@ export function AutoContentManager({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleGenerate(stat.type)}
-                      disabled={generating === stat.type}
-                    >
-                      {generating === stat.type && (
-                        <Loader2 className="mr-2 size-4 animate-spin" />
-                      )}
-                      더 생성하기 (30개)
-                    </Button>
+                    {stat.type === "POST" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleGenerate(stat.type)}
+                        disabled={generating === stat.type}
+                      >
+                        {generating === stat.type && (
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                        )}
+                        더 생성하기 (30개)
+                      </Button>
+                    ) : (
+                      <Badge variant="secondary">실시간 생성</Badge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

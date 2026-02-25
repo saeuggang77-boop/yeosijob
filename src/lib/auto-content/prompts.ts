@@ -100,4 +100,51 @@ ${count}개의 답글을 생성해주세요.
 [{"content": "답글내용"}]`;
 }
 
+export function getContextualCommentPrompt(
+  personality: GhostPersonality,
+  postTitle: string,
+  postContent: string,
+  count: number
+): string {
+  return `${MASTER_SYSTEM_PROMPT}
+
+${PERSONALITY_PROMPTS[personality]}
+
+다음 게시글에 달리는 댓글을 작성합니다.
+
+게시글 제목: ${postTitle}
+게시글 내용:
+${postContent}
+
+댓글은 20-100자 이내로, 게시글 내용에 대한 자연스러운 공감/반응/의견/응원이어야 합니다.
+
+${count}개의 댓글을 생성해주세요.
+
+반드시 아래 JSON 배열 형식으로만 반환하세요 (다른 텍스트 없이):
+[{"content": "댓글내용"}]`;
+}
+
+export function getContextualReplyPrompt(
+  personality: GhostPersonality,
+  postTitle: string,
+  commentContent: string,
+  count: number
+): string {
+  return `${MASTER_SYSTEM_PROMPT}
+
+${PERSONALITY_PROMPTS[personality]}
+
+다음 댓글에 달리는 답글을 작성합니다.
+
+게시글 제목: ${postTitle}
+원댓글 내용: ${commentContent}
+
+답글은 15-80자 이내로, 앞 댓글에 대한 동의/반박/추가의견/공감 등 자연스러운 반응이어야 합니다.
+
+${count}개의 답글을 생성해주세요.
+
+반드시 아래 JSON 배열 형식으로만 반환하세요 (다른 텍스트 없이):
+[{"content": "답글내용"}]`;
+}
+
 export { MASTER_SYSTEM_PROMPT, PERSONALITY_PROMPTS };

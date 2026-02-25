@@ -29,9 +29,9 @@ export default async function AutoContentPage() {
       ]);
       return {
         type,
-        total: Number(total),
-        used: Number(used),
-        remaining: Number(total) - Number(used),
+        total,
+        used,
+        remaining: total - used,
       };
     })
   );
@@ -47,15 +47,15 @@ export default async function AutoContentPage() {
   const ghostStats = await Promise.all(
     personalities.map(async (personality) => ({
       personality,
-      count: Number(await prisma.user.count({
+      count: await prisma.user.count({
         where: { isGhost: true, ghostPersonality: personality },
-      })),
+      }),
     }))
   );
 
-  const totalGhostUsers = Number(await prisma.user.count({
+  const totalGhostUsers = await prisma.user.count({
     where: { isGhost: true },
-  }));
+  });
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -106,9 +106,9 @@ export default async function AutoContentPage() {
             ghostStats,
             totalGhostUsers,
             todayActivity: {
-              posts: Number(todayPosts),
-              comments: Number(todayComments),
-              replies: Number(todayReplies),
+              posts: todayPosts,
+              comments: todayComments,
+              replies: todayReplies,
             },
           }}
         />

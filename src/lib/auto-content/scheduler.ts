@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { GhostPersonality, ContentType } from "@/generated/prisma/client";
+import Anthropic from "@anthropic-ai/sdk";
+import {
+  getContextualCommentPrompt,
+  getContextualReplyPrompt,
+} from "./prompts";
 
 /**
  * 자정 넘기는 시간대 처리 (예: 14시~4시)
@@ -111,4 +116,84 @@ export async function getTodayGhostCounts() {
     comments: topLevelComments,
     replies: comments - topLevelComments,
   };
+}
+
+/**
+ * 게시글 내용 기반 실시간 댓글 생성
+ */
+export async function generateContextualComments(
+  postTitle: string,
+  postContent: string,
+  count: number
+): Promise<string[]> {
+  try {
+    const anthropic = new Anthropic();
+
+    // 랜덤 성격 선택
+    const personalities: GhostPersonality[] = [
+      "CHATTY",
+      "ADVISOR",
+      "QUESTIONER",
+      "EMOJI_LOVER",
+      "CALM",
+      "SASSY",
+    ];
+    const randomPersonality = personalities[Math.floor(Math.random() * personalities.length)];
+
+    const prompt = getContextualCommentPrompt(randomPersonality, postTitle, postContent, count);
+
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+    const parsed = JSON.parse(responseText) as Array<{ content: string }>;
+
+    return parsed.map((item) => item.content);
+  } catch (error) {
+    console.error("실시간 댓글 생성 실패:", error);
+    return [];
+  }
+}
+
+/**
+ * 댓글 내용 기반 실시간 답글 생성
+ */
+export async function generateContextualReplies(
+  postTitle: string,
+  commentContent: string,
+  count: number
+): Promise<string[]> {
+  try {
+    const anthropic = new Anthropic();
+
+    // 랜덤 성격 선택
+    const personalities: GhostPersonality[] = [
+      "CHATTY",
+      "ADVISOR",
+      "QUESTIONER",
+      "EMOJI_LOVER",
+      "CALM",
+      "SASSY",
+    ];
+    const randomPersonality = personalities[Math.floor(Math.random() * personalities.length)];
+
+    const prompt = getContextualReplyPrompt(randomPersonality, postTitle, commentContent, count);
+
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+    const parsed = JSON.parse(responseText) as Array<{ content: string }>;
+
+    return parsed.map((item) => item.content);
+  } catch (error) {
+    console.error("실시간 답글 생성 실패:", error);
+    return [];
+  }
 }

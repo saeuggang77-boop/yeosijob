@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { type, count = 10 } = body as { type: ContentType; count: number };
 
-    if (!type || !["POST", "COMMENT", "REPLY"].includes(type)) {
-      return NextResponse.json({ error: "유효하지 않은 타입입니다" }, { status: 400 });
+    if (type !== "POST") {
+      return NextResponse.json({ error: "게시글만 미리 생성할 수 있습니다" }, { status: 400 });
     }
 
     if (count < 1 || count > 100) {

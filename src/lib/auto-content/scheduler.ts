@@ -202,7 +202,8 @@ export async function generateContextualComments(
     );
 
     const responseText = message.content[0].type === "text" ? message.content[0].text : "";
-    const parsed = JSON.parse(responseText) as Array<{ content: string }>;
+    const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsed = JSON.parse(cleaned) as Array<{ content: string }>;
 
     return parsed.map((item) => item.content);
   } catch (error) {
@@ -250,7 +251,8 @@ export async function generateContextualReplies(
     );
 
     const responseText = message.content[0].type === "text" ? message.content[0].text : "";
-    const parsed = JSON.parse(responseText) as Array<{ content: string }>;
+    const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsed = JSON.parse(cleaned) as Array<{ content: string }>;
 
     return parsed.map((item) => item.content);
   } catch (error) {

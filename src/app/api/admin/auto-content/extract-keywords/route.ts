@@ -60,7 +60,9 @@ ${texts.map((t: string, i: number) => `${i + 1}. ${t}`).join("\n")}
       message.usage.output_tokens
     );
 
-    const keywords: string[] = JSON.parse(content.text);
+    // AI가 ```json ... ``` 코드블록으로 감쌀 수 있으므로 제거
+    const cleaned = content.text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const keywords: string[] = JSON.parse(cleaned);
 
     return NextResponse.json({ keywords });
   } catch (error) {

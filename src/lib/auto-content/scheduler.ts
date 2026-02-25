@@ -5,6 +5,7 @@ import {
   getContextualCommentPrompt,
   getContextualReplyPrompt,
 } from "./prompts";
+import { logAiUsage } from "@/lib/ai-usage";
 
 /**
  * 자정 넘기는 시간대 처리 (예: 14시~4시)
@@ -143,10 +144,18 @@ export async function generateContextualComments(
     const prompt = getContextualCommentPrompt(randomPersonality, postTitle, postContent, count);
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
+
+    // AI 사용량 로깅
+    await logAiUsage(
+      message.model,
+      message.usage.input_tokens,
+      message.usage.output_tokens,
+      "contextual-comment"
+    );
 
     const responseText = message.content[0].type === "text" ? message.content[0].text : "";
     const parsed = JSON.parse(responseText) as Array<{ content: string }>;
@@ -183,10 +192,18 @@ export async function generateContextualReplies(
     const prompt = getContextualReplyPrompt(randomPersonality, postTitle, commentContent, count);
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
+
+    // AI 사용량 로깅
+    await logAiUsage(
+      message.model,
+      message.usage.input_tokens,
+      message.usage.output_tokens,
+      "contextual-reply"
+    );
 
     const responseText = message.content[0].type === "text" ? message.content[0].text : "";
     const parsed = JSON.parse(responseText) as Array<{ content: string }>;

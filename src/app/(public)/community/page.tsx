@@ -20,10 +20,10 @@ export const metadata = {
 
 const CATEGORIES = [
   { key: "", label: "전체" },
-  { key: "FREE_TALK", label: "자유" },
-  { key: "REVIEW", label: "후기" },
-  { key: "QUESTION", label: "질문" },
-  { key: "INFO", label: "정보" },
+  { key: "CHAT", label: "수다방" },
+  { key: "BEAUTY", label: "뷰티톡" },
+  { key: "QNA", label: "질문방" },
+  { key: "WORK", label: "업소톡" },
 ];
 
 interface PageProps {
@@ -42,7 +42,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const session = await auth();
 
   const where: Record<string, unknown> = { isHidden: false };
-  if (category && ["FREE_TALK", "REVIEW", "QUESTION", "INFO"].includes(category)) {
+  if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
     where.category = category;
   }
 
@@ -119,12 +119,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                 >
                   <div className="flex items-center gap-2">
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                      post.category === "REVIEW" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
-                      post.category === "QUESTION" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
-                      post.category === "INFO" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
+                      post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
+                      post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                      post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                       "bg-muted text-muted-foreground"
                     }`}>
-                      {post.category === "FREE_TALK" ? "자유" : post.category === "REVIEW" ? "후기" : post.category === "QUESTION" ? "질문" : "정보"}
+                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
                     </span>
                     <span className="min-w-0 truncate text-sm font-medium">{post.title}</span>
                     {post._count.comments > 0 && (
@@ -164,12 +164,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       <td className="px-4 py-3">
                         <Link href={`/community/${post.id}`} className="hover:underline">
                           <span className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                            post.category === "REVIEW" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
-                            post.category === "QUESTION" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
-                            post.category === "INFO" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
+                            post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
+                            post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                            post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                             "bg-muted text-muted-foreground"
                           }`}>
-                            {post.category === "FREE_TALK" ? "자유" : post.category === "REVIEW" ? "후기" : post.category === "QUESTION" ? "질문" : "정보"}
+                            {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
                           </span>
                           <span className="text-sm font-medium">{post.title}</span>
                           {post._count.comments > 0 && (

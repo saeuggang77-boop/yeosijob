@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Upload } from "lucide-react";
 
 interface Config {
   enabled: boolean;
@@ -39,6 +39,7 @@ interface Config {
   activeStartHour: number;
   activeEndHour: number;
   realPostAutoReply: boolean;
+  seoKeywords: string[];
 }
 
 interface PoolStat {
@@ -53,10 +54,26 @@ interface GhostStat {
   count: number;
 }
 
+interface GhostUser {
+  id: string;
+  name: string;
+  ghostPersonality: string | null;
+  isActive: boolean;
+}
+
+interface PoolItem {
+  id: string;
+  title: string | null;
+  content: string;
+  personality: string;
+  createdAt: string;
+}
+
 interface Stats {
   poolStats: PoolStat[];
   ghostStats: GhostStat[];
   totalGhostUsers: number;
+  ghostUsers: GhostUser[];
   todayActivity: {
     posts: number;
     comments: number;
@@ -86,11 +103,26 @@ export function AutoContentManager({
   initialConfig: Config;
   initialStats: Stats;
 }) {
-  const [config, setConfig] = useState<Config>(initialConfig);
+  const [config, setConfig] = useState<Config>({
+    ...initialConfig,
+    seoKeywords: initialConfig.seoKeywords || [],
+  });
   const [stats, setStats] = useState<Stats>(initialStats);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState<string | null>(null);
   const [creatingGhosts, setCreatingGhosts] = useState(false);
+  const [showGhostList, setShowGhostList] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [showPoolItems, setShowPoolItems] = useState(false);
+  const [poolItems, setPoolItems] = useState<PoolItem[]>([]);
+  const [loadingPoolItems, setLoadingPoolItems] = useState(false);
+  const [expandedPoolItemId, setExpandedPoolItemId] = useState<string | null>(null);
+  const [selectedPoolIds, setSelectedPoolIds] = useState<Set<string>>(new Set());
+  const [deletingSelected, setDeletingSelected] = useState(false);
+  const [selectedGhostIds, setSelectedGhostIds] = useState<Set<string>>(new Set());
+  const [deletingSelectedGhosts, setDeletingSelectedGhosts] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
 
   const refreshStats = async () => {
     try {
@@ -162,6 +194,7 @@ export function AutoContentManager({
       if (res.ok) {
         const data = await res.json();
         toast.success(data.message);
+        await refreshGhostUsers();
         await refreshStats();
       } else {
         const data = await res.json();
@@ -171,6 +204,265 @@ export function AutoContentManager({
       toast.error("생성 중 오류가 발생했습니다");
     } finally {
       setCreatingGhosts(false);
+    }
+  };
+
+  const refreshGhostUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/auto-content/ghost-users");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(prev => ({ ...prev, ghostUsers: data.ghostUsers }));
+      }
+    } catch (error) {
+      console.error("Ghost users refresh error:", error);
+    }
+  };
+
+  const handleStartEdit = (user: GhostUser) => {
+    setEditingUserId(user.id);
+    setEditingName(user.name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditingName("");
+  };
+
+  const handleSaveEdit = async (userId: string) => {
+    if (!editingName.trim()) {
+      toast.error("닉네임을 입력해주세요");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/auto-content/ghost-users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: userId, name: editingName.trim() }),
+      });
+
+      if (res.ok) {
+        toast.success("닉네임이 수정되었습니다");
+        await refreshGhostUsers();
+        handleCancelEdit();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "수정에 실패했습니다");
+      }
+    } catch (error) {
+      toast.error("수정 중 오류가 발생했습니다");
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("이 유령회원을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/auto-content/ghost-users?id=${userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("유령회원이 삭제되었습니다");
+        await refreshGhostUsers();
+        await refreshStats();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "삭제에 실패했습니다");
+      }
+    } catch (error) {
+      toast.error("삭제 중 오류가 발생했습니다");
+    }
+  };
+
+  const handleDeleteSelectedGhosts = async () => {
+    if (selectedGhostIds.size === 0) return;
+    if (!confirm(`선택한 ${selectedGhostIds.size}명의 유령회원을 삭제하시겠습니까?`)) return;
+
+    setDeletingSelectedGhosts(true);
+    try {
+      const res = await fetch("/api/admin/auto-content/ghost-users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedGhostIds) }),
+      });
+
+      if (res.ok) {
+        toast.success(`${selectedGhostIds.size}명의 유령회원이 삭제되었습니다`);
+        setSelectedGhostIds(new Set());
+        await refreshGhostUsers();
+        await refreshStats();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "삭제에 실패했습니다");
+      }
+    } catch (error) {
+      toast.error("삭제 중 오류가 발생했습니다");
+    } finally {
+      setDeletingSelectedGhosts(false);
+    }
+  };
+
+  const toggleGhostSelect = (userId: string) => {
+    setSelectedGhostIds(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const toggleSelectAllGhosts = () => {
+    if (selectedGhostIds.size === stats.ghostUsers.length) {
+      setSelectedGhostIds(new Set());
+    } else {
+      setSelectedGhostIds(new Set(stats.ghostUsers.map(u => u.id)));
+    }
+  };
+
+  const handleAddKeyword = () => {
+    const keyword = keywordInput.trim();
+    if (!keyword) return;
+    if (config.seoKeywords.includes(keyword)) {
+      toast.error("이미 등록된 키워드입니다");
+      return;
+    }
+    setConfig({ ...config, seoKeywords: [...config.seoKeywords, keyword] });
+    setKeywordInput("");
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    setConfig({
+      ...config,
+      seoKeywords: config.seoKeywords.filter(k => k !== keyword),
+    });
+  };
+
+  const handleKeywordFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      // 줄바꿈, 쉼표, 탭으로 분리 후 trim, 빈값/중복 제거
+      const newKeywords = text
+        .split(/[\n\r,\t]+/)
+        .map(k => k.trim())
+        .filter(k => k.length > 0 && !config.seoKeywords.includes(k));
+
+      if (newKeywords.length === 0) {
+        toast.error("추가할 새 키워드가 없습니다");
+        return;
+      }
+
+      const unique = [...new Set(newKeywords)];
+      setConfig({
+        ...config,
+        seoKeywords: [...config.seoKeywords, ...unique],
+      });
+      toast.success(`${unique.length}개 키워드가 추가되었습니다`);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const loadPoolItems = async () => {
+    setLoadingPoolItems(true);
+    try {
+      const res = await fetch("/api/admin/auto-content/pool");
+      if (res.ok) {
+        const data = await res.json();
+        setPoolItems(data.poolItems);
+      } else {
+        toast.error("원고 목록 조회 실패");
+      }
+    } catch (error) {
+      toast.error("원고 목록 조회 중 오류 발생");
+    } finally {
+      setLoadingPoolItems(false);
+    }
+  };
+
+  const handleTogglePoolItems = async () => {
+    if (!showPoolItems) {
+      await loadPoolItems();
+    }
+    setShowPoolItems(!showPoolItems);
+  };
+
+  const handleDeletePoolItem = async (itemId: string) => {
+    if (!confirm("이 원고를 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/auto-content/pool", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [itemId] }),
+      });
+
+      if (res.ok) {
+        toast.success("원고가 삭제되었습니다");
+        setPoolItems(poolItems.filter(item => item.id !== itemId));
+        await refreshStats();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "삭제에 실패했습니다");
+      }
+    } catch (error) {
+      toast.error("삭제 중 오류가 발생했습니다");
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPoolIds.size === 0) return;
+    if (!confirm(`선택한 ${selectedPoolIds.size}개의 원고를 삭제하시겠습니까?`)) return;
+
+    setDeletingSelected(true);
+    try {
+      const res = await fetch("/api/admin/auto-content/pool", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedPoolIds) }),
+      });
+
+      if (res.ok) {
+        toast.success(`${selectedPoolIds.size}개의 원고가 삭제되었습니다`);
+        setPoolItems(poolItems.filter(item => !selectedPoolIds.has(item.id)));
+        setSelectedPoolIds(new Set());
+        await refreshStats();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "삭제에 실패했습니다");
+      }
+    } catch (error) {
+      toast.error("삭제 중 오류가 발생했습니다");
+    } finally {
+      setDeletingSelected(false);
+    }
+  };
+
+  const togglePoolItemSelect = (itemId: string) => {
+    setSelectedPoolIds(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPoolIds.size === poolItems.length) {
+      setSelectedPoolIds(new Set());
+    } else {
+      setSelectedPoolIds(new Set(poolItems.map(item => item.id)));
     }
   };
 
@@ -309,6 +601,68 @@ export function AutoContentManager({
             />
           </div>
 
+          <div className="space-y-2">
+            <div>
+              <Label className="text-base font-medium">
+                SEO 키워드 ({config.seoKeywords.length}개)
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                자동 생성 콘텐츠에 포함할 키워드
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddKeyword();
+                  }
+                }}
+                placeholder="키워드 입력"
+                className="bg-zinc-900 border-zinc-700"
+              />
+              <Button
+                onClick={handleAddKeyword}
+                variant="outline"
+                className="shrink-0"
+              >
+                추가
+              </Button>
+              <Button
+                variant="outline"
+                className="shrink-0"
+                onClick={() => document.getElementById("keyword-file-input")?.click()}
+              >
+                <Upload className="mr-1 size-4" />
+                파일
+              </Button>
+              <input
+                id="keyword-file-input"
+                type="file"
+                accept=".txt,.csv"
+                onChange={handleKeywordFileUpload}
+                className="hidden"
+              />
+            </div>
+            {config.seoKeywords.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {config.seoKeywords.map((keyword) => (
+                  <Badge
+                    key={keyword}
+                    variant="secondary"
+                    className="text-[#D4A853] cursor-pointer"
+                    onClick={() => handleRemoveKeyword(keyword)}
+                  >
+                    {keyword}
+                    <X className="ml-1 size-3 hover:text-red-500" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
           <Button
             onClick={handleSaveConfig}
             disabled={saving}
@@ -377,6 +731,131 @@ export function AutoContentManager({
               ))}
             </TableBody>
           </Table>
+
+          <div className="mt-4 flex items-center gap-2">
+            <Button
+              onClick={handleTogglePoolItems}
+              variant="outline"
+              size="sm"
+              disabled={loadingPoolItems}
+            >
+              {loadingPoolItems && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {showPoolItems ? "원고 목록 숨기기" : "원고 목록 보기"}
+              {!loadingPoolItems && (
+                showPoolItems ? (
+                  <ChevronUp className="ml-2 size-4" />
+                ) : (
+                  <ChevronDown className="ml-2 size-4" />
+                )
+              )}
+            </Button>
+            {showPoolItems && selectedPoolIds.size > 0 && (
+              <Button
+                onClick={handleDeleteSelected}
+                variant="destructive"
+                size="sm"
+                disabled={deletingSelected}
+              >
+                {deletingSelected && <Loader2 className="mr-2 size-4 animate-spin" />}
+                선택 삭제 ({selectedPoolIds.size}개)
+              </Button>
+            )}
+          </div>
+
+          {showPoolItems && (
+            <div className="mt-4 rounded-lg border border-zinc-700 bg-zinc-900">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-zinc-700 hover:bg-zinc-900">
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={poolItems.length > 0 && selectedPoolIds.size === poolItems.length}
+                        onChange={toggleSelectAll}
+                        className="size-4 rounded border-zinc-600 accent-[#D4A853]"
+                      />
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">제목</TableHead>
+                    <TableHead className="text-muted-foreground">내용</TableHead>
+                    <TableHead className="text-muted-foreground">성격유형</TableHead>
+                    <TableHead className="text-muted-foreground text-right">액션</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {poolItems.length === 0 ? (
+                    <TableRow className="border-zinc-700">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        미사용 원고가 없습니다
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    poolItems.map((item) => (
+                      <TableRow
+                        key={item.id}
+                        className={`border-zinc-700 cursor-pointer hover:bg-zinc-800 ${selectedPoolIds.has(item.id) ? "bg-zinc-800/50" : ""}`}
+                        onClick={() =>
+                          setExpandedPoolItemId(
+                            expandedPoolItemId === item.id ? null : item.id
+                          )
+                        }
+                      >
+                        <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedPoolIds.has(item.id)}
+                            onChange={() => togglePoolItemSelect(item.id)}
+                            className="size-4 rounded border-zinc-600 accent-[#D4A853]"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[200px]">
+                          <div className="flex items-center gap-1">
+                            {expandedPoolItemId === item.id ? (
+                              <ChevronUp className="size-3 shrink-0 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
+                            )}
+                            <span className="truncate">
+                              {item.title || "제목 없음"}
+                            </span>
+                          </div>
+                          {expandedPoolItemId === item.id && (
+                            <div className="mt-3 whitespace-pre-wrap text-sm text-zinc-300 border-t border-zinc-700 pt-3">
+                              {item.content}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[300px]">
+                          {expandedPoolItemId !== item.id && (
+                            <div className="line-clamp-2 text-sm text-muted-foreground">
+                              {item.content}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-[#D4A853]">
+                            {PERSONALITY_LABELS[item.personality] || item.personality}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-8 hover:text-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePoolItem(item.id);
+                            }}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -408,16 +887,137 @@ export function AutoContentManager({
             </TableBody>
           </Table>
 
-          <Button
-            onClick={handleCreateGhosts}
-            disabled={creatingGhosts}
-            variant="outline"
-          >
-            {creatingGhosts && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleCreateGhosts}
+              disabled={creatingGhosts}
+              variant="outline"
+            >
+              {creatingGhosts && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              추가 생성 (10명)
+            </Button>
+
+            <Button
+              onClick={() => setShowGhostList(!showGhostList)}
+              variant="outline"
+              size="sm"
+            >
+              {showGhostList ? "회원 목록 숨기기" : "회원 목록 보기"}
+              {showGhostList ? (
+                <ChevronUp className="ml-2 size-4" />
+              ) : (
+                <ChevronDown className="ml-2 size-4" />
+              )}
+            </Button>
+
+            {showGhostList && selectedGhostIds.size > 0 && (
+              <Button
+                onClick={handleDeleteSelectedGhosts}
+                variant="destructive"
+                size="sm"
+                disabled={deletingSelectedGhosts}
+              >
+                {deletingSelectedGhosts && <Loader2 className="mr-2 size-4 animate-spin" />}
+                선택 삭제 ({selectedGhostIds.size}명)
+              </Button>
             )}
-            추가 생성 (10명)
-          </Button>
+          </div>
+
+          {showGhostList && (
+            <div className="mt-4 rounded-lg border border-zinc-700 bg-zinc-900">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-zinc-700 hover:bg-zinc-900">
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={stats.ghostUsers.length > 0 && selectedGhostIds.size === stats.ghostUsers.length}
+                        onChange={toggleSelectAllGhosts}
+                        className="size-4 rounded border-zinc-600 accent-[#D4A853]"
+                      />
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">닉네임</TableHead>
+                    <TableHead className="text-muted-foreground">성격유형</TableHead>
+                    <TableHead className="text-muted-foreground text-right">액션</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.ghostUsers.map((user) => (
+                    <TableRow key={user.id} className={`border-zinc-700 ${selectedGhostIds.has(user.id) ? "bg-zinc-800/50" : ""}`}>
+                      <TableCell className="w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedGhostIds.has(user.id)}
+                          onChange={() => toggleGhostSelect(user.id)}
+                          className="size-4 rounded border-zinc-600 accent-[#D4A853]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {editingUserId === user.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleSaveEdit(user.id);
+                                } else if (e.key === "Escape") {
+                                  handleCancelEdit();
+                                }
+                              }}
+                              className="h-8 bg-zinc-800 border-zinc-600"
+                              autoFocus
+                            />
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8"
+                              onClick={() => handleSaveEdit(user.id)}
+                            >
+                              <Check className="size-4 text-green-500" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8"
+                              onClick={handleCancelEdit}
+                            >
+                              <X className="size-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleStartEdit(user)}
+                            className="flex items-center gap-2 hover:text-[#D4A853] transition-colors"
+                          >
+                            {user.name}
+                            <Pencil className="size-3 opacity-50" />
+                          </button>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {PERSONALITY_LABELS[user.ghostPersonality || ""] || user.ghostPersonality}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 hover:text-red-500"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

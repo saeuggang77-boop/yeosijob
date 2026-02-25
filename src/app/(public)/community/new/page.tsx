@@ -12,7 +12,7 @@ export default function NewPostPage() {
   const { data: session, status } = useSession();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("FREE_TALK");
+  const [category, setCategory] = useState("CHAT");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (status === "loading") {
@@ -68,10 +68,10 @@ export default function NewPostPage() {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="FREE_TALK">자유</option>
-                <option value="REVIEW">후기</option>
-                <option value="QUESTION">질문</option>
-                <option value="INFO">정보</option>
+                <option value="CHAT">수다방</option>
+                <option value="BEAUTY">뷰티톡</option>
+                <option value="QNA">질문방</option>
+                <option value="WORK">업소톡</option>
               </select>
             </div>
 

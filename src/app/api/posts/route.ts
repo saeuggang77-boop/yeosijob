@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Category filter
-    if (category && ["FREE_TALK", "REVIEW", "QUESTION", "INFO"].includes(category)) {
+    if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
       where.category = category;
     }
 
@@ -106,8 +106,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "내용은 1-2000자로 입력해주세요" }, { status: 400 });
     }
 
-    const validCategories = ["FREE_TALK", "REVIEW", "QUESTION", "INFO"];
-    const postCategory = validCategories.includes(category) ? category : "FREE_TALK";
+    const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
+    const postCategory = validCategories.includes(category) ? category : "CHAT";
 
     const post = await prisma.post.create({
       data: {

@@ -57,6 +57,29 @@ export default async function AutoContentPage() {
     where: { isGhost: true },
   });
 
+  const ghostUsersRaw = await prisma.user.findMany({
+    where: {
+      isGhost: true,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      ghostPersonality: true,
+      isActive: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const ghostUsers = ghostUsersRaw.map(user => ({
+    id: user.id,
+    name: user.name || "Unknown",
+    ghostPersonality: user.ghostPersonality,
+    isActive: user.isActive,
+  }));
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -100,11 +123,13 @@ export default async function AutoContentPage() {
             activeStartHour: config.activeStartHour,
             activeEndHour: config.activeEndHour,
             realPostAutoReply: config.realPostAutoReply,
+            seoKeywords: config.seoKeywords || [],
           }}
           initialStats={{
             poolStats,
             ghostStats,
             totalGhostUsers,
+            ghostUsers,
             todayActivity: {
               posts: todayPosts,
               comments: todayComments,

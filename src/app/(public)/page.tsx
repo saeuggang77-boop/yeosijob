@@ -345,12 +345,12 @@ export default async function HomePage({ searchParams }: PageProps) {
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                      post.category === "REVIEW" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
-                      post.category === "QUESTION" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
-                      post.category === "INFO" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
+                      post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
+                      post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                      post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                       "bg-muted text-muted-foreground"
                     }`}>
-                      {post.category === "FREE_TALK" ? "자유" : post.category === "REVIEW" ? "후기" : post.category === "QUESTION" ? "질문" : "정보"}
+                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
                     </span>
                     <span className="truncate text-sm font-medium">{post.title}</span>
                     {post._count.comments > 0 && (

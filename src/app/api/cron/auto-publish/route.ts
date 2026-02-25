@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
               authorId: ghost.id,
               title: poolItem.title || "자유게시글",
               content: poolItem.content,
-              category: poolItem.category || "FREE_TALK",
+              category: poolItem.category || "CHAT",
               viewCount: Math.floor(Math.random() * 451) + 50, // 50~500
             },
           });

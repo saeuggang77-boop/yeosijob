@@ -8,6 +8,7 @@ import {
   getCommentGenerationPrompt,
   getReplyGenerationPrompt,
 } from "@/lib/auto-content/prompts";
+import { logAiUsage } from "@/lib/ai-usage";
 
 const anthropic = new Anthropic();
 
@@ -33,6 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "생성 수는 1~100 사이여야 합니다" }, { status: 400 });
     }
 
+    // SEO 키워드 조회
+    const config = await prisma.autoContentConfig.findUnique({
+      where: { id: "singleton" },
+      select: { seoKeywords: true },
+    });
+    const allKeywords = config?.seoKeywords || [];
+
     const personalities: GhostPersonality[] = [
       "CHATTY", "ADVISOR", "QUESTIONER", "EMOJI_LOVER", "CALM", "SASSY",
     ];
@@ -44,9 +52,17 @@ export async function POST(request: NextRequest) {
       const toGenerate = Math.min(perPersonality, count - totalGenerated);
       if (toGenerate <= 0) break;
 
+      // 랜덤 5~6개 키워드 선별
+      let selectedKeywords: string[] = [];
+      if (allKeywords.length > 0) {
+        const numKeywords = Math.floor(Math.random() * 2) + 5; // 5 or 6
+        const shuffled = [...allKeywords].sort(() => Math.random() - 0.5);
+        selectedKeywords = shuffled.slice(0, Math.min(numKeywords, allKeywords.length));
+      }
+
       let prompt: string;
       if (type === "POST") {
-        prompt = getPostGenerationPrompt(personality, toGenerate);
+        prompt = getPostGenerationPrompt(personality, toGenerate, selectedKeywords);
       } else if (type === "COMMENT") {
         prompt = getCommentGenerationPrompt(personality, toGenerate);
       } else {
@@ -55,10 +71,18 @@ export async function POST(request: NextRequest) {
 
       try {
         const message = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-haiku-4-5-20251001",
           max_tokens: 4000,
           messages: [{ role: "user", content: prompt }],
         });
+
+        // AI 사용량 로깅
+        await logAiUsage(
+          message.model,
+          message.usage.input_tokens,
+          message.usage.output_tokens,
+          `auto-content-${type.toLowerCase()}`
+        );
 
         const text = message.content[0].type === "text" ? message.content[0].text : "";
 
@@ -78,14 +102,15 @@ export async function POST(request: NextRequest) {
             personality,
             title: item.title || null,
             content: item.content,
-            category: type === "POST" ? "FREE_TALK" : null,
+            category: type === "POST" ? "CHAT" : null,
             isUsed: false,
           })),
         });
 
         totalGenerated += items.length;
       } catch (err) {
-        console.error(`AI generation error for ${personality}:`, err);
+        console.error(`AI generation error for ${personality}:`, err instanceof Error ? err.message : err);
+        console.error(`Full error:`, JSON.stringify(err, Object.getOwnPropertyNames(err as object)));
         continue;
       }
     }

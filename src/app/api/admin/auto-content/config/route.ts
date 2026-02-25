@@ -46,6 +46,7 @@ export async function PUT(request: NextRequest) {
       activeStartHour,
       activeEndHour,
       realPostAutoReply,
+      seoKeywords,
     } = body;
 
     const config = await prisma.autoContentConfig.upsert({
@@ -59,6 +60,7 @@ export async function PUT(request: NextRequest) {
         activeStartHour: activeStartHour ?? 14,
         activeEndHour: activeEndHour ?? 4,
         realPostAutoReply: realPostAutoReply ?? true,
+        seoKeywords: seoKeywords ?? [],
       },
       update: {
         ...(typeof enabled === "boolean" && { enabled }),
@@ -68,6 +70,7 @@ export async function PUT(request: NextRequest) {
         ...(typeof activeStartHour === "number" && { activeStartHour }),
         ...(typeof activeEndHour === "number" && { activeEndHour }),
         ...(typeof realPostAutoReply === "boolean" && { realPostAutoReply }),
+        ...(Array.isArray(seoKeywords) && { seoKeywords }),
       },
     });
 

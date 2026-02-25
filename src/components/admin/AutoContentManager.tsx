@@ -35,8 +35,8 @@ import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, 
 interface Config {
   enabled: boolean;
   postsPerDay: number;
-  commentsPerDay: number;
-  repliesPerDay: number;
+  commentsPerPost: number;
+  repliesPerComment: number;
   activeStartHour: number;
   activeEndHour: number;
   realPostAutoReply: boolean;
@@ -549,9 +549,9 @@ export function AutoContentManager({
           </div>
 
           <div className="rounded-md bg-zinc-900 border border-zinc-700 p-3 text-xs text-muted-foreground space-y-1">
-            <p>기준값에 요일별 자동 변동이 적용됩니다.</p>
-            <p>금·토: +20~30% | 월·화: -10~20% | 수·목·일: ±10%</p>
-            <p>콘텐츠 타입별로 각각 독립 변동됩니다.</p>
+            <p>댓글/답글은 게시글·댓글 단위로 편중 분배됩니다. (어떤 글은 많고, 어떤 글은 0개)</p>
+            <p>요일별 자동 변동: 금·토 +20~30% | 월·화 -10~20% | 수·목·일 ±10%</p>
+            <p>예시: 게시글 8개 × 댓글 3개 = 하루 약 24개 (편중+요일 변동 적용)</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
@@ -571,32 +571,32 @@ export function AutoContentManager({
               />
             </div>
             <div className="space-y-2">
-              <Label>일일 댓글 수 (기준값)</Label>
+              <Label>게시글당 댓글 (기준값)</Label>
               <Input
                 type="number"
                 min="0"
-                max="200"
-                value={config.commentsPerDay}
+                max="10"
+                value={config.commentsPerPost}
                 onChange={(e) =>
                   setConfig({
                     ...config,
-                    commentsPerDay: parseInt(e.target.value) || 0,
+                    commentsPerPost: parseInt(e.target.value) || 0,
                   })
                 }
                 className="bg-zinc-900 border-zinc-700"
               />
             </div>
             <div className="space-y-2">
-              <Label>일일 답글 수 (기준값)</Label>
+              <Label>댓글당 답글 (기준값)</Label>
               <Input
                 type="number"
                 min="0"
-                max="200"
-                value={config.repliesPerDay}
+                max="5"
+                value={config.repliesPerComment}
                 onChange={(e) =>
                   setConfig({
                     ...config,
-                    repliesPerDay: parseInt(e.target.value) || 0,
+                    repliesPerComment: parseInt(e.target.value) || 0,
                   })
                 }
                 className="bg-zinc-900 border-zinc-700"

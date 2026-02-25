@@ -6,6 +6,7 @@ import {
   getActiveHoursCount,
   getSlotQuota,
   getDailyTarget,
+  getContentTarget,
   getRandomGhostUsers,
   getUnusedContent,
   getTodayGhostCounts,
@@ -105,12 +106,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // === 2. 댓글 발행 (기존 게시글에) ===
-    const remainingComments = Math.max(0, getDailyTarget(config.commentsPerDay, 1) - todayCounts.comments);
+    // === 2. 댓글 발행 (게시글당 편중 분배) ===
+    const dailyCommentTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost, 1);
+    const remainingComments = Math.max(0, dailyCommentTarget - todayCounts.comments);
     const commentQuota = getSlotQuota(remainingComments, totalSlots);
 
     if (commentQuota > 0) {
-      // 최근 7일 게시글 중 숨김 아닌 것
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -120,30 +121,43 @@ export async function GET(request: NextRequest) {
           isHidden: false,
         },
         select: { id: true, title: true, content: true },
-        take: commentQuota * 3,
         orderBy: { createdAt: "desc" },
+        take: 50,
       });
 
-      // Shuffle posts
-      const shuffledPosts = [...existingPosts];
-      for (let i = shuffledPosts.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledPosts[i], shuffledPosts[j]] = [shuffledPosts[j], shuffledPosts[i]];
-      }
+      // 각 게시글의 고스트 댓글 수 집계
+      const commentCounts = await prisma.comment.groupBy({
+        by: ["postId"],
+        where: {
+          author: { isGhost: true },
+          parentId: null,
+          postId: { in: existingPosts.map(p => p.id) },
+        },
+        _count: true,
+      });
+      const countMap = new Map(commentCounts.map(c => [c.postId, c._count]));
 
-      const targetPosts = shuffledPosts.slice(0, commentQuota);
-      const ghostUsers = await getRandomGhostUsers(commentQuota);
+      // 편중 분배: 게시글별 목표 vs 현재 → 부족한 글만 선별
+      const needComments = existingPosts
+        .map(post => ({
+          ...post,
+          current: countMap.get(post.id) || 0,
+          target: getContentTarget(post.id, config.commentsPerPost),
+        }))
+        .filter(p => p.target > p.current)
+        .sort((a, b) => (b.target - b.current) - (a.target - a.current))
+        .slice(0, commentQuota);
 
-      for (let i = 0; i < Math.min(targetPosts.length, ghostUsers.length); i++) {
-        const post = targetPosts[i];
+      const ghostUsers = await getRandomGhostUsers(needComments.length);
+
+      for (let i = 0; i < Math.min(needComments.length, ghostUsers.length); i++) {
+        const post = needComments[i];
         const ghost = ghostUsers[i];
 
         try {
-          // AI로 실시간 댓글 생성
           const comments = await generateContextualComments(post.title, post.content, 1);
           if (comments.length === 0) continue;
 
-          // 댓글 생성
           await prisma.comment.create({
             data: {
               authorId: ghost.id,
@@ -161,12 +175,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // === 3. 답글 발행 (기존 댓글에) ===
-    const remainingReplies = Math.max(0, getDailyTarget(config.repliesPerDay, 2) - todayCounts.replies);
+    // === 3. 답글 발행 (댓글당 편중 분배) ===
+    const dailyReplyTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost * config.repliesPerComment, 2);
+    const remainingReplies = Math.max(0, dailyReplyTarget - todayCounts.replies);
     const replyQuota = getSlotQuota(remainingReplies, totalSlots);
 
     if (replyQuota > 0) {
-      // 최근 7일 최상위 댓글
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -182,28 +196,40 @@ export async function GET(request: NextRequest) {
           author: { select: { name: true } },
           post: { select: { title: true } },
         },
-        take: replyQuota * 3,
         orderBy: { createdAt: "desc" },
+        take: 50,
       });
 
-      // Shuffle comments
-      const shuffledComments = [...existingComments];
-      for (let i = shuffledComments.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledComments[i], shuffledComments[j]] = [shuffledComments[j], shuffledComments[i]];
-      }
+      // 각 댓글의 고스트 답글 수 집계
+      const replyCounts = await prisma.comment.groupBy({
+        by: ["parentId"],
+        where: {
+          author: { isGhost: true },
+          parentId: { in: existingComments.map(c => c.id) },
+        },
+        _count: true,
+      });
+      const replyCountMap = new Map(replyCounts.map(r => [r.parentId, r._count]));
 
-      const targetComments = shuffledComments.slice(0, replyQuota);
-      const ghostUsers = await getRandomGhostUsers(replyQuota);
+      // 편중 분배: 댓글별 목표 vs 현재 → 부족한 댓글만 선별
+      const needReplies = existingComments
+        .map(comment => ({
+          ...comment,
+          current: replyCountMap.get(comment.id) || 0,
+          target: getContentTarget(comment.id, config.repliesPerComment),
+        }))
+        .filter(c => c.target > c.current)
+        .sort((a, b) => (b.target - b.current) - (a.target - a.current))
+        .slice(0, replyQuota);
 
-      for (let i = 0; i < Math.min(targetComments.length, ghostUsers.length); i++) {
-        const parentComment = targetComments[i];
+      const ghostUsers = await getRandomGhostUsers(needReplies.length);
+
+      for (let i = 0; i < Math.min(needReplies.length, ghostUsers.length); i++) {
+        const parentComment = needReplies[i];
         const ghost = ghostUsers[i];
-
         const authorName = parentComment.author.name || "익명";
 
         try {
-          // AI로 실시간 답글 생성
           const replies = await generateContextualReplies(
             parentComment.post.title,
             parentComment.content,
@@ -211,7 +237,6 @@ export async function GET(request: NextRequest) {
           );
           if (replies.length === 0) continue;
 
-          // 답글 생성 (@멘션 포함)
           await prisma.comment.create({
             data: {
               authorId: ghost.id,
@@ -301,8 +326,8 @@ export async function GET(request: NextRequest) {
         enabled: config.enabled,
         activeHours: `${config.activeStartHour}:00 ~ ${config.activeEndHour}:00`,
         postsPerDay: config.postsPerDay,
-        commentsPerDay: config.commentsPerDay,
-        repliesPerDay: config.repliesPerDay,
+        commentsPerPost: config.commentsPerPost,
+        repliesPerComment: config.repliesPerComment,
       },
       todayCounts,
     });

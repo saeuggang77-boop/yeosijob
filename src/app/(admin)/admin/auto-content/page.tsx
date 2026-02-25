@@ -118,8 +118,8 @@ export default async function AutoContentPage() {
           initialConfig={{
             enabled: config.enabled,
             postsPerDay: config.postsPerDay,
-            commentsPerDay: config.commentsPerDay,
-            repliesPerDay: config.repliesPerDay,
+            commentsPerPost: config.commentsPerPost,
+            repliesPerComment: config.repliesPerComment,
             activeStartHour: config.activeStartHour,
             activeEndHour: config.activeEndHour,
             realPostAutoReply: config.realPostAutoReply,

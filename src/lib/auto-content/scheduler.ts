@@ -45,6 +45,23 @@ export function getDailyTarget(base: number, typeOffset: number = 0): number {
 }
 
 /**
+ * 게시글/댓글 ID 기반 편중 분배
+ * 같은 ID는 항상 같은 목표값 → 20% 묻힌 글(0개), 50% 평균, 30% 핫글(2배)
+ */
+export function getContentTarget(id: string, base: number): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const norm = Math.abs(Math.sin(hash)); // 0~1
+
+  if (norm < 0.2) return 0; // 20% 묻힌 글
+  if (norm < 0.7) return Math.max(1, Math.round(base * (0.5 + norm))); // 50% 평균
+  return Math.max(1, Math.round(base * (1.2 + norm * 0.8))); // 30% 핫글
+}
+
+/**
  * 활성 시간대의 총 시간 수 계산
  */
 export function getActiveHoursCount(start: number, end: number): number {

@@ -5,6 +5,7 @@ import {
   isWithinActiveHours,
   getActiveHoursCount,
   getSlotQuota,
+  getDailyTarget,
   getRandomGhostUsers,
   getUnusedContent,
   getTodayGhostCounts,
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     let realPostReplies = 0;
 
     // === 1. 게시글 발행 ===
-    const remainingPosts = Math.max(0, config.postsPerDay - todayCounts.posts);
+    const remainingPosts = Math.max(0, getDailyTarget(config.postsPerDay) - todayCounts.posts);
     const postQuota = getSlotQuota(remainingPosts, totalSlots);
 
     if (postQuota > 0) {
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     // === 2. 댓글 발행 (기존 게시글에) ===
-    const remainingComments = Math.max(0, config.commentsPerDay - todayCounts.comments);
+    const remainingComments = Math.max(0, getDailyTarget(config.commentsPerDay) - todayCounts.comments);
     const commentQuota = getSlotQuota(remainingComments, totalSlots);
 
     if (commentQuota > 0) {
@@ -161,7 +162,7 @@ export async function GET(request: NextRequest) {
     }
 
     // === 3. 답글 발행 (기존 댓글에) ===
-    const remainingReplies = Math.max(0, config.repliesPerDay - todayCounts.replies);
+    const remainingReplies = Math.max(0, getDailyTarget(config.repliesPerDay) - todayCounts.replies);
     const replyQuota = getSlotQuota(remainingReplies, totalSlots);
 
     if (replyQuota > 0) {

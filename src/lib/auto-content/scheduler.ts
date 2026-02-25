@@ -18,6 +18,18 @@ export function isWithinActiveHours(kstHour: number, start: number, end: number)
 }
 
 /**
+ * 일일 목표에 ±30% 랜덤 변동 적용
+ * 날짜 기반 시드로 같은 날에는 같은 값 유지
+ */
+export function getDailyTarget(base: number): number {
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const pseudo = Math.sin(seed) * 10000;
+  const ratio = 0.7 + (pseudo - Math.floor(pseudo)) * 0.6; // 0.7 ~ 1.3
+  return Math.max(1, Math.round(base * ratio));
+}
+
+/**
  * 활성 시간대의 총 시간 수 계산
  */
 export function getActiveHoursCount(start: number, end: number): number {

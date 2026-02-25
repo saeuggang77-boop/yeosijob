@@ -134,11 +134,16 @@ export async function getUnusedContent(type: ContentType, count: number, persona
 }
 
 /**
- * 오늘 고스트가 생성한 항목 수 조회
+ * 오늘 고스트가 생성한 항목 수 조회 (KST 자정 기준)
  */
 export async function getTodayGhostCounts() {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  // KST 자정 기준 (UTC+9)
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(now.getTime() + kstOffset);
+  const todayStart = new Date(
+    Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - kstOffset
+  );
 
   const [posts, comments] = await Promise.all([
     prisma.post.count({
@@ -344,6 +349,10 @@ export async function generateConversationThread(
     let commentCount = 0;
     let replyCount = 0;
 
+    // 시간 오프셋 계산: 마지막 메시지가 현재에 가깝고, 첫 메시지가 가장 오래전
+    const totalMessages = parsed.length;
+    const now = Date.now();
+
     for (let i = 0; i < parsed.length; i++) {
       const msg = parsed[i];
       const userId = nameToUserId.get(msg.name) || post.authorId;
@@ -372,12 +381,18 @@ export async function generateConversationThread(
         }
       }
 
+      // 시간차 적용: 마지막 메시지가 현재에 가깝고, 첫 메시지가 가장 오래전
+      const remainingMessages = totalMessages - i;
+      const minutesAgo = remainingMessages * (Math.floor(Math.random() * 16) + 10); // 10~25분 간격
+      const createdAt = new Date(now - minutesAgo * 60 * 1000);
+
       const comment = await prisma.comment.create({
         data: {
           authorId: userId,
           postId: post.id,
           content: finalContent,
           parentId,
+          createdAt,
         },
       });
 

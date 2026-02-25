@@ -84,14 +84,17 @@ export async function GET(request: NextRequest) {
         const poolItem = postContents[i];
 
         await prisma.$transaction(async (tx) => {
-          // 게시글 생성
+          // 게시글 생성 (1~25분 전 랜덤 시간으로)
+          const createdAt = new Date(Date.now() - (Math.floor(Math.random() * 25) + 1) * 60 * 1000);
+
           await tx.post.create({
             data: {
               authorId: ghost.id,
               title: poolItem.title || "자유게시글",
               content: poolItem.content,
               category: poolItem.category || "CHAT",
-              viewCount: Math.floor(Math.random() * 451) + 50, // 50~500
+              viewCount: Math.floor(Math.random() * 6), // 0~5 (새 글이니까 낮게 시작)
+              createdAt,
             },
           });
 

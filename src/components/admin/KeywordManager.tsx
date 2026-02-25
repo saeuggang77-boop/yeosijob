@@ -39,6 +39,7 @@ interface ParsedKeyword {
 
 interface KeywordManagerProps {
   initialKeywords: string[];
+  initialUsage: Record<string, number>;
 }
 
 /**
@@ -71,14 +72,16 @@ function parseNaverStats(text: string): ParsedKeyword[] {
   return results;
 }
 
-export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
+export function KeywordManager({ initialKeywords, initialUsage }: KeywordManagerProps) {
   const [keywords, setKeywords] = useState<string[]>(initialKeywords);
+  const [usage, setUsage] = useState<Record<string, number>>(initialUsage);
   const [keywordInput, setKeywordInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [sortMode, setSortMode] = useState<"name" | "most" | "least">("name");
 
   // 클립보드 미리보기 상태
   const [pastePreview, setPastePreview] = useState<ParsedKeyword[]>([]);
@@ -90,10 +93,17 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
     ? keywords.filter((k) => k.includes(searchQuery))
     : keywords;
 
+  // 정렬된 키워드
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortMode === "most") return (usage[b] || 0) - (usage[a] || 0);
+    if (sortMode === "least") return (usage[a] || 0) - (usage[b] || 0);
+    return a.localeCompare(b);
+  });
+
   // 페이지네이션
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const pageKeywords = filtered.slice(
+  const pageKeywords = sorted.slice(
     (safePage - 1) * PAGE_SIZE,
     safePage * PAGE_SIZE
   );
@@ -525,28 +535,56 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
                   : `총 ${keywords.length}개`}
               </CardDescription>
             </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="키워드 검색..."
-                className="bg-zinc-900 border-zinc-700 pl-9"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex gap-1">
+                <Button
+                  variant={sortMode === "name" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSortMode("name")}
+                  className={sortMode === "name" ? "bg-[#D4A853] text-black hover:bg-[#C49A48]" : ""}
+                >
+                  이름순
+                </Button>
+                <Button
+                  variant={sortMode === "most" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSortMode("most")}
+                  className={sortMode === "most" ? "bg-[#D4A853] text-black hover:bg-[#C49A48]" : ""}
+                >
+                  많이 사용
+                </Button>
+                <Button
+                  variant={sortMode === "least" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSortMode("least")}
+                  className={sortMode === "least" ? "bg-[#D4A853] text-black hover:bg-[#C49A48]" : ""}
+                >
+                  적게 사용
+                </Button>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
+                  placeholder="키워드 검색..."
+                  className="bg-zinc-900 border-zinc-700 pl-9"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -603,6 +641,9 @@ export function KeywordManager({ initialKeywords }: KeywordManagerProps) {
                   onClick={() => toggleSelect(keyword)}
                 >
                   {keyword}
+                  <span className="ml-1 text-xs opacity-60">
+                    {usage[keyword] || 0}
+                  </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

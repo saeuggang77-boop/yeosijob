@@ -9,12 +9,15 @@ export default async function KeywordsPage() {
 
   const config = await prisma.autoContentConfig.findUnique({
     where: { id: "singleton" },
-    select: { seoKeywords: true },
+    select: { seoKeywords: true, seoKeywordUsage: true },
   });
 
   return (
     <div>
-      <KeywordManager initialKeywords={config?.seoKeywords || []} />
+      <KeywordManager
+        initialKeywords={config?.seoKeywords || []}
+        initialUsage={(config?.seoKeywordUsage as Record<string, number>) || {}}
+      />
     </div>
   );
 }

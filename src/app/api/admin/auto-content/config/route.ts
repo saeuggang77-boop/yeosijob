@@ -49,6 +49,32 @@ export async function PUT(request: NextRequest) {
       seoKeywords,
     } = body;
 
+    // seoKeywords 업데이트 시 usage도 정리
+    const updateData: any = {
+      ...(typeof enabled === "boolean" && { enabled }),
+      ...(typeof postsPerDay === "number" && { postsPerDay }),
+      ...(typeof commentsPerPost === "number" && { commentsPerPost }),
+      ...(typeof repliesPerComment === "number" && { repliesPerComment }),
+      ...(typeof activeStartHour === "number" && { activeStartHour }),
+      ...(typeof activeEndHour === "number" && { activeEndHour }),
+      ...(typeof realPostAutoReply === "boolean" && { realPostAutoReply }),
+    };
+
+    if (Array.isArray(seoKeywords)) {
+      const currentConfig = await prisma.autoContentConfig.findUnique({
+        where: { id: "singleton" },
+        select: { seoKeywordUsage: true },
+      });
+      const currentUsage = (currentConfig?.seoKeywordUsage as Record<string, number>) || {};
+      const newKeywordsSet = new Set(seoKeywords);
+      const cleanedUsage: Record<string, number> = {};
+      for (const [k, v] of Object.entries(currentUsage)) {
+        if (newKeywordsSet.has(k)) cleanedUsage[k] = v;
+      }
+      updateData.seoKeywords = seoKeywords;
+      updateData.seoKeywordUsage = cleanedUsage;
+    }
+
     const config = await prisma.autoContentConfig.upsert({
       where: { id: "singleton" },
       create: {
@@ -61,17 +87,9 @@ export async function PUT(request: NextRequest) {
         activeEndHour: activeEndHour ?? 4,
         realPostAutoReply: realPostAutoReply ?? true,
         seoKeywords: seoKeywords ?? [],
+        seoKeywordUsage: {},
       },
-      update: {
-        ...(typeof enabled === "boolean" && { enabled }),
-        ...(typeof postsPerDay === "number" && { postsPerDay }),
-        ...(typeof commentsPerPost === "number" && { commentsPerPost }),
-        ...(typeof repliesPerComment === "number" && { repliesPerComment }),
-        ...(typeof activeStartHour === "number" && { activeStartHour }),
-        ...(typeof activeEndHour === "number" && { activeEndHour }),
-        ...(typeof realPostAutoReply === "boolean" && { realPostAutoReply }),
-        ...(Array.isArray(seoKeywords) && { seoKeywords }),
-      },
+      update: updateData,
     });
 
     return NextResponse.json(config);

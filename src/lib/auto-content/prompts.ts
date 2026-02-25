@@ -82,35 +82,73 @@ function getRandomStyle(): string {
   return `${style}\n분위기: ${mood}\n문장부호: ${punct}`;
 }
 
-const POST_TOPICS = `주제 예시 (이 중에서 자연스럽게 선택하되 다양하게):
-- 오늘 출근 전/후 일상 이야기
+const CATEGORY_TOPICS: Record<string, { name: string; topics: string }> = {
+  CHAT: {
+    name: "수다방",
+    topics: `- 오늘 출근 전/후 일상 이야기
 - 손님 에피소드 (재밌는 일, 황당한 일)
-- 뷰티/패션 (홀복, 헤어, 메이크업, 다이어트)
 - 가게 이야기 (분위기, 실장, 마담, 동료)
 - 수입/TC/팁 관련 이야기
-- 고민 상담 (업무, 인간관계, 미래)
 - 연애/남자/고빠/용순 이야기
-- 지역별 업소 분위기 비교
 - 신입 시절 추억
-- 건강/다이어트/운동`;
+- 쉬는 날 일상, 취미, 넷플릭스`,
+  },
+  BEAUTY: {
+    name: "뷰티톡",
+    topics: `- 홀복/의상 코디 이야기
+- 헤어스타일 추천/후기
+- 메이크업 팁/제품 추천 (파데, 립, 아이메이크업)
+- 피부 관리 방법 (피부과, 홈케어)
+- 다이어트/운동 이야기
+- 네일아트 후기
+- 향수/바디케어 추천`,
+  },
+  QNA: {
+    name: "질문방",
+    topics: `- 신입 관련 질문 (면접, 첫 출근, 준비물)
+- 가게 선택 고민 (분위기, 조건 비교)
+- TC/수입 관련 질문
+- 세금/4대보험 궁금증
+- 인간관계 고민 상담
+- 이직/퇴사 조언 구하기
+- 업계 용어/시스템 질문`,
+  },
+  WORK: {
+    name: "업소톡",
+    topics: `- 가게 분위기/시스템 이야기
+- 마담/실장 관련 경험담
+- 지역별 업소 분위기 비교
+- 좋은 가게/나쁜 가게 기준
+- 손님 유형별 대처법
+- 셋업/초이스 관련 이야기
+- 업계 트렌드/변화`,
+  },
+};
 
-export function getPostGenerationPrompt(personality: GhostPersonality, count: number, keywords?: string[]): string {
+export function getPostGenerationPrompt(personality: GhostPersonality, count: number, keywords?: string[], categories?: string[]): string {
   const keywordSection = keywords && keywords.length > 0
     ? `\n\nSEO 키워드: ${keywords.join(', ')}\n위 키워드 중 2~3개를 제목과 본문에 자연스럽게 포함하세요. 키워드 스터핑이 아닌 자연스러운 문맥으로 녹여야 합니다.`
     : '';
 
-  // 각 글마다 다른 스타일을 배정
-  const styleAssignments = Array.from({ length: count }, () => getRandomStyle());
-  const styleSection = styleAssignments.map((s, i) => `[글 ${i + 1}의 스타일]\n${s}`).join('\n\n');
+  // 각 글마다 다른 스타일 + 카테고리 배정
+  const cats = categories || Array.from({ length: count }, () => "CHAT");
+  const styleAssignments = Array.from({ length: count }, (_, i) => {
+    const cat = cats[i] || "CHAT";
+    const catInfo = CATEGORY_TOPICS[cat] || CATEGORY_TOPICS.CHAT;
+    return `[글 ${i + 1}] 카테고리: ${catInfo.name}
+주제 범위:
+${catInfo.topics}
+${getRandomStyle()}`;
+  });
+  const styleSection = styleAssignments.join('\n\n');
 
   return `${MASTER_SYSTEM_PROMPT}
 
 ${PERSONALITY_PROMPTS[personality]}
-
-${POST_TOPICS}${keywordSection}
+${keywordSection}
 
 제목은 15자 이내로 자연스럽게 작성하세요.
-카테고리는 CHAT 고정입니다.
+각 글은 지정된 카테고리(수다방/뷰티톡/질문방/업소톡)의 주제에 맞게 작성하세요.
 
 🔥 가장 중요한 규칙: 각 글은 완전히 다른 사람이 쓴 것처럼 보여야 합니다!
 - 글의 구조, 길이, 톤, 줄바꿈 패턴이 모두 달라야 함
@@ -118,7 +156,7 @@ ${POST_TOPICS}${keywordSection}
 - 어떤 글은 3줄, 어떤 글은 10줄, 어떤 글은 대화체, 어떤 글은 독백체
 - "- " 하이픈 리스트 형식은 절대 사용 금지
 
-각 글에 아래 지정된 스타일을 반드시 따르세요:
+각 글에 아래 지정된 카테고리와 스타일을 반드시 따르세요:
 
 ${styleSection}
 

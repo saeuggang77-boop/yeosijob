@@ -45,6 +45,19 @@ export async function POST(request: NextRequest) {
     // 사용된 키워드 추적
     const usedKeywordsSet = new Set<string>();
 
+    // 카테고리 가중치 분배: 수다방 40%, 뷰티톡 20%, 질문방 20%, 업소톡 20%
+    const CATEGORIES = ["CHAT", "BEAUTY", "QNA", "WORK"] as const;
+    const CATEGORY_WEIGHTS = [0.4, 0.2, 0.2, 0.2];
+    function getRandomCategory(): string {
+      const r = Math.random();
+      let cumulative = 0;
+      for (let i = 0; i < CATEGORIES.length; i++) {
+        cumulative += CATEGORY_WEIGHTS[i];
+        if (r < cumulative) return CATEGORIES[i];
+      }
+      return "CHAT";
+    }
+
     const personalities: GhostPersonality[] = [
       "CHATTY", "ADVISOR", "QUESTIONER", "EMOJI_LOVER", "CALM", "SASSY",
     ];
@@ -69,9 +82,12 @@ export async function POST(request: NextRequest) {
         selectedKeywords.forEach(k => usedKeywordsSet.add(k));
       }
 
+      // 각 글마다 랜덤 카테고리 배정
+      const categoryAssignments = Array.from({ length: toGenerate }, () => getRandomCategory());
+
       let prompt: string;
       if (type === "POST") {
-        prompt = getPostGenerationPrompt(personality, toGenerate, selectedKeywords);
+        prompt = getPostGenerationPrompt(personality, toGenerate, selectedKeywords, categoryAssignments);
       } else if (type === "COMMENT") {
         prompt = getCommentGenerationPrompt(personality, toGenerate);
       } else {
@@ -106,12 +122,12 @@ export async function POST(request: NextRequest) {
 
         // Save to ContentPool in batch
         await prisma.contentPool.createMany({
-          data: items.map((item) => ({
+          data: items.map((item, idx) => ({
             type,
             personality,
             title: item.title || null,
             content: item.content,
-            category: type === "POST" ? "CHAT" : null,
+            category: type === "POST" ? (categoryAssignments[idx] || "CHAT") : null,
             isUsed: false,
           })),
         });

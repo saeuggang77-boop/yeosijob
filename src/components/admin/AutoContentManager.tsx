@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -29,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Upload } from "lucide-react";
+import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Upload, Download } from "lucide-react";
 
 interface Config {
   enabled: boolean;
@@ -341,34 +342,76 @@ export function AutoContentManager({
     });
   };
 
+  const [extractingKeywords, setExtractingKeywords] = useState(false);
+
+  const addKeywords = (keywords: string[]) => {
+    const newKeywords = keywords
+      .map(k => k.trim())
+      .filter(k => k.length > 0 && !config.seoKeywords.includes(k));
+
+    if (newKeywords.length === 0) {
+      toast.error("추가할 새 키워드가 없습니다");
+      return;
+    }
+
+    const unique = [...new Set(newKeywords)];
+    setConfig({
+      ...config,
+      seoKeywords: [...config.seoKeywords, ...unique],
+    });
+    toast.success(`${unique.length}개 키워드가 추가되었습니다`);
+  };
+
+  const extractAndAddKeywords = async (texts: string[]) => {
+    const cleaned = texts.map(t => t.trim()).filter(t => t.length > 0);
+    if (cleaned.length === 0) {
+      toast.error("추출할 텍스트가 없습니다");
+      return;
+    }
+
+    setExtractingKeywords(true);
+    try {
+      const res = await fetch("/api/admin/auto-content/extract-keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts: cleaned }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      addKeywords(data.keywords);
+    } catch (err) {
+      toast.error(`키워드 추출 실패: ${err instanceof Error ? err.message : "알 수 없는 오류"}`);
+    } finally {
+      setExtractingKeywords(false);
+    }
+  };
+
   const handleKeywordFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      if (!text) return;
-
-      // 줄바꿈, 쉼표, 탭으로 분리 후 trim, 빈값/중복 제거
-      const newKeywords = text
-        .split(/[\n\r,\t]+/)
-        .map(k => k.trim())
-        .filter(k => k.length > 0 && !config.seoKeywords.includes(k));
-
-      if (newKeywords.length === 0) {
-        toast.error("추가할 새 키워드가 없습니다");
-        return;
-      }
-
-      const unique = [...new Set(newKeywords)];
-      setConfig({
-        ...config,
-        seoKeywords: [...config.seoKeywords, ...unique],
-      });
-      toast.success(`${unique.length}개 키워드가 추가되었습니다`);
-    };
-    reader.readAsText(file);
+    if (ext === "xlsx" || ext === "xls") {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows: string[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        const texts = rows.flat().map(String);
+        extractAndAddKeywords(texts);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (!text) return;
+        const texts = text.split(/[\n\r,\t]+/);
+        extractAndAddKeywords(texts);
+      };
+      reader.readAsText(file);
+    }
     e.target.value = "";
   };
 
@@ -468,6 +511,21 @@ export function AutoContentManager({
 
   return (
     <div className="space-y-6">
+      {/* Vercel Pro 불필요 알림 */}
+      {!config.enabled && stats.todayActivity.posts === 0 && stats.todayActivity.comments === 0 && stats.todayActivity.replies === 0 && (
+        <div className="rounded-lg border border-yellow-600/50 bg-yellow-900/20 p-4">
+          <div className="flex items-center gap-2 text-yellow-500">
+            <AlertTriangle className="size-5 shrink-0" />
+            <div>
+              <p className="font-medium">Vercel Pro 플랜 확인</p>
+              <p className="text-sm text-yellow-500/80">
+                자동 콘텐츠가 비활성화되어 있습니다. 광고 자동 점프도 사용하지 않는다면 Vercel Pro($20/월)가 필요 없을 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Card 1 - 시스템 설정 */}
       <Card className="border-zinc-700 bg-zinc-800">
         <CardHeader>
@@ -633,15 +691,37 @@ export function AutoContentManager({
               <Button
                 variant="outline"
                 className="shrink-0"
+                disabled={extractingKeywords}
                 onClick={() => document.getElementById("keyword-file-input")?.click()}
               >
-                <Upload className="mr-1 size-4" />
-                파일
+                {extractingKeywords ? (
+                  <><Loader2 className="mr-1 size-4 animate-spin" />추출 중...</>
+                ) : (
+                  <><Upload className="mr-1 size-4" />파일</>
+                )}
               </Button>
+              {config.seoKeywords.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => {
+                    const blob = new Blob([config.seoKeywords.join("\n")], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "seo-keywords.txt";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="mr-1 size-4" />
+                  다운로드
+                </Button>
+              )}
               <input
                 id="keyword-file-input"
                 type="file"
-                accept=".txt,.csv"
+                accept=".txt,.csv,.xlsx,.xls"
                 onChange={handleKeywordFileUpload}
                 className="hidden"
               />

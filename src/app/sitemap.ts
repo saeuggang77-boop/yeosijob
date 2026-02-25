@@ -74,5 +74,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...jobPages];
+  // Dynamic: community posts (최근 90일, 숨김 제외)
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+  const communityPosts = await prisma.post.findMany({
+    where: {
+      isHidden: false,
+      createdAt: { gte: ninetyDaysAgo },
+    },
+    select: { id: true, updatedAt: true },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+  });
+
+  const communityPages: MetadataRoute.Sitemap = communityPosts.map((post) => ({
+    url: `${baseUrl}/community/${post.id}`,
+    lastModified: post.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.5,
+  }));
+
+  return [...staticPages, ...jobPages, ...communityPages];
 }

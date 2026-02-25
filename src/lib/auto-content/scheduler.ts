@@ -200,7 +200,7 @@ export async function generateContextualComments(
     const prompt = getContextualCommentPrompt(randomPersonality, postTitle, postContent, count);
 
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
@@ -249,7 +249,7 @@ export async function generateContextualReplies(
     const prompt = getContextualReplyPrompt(randomPersonality, postTitle, commentContent, count);
 
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
@@ -315,7 +315,7 @@ export async function generateConversationThread(
     );
 
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 3000,
       messages: [{ role: "user", content: prompt }],
     });
@@ -349,9 +349,18 @@ export async function generateConversationThread(
     let commentCount = 0;
     let replyCount = 0;
 
-    // 시간 오프셋 계산: 마지막 메시지가 현재에 가깝고, 첫 메시지가 가장 오래전
-    const totalMessages = parsed.length;
+    // 시간 오프셋: 순차 누적으로 순서 보장 (첫 메시지가 가장 오래전)
     const now = Date.now();
+    const intervals: number[] = [];
+    for (let i = 0; i < parsed.length; i++) {
+      intervals.push(Math.floor(Math.random() * 16) + 5); // 5~20분 간격
+    }
+    // 역순 누적: 마지막 메시지 = 가장 최근, 첫 메시지 = 가장 오래전
+    const cumulativeOffsets: number[] = new Array(parsed.length);
+    cumulativeOffsets[parsed.length - 1] = intervals[parsed.length - 1];
+    for (let i = parsed.length - 2; i >= 0; i--) {
+      cumulativeOffsets[i] = cumulativeOffsets[i + 1] + intervals[i];
+    }
 
     for (let i = 0; i < parsed.length; i++) {
       const msg = parsed[i];
@@ -367,24 +376,20 @@ export async function generateConversationThread(
         // 답글인 경우
         parentId = indexToCommentId.get(msg.replyTo) || null;
 
-        // @이름 prefix 추가 (답글이고, content에 @가 없고, 글쓴이가 댓글자에게 답글하는 경우)
+        // @이름 prefix 추가 (답글이고, 상대방 이름이 본문에 없는 경우만)
         const replyToMsg = messagesByIndex.get(msg.replyTo);
-        if (parentId && replyToMsg && !msg.content.startsWith('@')) {
-          // 글쓴이가 다른 사람에게 답글하는 경우만 @를 붙임
-          if (msg.name === (author.name || "익명") && replyToMsg.name !== msg.name) {
-            finalContent = `@${replyToMsg.name} ${msg.content}`;
-          }
-          // 댓글자끼리 대화하는 경우에도 @를 붙임
-          else if (msg.name !== (author.name || "익명") && replyToMsg.name !== msg.name) {
-            finalContent = `@${replyToMsg.name} ${msg.content}`;
+        if (parentId && replyToMsg && replyToMsg.name !== msg.name) {
+          const targetName = replyToMsg.name;
+          const alreadyMentioned = msg.content.startsWith('@') || msg.content.includes(targetName);
+          if (!alreadyMentioned) {
+            finalContent = `@${targetName} ${msg.content}`;
           }
         }
       }
 
-      // 시간차 적용: 마지막 메시지가 현재에 가깝고, 첫 메시지가 가장 오래전
-      const remainingMessages = totalMessages - i;
-      const minutesAgo = remainingMessages * (Math.floor(Math.random() * 16) + 10); // 10~25분 간격
-      const createdAt = new Date(now - minutesAgo * 60 * 1000);
+      // 시간차 적용: 순차적으로 누적하여 순서 보장
+      // 첫 메시지가 가장 오래전, 이후 메시지가 점점 최근
+      const createdAt = new Date(now - cumulativeOffsets[i] * 60 * 1000);
 
       const comment = await prisma.comment.create({
         data: {

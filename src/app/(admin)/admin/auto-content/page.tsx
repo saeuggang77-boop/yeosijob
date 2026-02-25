@@ -19,92 +19,73 @@ export default async function AutoContentPage() {
     });
   }
 
-  // Get stats - Number()로 감싸서 bigint → number 변환
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 모든 독립 쿼리를 하나의 Promise.all로 병렬 실행 (18개 → 6개 쿼리)
+  const [
+    poolStatsRaw,
+    ghostStatsRaw,
+    ghostUsersRaw,
+    todayPosts,
+    todayComments,
+    todayReplies,
+  ] = await Promise.all([
+    // 1. 콘텐츠 풀 통계 (groupBy 2개 = 쿼리 2개, 기존 6개)
+    prisma.contentPool.groupBy({
+      by: ["type", "isUsed"],
+      _count: true,
+    }),
+    // 2. 유령회원 성격별 통계 (groupBy 1개, 기존 7개 = 6 count + 1 total)
+    prisma.user.groupBy({
+      by: ["ghostPersonality"],
+      where: { isGhost: true },
+      _count: true,
+    }),
+    // 3. 유령회원 목록 (1개, 동일)
+    prisma.user.findMany({
+      where: { isGhost: true, isActive: true },
+      select: { id: true, name: true, ghostPersonality: true, isActive: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    // 4~6. 오늘 활동 (3개, 동일)
+    prisma.post.count({
+      where: { createdAt: { gte: today }, author: { isGhost: true } },
+    }),
+    prisma.comment.count({
+      where: { createdAt: { gte: today }, author: { isGhost: true }, parentId: null },
+    }),
+    prisma.comment.count({
+      where: { createdAt: { gte: today }, author: { isGhost: true }, parentId: { not: null } },
+    }),
+  ]);
+
+  // poolStats 가공: groupBy 결과 → type별 total/used/remaining
   const contentTypes: ContentType[] = ["POST", "COMMENT", "REPLY"];
-  const poolStats = await Promise.all(
-    contentTypes.map(async (type) => {
-      const [total, used] = await Promise.all([
-        prisma.contentPool.count({ where: { type } }),
-        prisma.contentPool.count({ where: { type, isUsed: true } }),
-      ]);
-      return {
-        type,
-        total,
-        used,
-        remaining: total - used,
-      };
-    })
-  );
+  const poolStats = contentTypes.map((type) => {
+    const rows = poolStatsRaw.filter((r) => r.type === type);
+    const total = rows.reduce((sum, r) => sum + r._count, 0);
+    const used = rows.filter((r) => r.isUsed).reduce((sum, r) => sum + r._count, 0);
+    return { type, total, used, remaining: total - used };
+  });
 
+  // ghostStats 가공: groupBy 결과 → personality별 count
   const personalities: GhostPersonality[] = [
-    "CHATTY",
-    "ADVISOR",
-    "QUESTIONER",
-    "EMOJI_LOVER",
-    "CALM",
-    "SASSY",
+    "CHATTY", "ADVISOR", "QUESTIONER", "EMOJI_LOVER", "CALM", "SASSY",
   ];
-  const ghostStats = await Promise.all(
-    personalities.map(async (personality) => ({
-      personality,
-      count: await prisma.user.count({
-        where: { isGhost: true, ghostPersonality: personality },
-      }),
-    }))
-  );
+  const ghostStats = personalities.map((personality) => ({
+    personality,
+    count: ghostStatsRaw.find((r) => r.ghostPersonality === personality)?._count || 0,
+  }));
 
-  const totalGhostUsers = await prisma.user.count({
-    where: { isGhost: true },
-  });
+  const totalGhostUsers = ghostStatsRaw.reduce((sum, r) => sum + r._count, 0);
 
-  const ghostUsersRaw = await prisma.user.findMany({
-    where: {
-      isGhost: true,
-      isActive: true,
-    },
-    select: {
-      id: true,
-      name: true,
-      ghostPersonality: true,
-      isActive: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const ghostUsers = ghostUsersRaw.map(user => ({
+  const ghostUsers = ghostUsersRaw.map((user) => ({
     id: user.id,
     name: user.name || "Unknown",
     ghostPersonality: user.ghostPersonality,
     isActive: user.isActive,
   }));
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const [todayPosts, todayComments, todayReplies] = await Promise.all([
-    prisma.post.count({
-      where: {
-        createdAt: { gte: today },
-        author: { isGhost: true },
-      },
-    }),
-    prisma.comment.count({
-      where: {
-        createdAt: { gte: today },
-        author: { isGhost: true },
-        parentId: null,
-      },
-    }),
-    prisma.comment.count({
-      where: {
-        createdAt: { gte: today },
-        author: { isGhost: true },
-        parentId: { not: null },
-      },
-    }),
-  ]);
 
   return (
     <div>
@@ -140,4 +121,5 @@ export default async function AutoContentPage() {
       </div>
     </div>
   );
+
 }

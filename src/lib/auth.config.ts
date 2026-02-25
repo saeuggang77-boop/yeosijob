@@ -16,13 +16,14 @@ export const authConfig = {
       }
 
       // 구직자 전용 페이지
-      if (
-        pathname.startsWith("/my-resume") ||
-        pathname.startsWith("/scraps") ||
-        pathname.startsWith("/reviews")
-      ) {
+      if (pathname.startsWith("/jobseeker")) {
         if (!isLoggedIn) return false;
         return auth.user.role === "JOBSEEKER" || auth.user.role === "ADMIN";
+      }
+
+      // 로그인 필요 페이지
+      if (pathname === "/notifications") {
+        return isLoggedIn;
       }
 
       // 관리자 전용 페이지

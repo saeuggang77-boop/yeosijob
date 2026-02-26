@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https://api.tosspayments.com https://api.portone.io https://kapi.kakao.com https://dapi.kakao.com https://www.google-analytics.com",
-              "frame-src 'self' https://payment-widget.tosspayments.com https://cdn.portone.io",
+              "frame-src 'self' https://payment-widget.tosspayments.com https://cdn.portone.io https://postcode.map.daum.net",
             ].join("; "),
           },
         ],

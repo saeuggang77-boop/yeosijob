@@ -7,6 +7,7 @@ export const metadata = {
   openGraph: {
     title: "여시잡 소개 | 여시잡",
     description: "밤여시(여시) + Job = 여시잡. 밤여시 카페 기반 신뢰할 수 있는 유흥업소 구인구직 플랫폼입니다.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
   },
   alternates: {
     canonical: "/about",

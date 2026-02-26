@@ -13,6 +13,7 @@ export const metadata = {
   openGraph: {
     title: "커뮤니티 | 여시잡",
     description: "유흥업계 종사자들의 커뮤니티 게시판",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
   },
   alternates: {
     canonical: "/community",

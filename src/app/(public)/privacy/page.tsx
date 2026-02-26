@@ -4,6 +4,7 @@ export const metadata = {
   openGraph: {
     title: "개인정보처리방침 | 여시잡",
     description: "여시잡 개인정보처리방침",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
   },
   alternates: {
     canonical: "/privacy",

@@ -19,6 +19,7 @@ export const metadata = {
   openGraph: {
     title: "여시잡 | 유흥알바 밤알바 룸알바 No.1 구인구직",
     description: "여시잡에서 유흥업소 채용정보와 인재를 만나보세요. 전국 유흥알바 구인구직 플랫폼",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
   },
   alternates: {
     canonical: "/",

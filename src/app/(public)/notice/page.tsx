@@ -11,6 +11,7 @@ export const metadata = {
   openGraph: {
     title: "공지사항 | 여시잡",
     description: "여시잡 공지사항 - 중요한 소식과 업데이트를 확인하세요",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
   },
   alternates: {
     canonical: "/notice",

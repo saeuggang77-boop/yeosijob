@@ -50,8 +50,13 @@ export async function GET() {
     });
 
     // Today's activity (posts, comments, replies created by ghost users)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // KST 자정 기준 (UTC+9) - scheduler.ts와 동일한 로직
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstNow = new Date(now.getTime() + kstOffset);
+    const today = new Date(
+      Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - kstOffset
+    );
 
     const [todayPosts, todayComments, todayReplies] = await Promise.all([
       prisma.post.count({

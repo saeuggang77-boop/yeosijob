@@ -68,8 +68,8 @@ export default async function PostDetailPage({ params }: PageProps) {
   if (!lookup) notFound();
 
   // cuid로 접근했는데 slug가 있으면 slug URL로 리다이렉트 (SEO)
-  if (lookup.slug && idOrSlug !== lookup.slug) {
-    redirect(`/community/${lookup.slug}`);
+  if (lookup.slug && idOrSlug !== lookup.slug && idOrSlug !== encodeURIComponent(lookup.slug)) {
+    redirect(`/community/${encodeURIComponent(lookup.slug)}`);
   }
 
   const postId = lookup.id;

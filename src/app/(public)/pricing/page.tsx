@@ -194,14 +194,6 @@ export default async function PricingPage() {
             </table>
           </div>
 
-          <div className="mt-4 text-sm text-muted-foreground border-t pt-4">
-            <p className="flex items-start gap-2">
-              <span className="font-bold text-primary">※</span>
-              <span>
-                LINE(줄광고)은 모든 유료 광고에 필수 포함됩니다. 유료 등급 가격 = LINE + 해당 등급 추가금
-              </span>
-            </p>
-          </div>
         </CardContent>
       </Card>
 

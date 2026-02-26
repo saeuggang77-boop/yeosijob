@@ -26,6 +26,25 @@ export function formatDate(date: Date | string): string {
   });
 }
 
+/** 네이버 카페 스타일: 오늘 → HH:mm, 이전 → YYYY.MM.DD. */
+export function formatDateSmart(date: Date | string): string {
+  const d = new Date(date);
+  const now = new Date();
+  const kst = (dt: Date) => new Date(dt.getTime() + 9 * 60 * 60 * 1000);
+  const kstD = kst(d);
+  const kstNow = kst(now);
+
+  const isToday =
+    kstD.getUTCFullYear() === kstNow.getUTCFullYear() &&
+    kstD.getUTCMonth() === kstNow.getUTCMonth() &&
+    kstD.getUTCDate() === kstNow.getUTCDate();
+
+  if (isToday) {
+    return `${String(kstD.getUTCHours()).padStart(2, "0")}:${String(kstD.getUTCMinutes()).padStart(2, "0")}`;
+  }
+  return `${kstD.getUTCFullYear()}.${String(kstD.getUTCMonth() + 1).padStart(2, "0")}.${String(kstD.getUTCDate()).padStart(2, "0")}.`;
+}
+
 export function timeAgo(date: Date | string): string {
   const now = new Date();
   const d = new Date(date);

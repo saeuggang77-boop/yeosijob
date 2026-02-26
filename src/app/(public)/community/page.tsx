@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { formatDateSmart } from "@/lib/utils/format";
 
 export const revalidate = 60;
 
@@ -134,7 +135,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                   <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
                     <span>{post.author.name}</span>
                     <span>·</span>
-                    <span>{post.createdAt.toLocaleDateString("ko-KR")}</span>
+                    <span>{formatDateSmart(post.createdAt)}</span>
                     <span>·</span>
                     <span>조회 {post.viewCount.toLocaleString()}</span>
                   </div>
@@ -189,7 +190,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         {post._count.comments}
                       </td>
                       <td className="px-4 py-3 text-right text-sm text-muted-foreground">
-                        {post.createdAt.toLocaleDateString("ko-KR")}
+                        {formatDateSmart(post.createdAt)}
                       </td>
                     </tr>
                   ))}

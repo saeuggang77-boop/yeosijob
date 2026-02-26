@@ -8,6 +8,7 @@ import { CommentForm } from "@/components/community/CommentForm";
 import { PostActions } from "@/components/community/PostActions";
 import { CommentDeleteButton } from "@/components/community/CommentDeleteButton";
 import { ReplyButton } from "@/components/community/ReplyButton";
+import { formatDateSmart } from "@/lib/utils/format";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -105,7 +106,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
                 <span>{post.author.name}</span>
                 <span>|</span>
-                <span>{post.createdAt.toLocaleDateString("ko-KR")}</span>
+                <span>{formatDateSmart(post.createdAt)}</span>
                 <span>|</span>
                 <span>조회 {post.viewCount.toLocaleString()}</span>
               </div>
@@ -162,7 +163,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                               </span>
                             )}
                             <span className="text-muted-foreground">
-                              {comment.createdAt.toLocaleDateString("ko-KR")}
+                              {formatDateSmart(comment.createdAt)}
                             </span>
                           </div>
                           <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
@@ -203,7 +204,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                                       </span>
                                     )}
                                     <span className="text-muted-foreground">
-                                      {reply.createdAt.toLocaleDateString("ko-KR")}
+                                      {formatDateSmart(reply.createdAt)}
                                     </span>
                                   </div>
                                   <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">

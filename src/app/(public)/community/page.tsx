@@ -7,8 +7,6 @@ import { formatDateSmart } from "@/lib/utils/format";
 import { PostDeleteButton } from "@/components/community/PostDeleteButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 
-export const revalidate = 60;
-
 export const metadata = {
   title: "커뮤니티",
   description: "유흥업계 종사자들의 커뮤니티 게시판",

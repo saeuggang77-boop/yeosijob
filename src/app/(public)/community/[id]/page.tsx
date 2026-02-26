@@ -107,11 +107,12 @@ export default async function PostDetailPage({ params }: PageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{post.title}</h1>
               <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
-                {isAdmin && session.user.id !== post.author.id ? (
+                {session?.user?.id && session.user.id !== post.author.id ? (
                   <AdminUserMenu
                     userId={post.author.id}
                     userName={post.author.name || "익명"}
                     currentRole={post.author.role}
+                    isAdmin={isAdmin}
                   />
                 ) : (
                   <span>{post.author.name}</span>
@@ -172,12 +173,13 @@ export default async function PostDetailPage({ params }: PageProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-sm">
-                            {isAdmin && session?.user?.id !== comment.author.id ? (
+                            {session?.user?.id && session.user.id !== comment.author.id ? (
                               <AdminUserMenu
                                 userId={comment.author.id}
                                 userName={comment.author.name || "익명"}
                                 currentRole={comment.author.role}
                                 isPostAuthor={comment.authorId === post.authorId}
+                                isAdmin={isAdmin}
                               />
                             ) : (
                               <>
@@ -229,12 +231,13 @@ export default async function PostDetailPage({ params }: PageProps) {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 text-sm">
-                                    {isAdmin && session?.user?.id !== reply.author.id ? (
+                                    {session?.user?.id && session.user.id !== reply.author.id ? (
                                       <AdminUserMenu
                                         userId={reply.author.id}
                                         userName={reply.author.name || "익명"}
                                         currentRole={reply.author.role}
                                         isPostAuthor={reply.authorId === post.authorId}
+                                        isAdmin={isAdmin}
                                       />
                                     ) : (
                                       <>

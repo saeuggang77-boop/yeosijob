@@ -137,11 +137,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
-                    {isAdmin && session?.user?.id !== post.authorId ? (
+                    {session?.user?.id && session.user.id !== post.authorId ? (
                       <AdminUserMenu
                         userId={post.author.id}
                         userName={post.author.name || "익명"}
                         currentRole={post.author.role}
+                        isAdmin={isAdmin}
                       />
                     ) : (
                       <span>{post.author.name}</span>
@@ -193,11 +194,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {isAdmin && session?.user?.id !== post.authorId ? (
+                        {session?.user?.id && session.user.id !== post.authorId ? (
                           <AdminUserMenu
                             userId={post.author.id}
                             userName={post.author.name || "익명"}
                             currentRole={post.author.role}
+                            isAdmin={isAdmin}
                           />
                         ) : (
                           post.author.name

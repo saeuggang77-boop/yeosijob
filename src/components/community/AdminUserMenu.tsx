@@ -10,6 +10,7 @@ interface AdminUserMenuProps {
   userName: string;
   currentRole?: string;
   isPostAuthor?: boolean;
+  isAdmin?: boolean;
 }
 
 export function AdminUserMenu({
@@ -17,6 +18,7 @@ export function AdminUserMenu({
   userName,
   currentRole = "JOBSEEKER",
   isPostAuthor = false,
+  isAdmin = false,
 }: AdminUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleSubmenu, setShowRoleSubmenu] = useState(false);
@@ -180,72 +182,76 @@ export function AdminUserMenu({
             <span>쪽지보내기</span>
           </button>
 
-          {/* 등급변경 */}
-          <div className="relative">
-            <button
-              onMouseEnter={() => setShowRoleSubmenu(true)}
-              onClick={() => setShowRoleSubmenu(!showRoleSubmenu)}
-              className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
-            >
-              <div className="flex items-center gap-2">
-                <span>👤</span>
-                <span>등급변경</span>
-              </div>
-              <span className="text-xs">▶</span>
-            </button>
-
-            {/* 등급변경 서브메뉴 */}
-            {showRoleSubmenu && (
-              <div className="absolute left-full top-0 ml-1 min-w-[140px] rounded-lg border border-border bg-card shadow-lg">
+          {isAdmin && (
+            <>
+              {/* 등급변경 */}
+              <div className="relative">
                 <button
-                  onClick={() => handleChangeRole("JOBSEEKER")}
-                  disabled={currentRole === "JOBSEEKER"}
-                  className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm ${
-                    currentRole === "JOBSEEKER"
-                      ? "cursor-not-allowed bg-muted/50 text-muted-foreground"
-                      : "hover:bg-muted"
-                  }`}
+                  onMouseEnter={() => setShowRoleSubmenu(true)}
+                  onClick={() => setShowRoleSubmenu(!showRoleSubmenu)}
+                  className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
                 >
-                  <span>구직자</span>
-                  {currentRole === "JOBSEEKER" && (
-                    <span className="ml-auto text-xs text-primary">현재</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span>👤</span>
+                    <span>등급변경</span>
+                  </div>
+                  <span className="text-xs">▶</span>
                 </button>
-                <button
-                  onClick={() => handleChangeRole("BUSINESS")}
-                  disabled={currentRole === "BUSINESS"}
-                  className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm ${
-                    currentRole === "BUSINESS"
-                      ? "cursor-not-allowed bg-muted/50 text-muted-foreground"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  <span>업소사장</span>
-                  {currentRole === "BUSINESS" && (
-                    <span className="ml-auto text-xs text-primary">현재</span>
-                  )}
-                </button>
+
+                {/* 등급변경 서브메뉴 */}
+                {showRoleSubmenu && (
+                  <div className="absolute left-full top-0 ml-1 min-w-[140px] rounded-lg border border-border bg-card shadow-lg">
+                    <button
+                      onClick={() => handleChangeRole("JOBSEEKER")}
+                      disabled={currentRole === "JOBSEEKER"}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm ${
+                        currentRole === "JOBSEEKER"
+                          ? "cursor-not-allowed bg-muted/50 text-muted-foreground"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <span>구직자</span>
+                      {currentRole === "JOBSEEKER" && (
+                        <span className="ml-auto text-xs text-primary">현재</span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleChangeRole("BUSINESS")}
+                      disabled={currentRole === "BUSINESS"}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm ${
+                        currentRole === "BUSINESS"
+                          ? "cursor-not-allowed bg-muted/50 text-muted-foreground"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <span>업소사장</span>
+                      {currentRole === "BUSINESS" && (
+                        <span className="ml-auto text-xs text-primary">현재</span>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* 활동정지 */}
-          <button
-            onClick={handleSuspend}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
-          >
-            <span>⏸️</span>
-            <span>활동정지</span>
-          </button>
+              {/* 활동정지 */}
+              <button
+                onClick={handleSuspend}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
+              >
+                <span>⏸️</span>
+                <span>활동정지</span>
+              </button>
 
-          {/* 강퇴시키기 */}
-          <button
-            onClick={handleKick}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10"
-          >
-            <span>🚫</span>
-            <span>강퇴시키기</span>
-          </button>
+              {/* 강퇴시키기 */}
+              <button
+                onClick={handleKick}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10"
+              >
+                <span>🚫</span>
+                <span>강퇴시키기</span>
+              </button>
+            </>
+          )}
         </div>
       )}
 

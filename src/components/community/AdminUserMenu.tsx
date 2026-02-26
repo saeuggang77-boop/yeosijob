@@ -37,7 +37,7 @@ export function AdminUserMenu({
   }, [isOpen]);
 
   const handleViewPosts = () => {
-    window.open(`/admin/posts?search=${encodeURIComponent(userName)}`, "_blank");
+    window.open(`/admin/posts?authorId=${userId}`, "_blank");
     setIsOpen(false);
   };
 

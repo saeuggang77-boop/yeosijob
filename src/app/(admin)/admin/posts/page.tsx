@@ -8,6 +8,7 @@ import { PostAdminActions } from "@/components/admin/PostAdminActions";
 interface PageProps {
   searchParams: Promise<{
     search?: string;
+    authorId?: string;
     page?: string;
   }>;
 }
@@ -18,15 +19,28 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const search = params.search;
+  const authorId = params.authorId;
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
   const where: Record<string, unknown> = {};
-  if (search) {
+  if (authorId) {
+    where.authorId = authorId;
+  } else if (search) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
       { content: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  // authorId 필터일 때 유저 이름 조회
+  let authorName: string | null = null;
+  if (authorId) {
+    const author = await prisma.user.findUnique({
+      where: { id: authorId },
+      select: { name: true },
+    });
+    authorName = author?.name || null;
   }
 
   const [posts, total] = await Promise.all([
@@ -54,6 +68,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
     const p = new URLSearchParams();
     const q = overrides.search ?? search;
     const pg = overrides.page ?? String(page);
+    if (authorId) p.set("authorId", authorId);
     if (q) p.set("search", q);
     if (pg !== "1") p.set("page", pg);
     return `/admin/posts?${p.toString()}`;
@@ -62,7 +77,9 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">게시판 관리</h1>
+        <h1 className="text-2xl font-bold">
+          {authorName ? `${authorName}님의 게시글` : "게시판 관리"}
+        </h1>
         <span className="text-sm text-muted-foreground">총 {total}건</span>
       </div>
 

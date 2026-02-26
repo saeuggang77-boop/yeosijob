@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -39,11 +39,6 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!post) {
     return { title: "게시글을 찾을 수 없습니다" };
-  }
-
-  // cuid로 접근했는데 slug가 있으면 slug URL로 308 리다이렉트 (SEO)
-  if (post.slug && idOrSlug !== post.slug && idOrSlug !== encodeURIComponent(post.slug)) {
-    permanentRedirect(`/community/${encodeURIComponent(post.slug)}`);
   }
 
   const description = post.content.substring(0, 155).replace(/\n/g, ' ');

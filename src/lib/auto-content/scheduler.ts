@@ -337,11 +337,53 @@ export async function generateConversationThread(
 
     const responseText = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-    const parsed = JSON.parse(cleaned) as Array<{
+    let parsed = JSON.parse(cleaned) as Array<{
       name: string;
       content: string;
       replyTo: number | null;
     }>;
+
+    // 3.5 안전장치: 작성자가 최상위 댓글(replyTo: null)을 쓴 경우 제거
+    // 작성자는 답글(replyTo: 숫자)만 달아야 자연스러움
+    const authorNameStr = author.name || "익명";
+    const originalLength = parsed.length;
+    parsed = parsed.filter((msg, idx) => {
+      if (msg.name === authorNameStr && (msg.replyTo === null || msg.replyTo === undefined)) {
+        // 첫 메시지가 아닌 경우에만 제거 (replyTo 인덱스 재조정이 복잡해지므로)
+        // 첫 메시지가 작성자인 경우도 제거하고 인덱스 재조정
+        return false;
+      }
+      return true;
+    });
+
+    // replyTo 인덱스 재조정 (제거된 항목 반영)
+    if (parsed.length < originalLength) {
+      // 원본 인덱스 → 새 인덱스 매핑 테이블 생성
+      const originalParsed = JSON.parse(cleaned) as Array<{ name: string; content: string; replyTo: number | null }>;
+      const oldToNew = new Map<number, number>();
+      let newIdx = 0;
+      for (let oldIdx = 0; oldIdx < originalParsed.length; oldIdx++) {
+        const msg = originalParsed[oldIdx];
+        if (msg.name === authorNameStr && (msg.replyTo === null || msg.replyTo === undefined)) {
+          continue; // 제거된 항목
+        }
+        oldToNew.set(oldIdx, newIdx);
+        newIdx++;
+      }
+
+      // replyTo 인덱스 갱신
+      parsed = parsed.map(msg => {
+        if (msg.replyTo !== null && msg.replyTo !== undefined) {
+          const newReplyTo = oldToNew.get(msg.replyTo);
+          if (newReplyTo === undefined) {
+            // 참조 대상이 제거된 경우 → 최상위 댓글로 전환
+            return { ...msg, replyTo: null };
+          }
+          return { ...msg, replyTo: newReplyTo };
+        }
+        return msg;
+      });
+    }
 
     // 4. name → userId 매핑
     const nameToUserId = new Map<string, string>();
@@ -383,10 +425,22 @@ export async function generateConversationThread(
         // 답글인 경우
         parentId = indexToCommentId.get(msg.replyTo) || null;
 
-        // @이름 prefix 추가 (답글이고, 상대방 이름이 본문에 없는 경우만)
-        const replyToMsg = messagesByIndex.get(msg.replyTo);
-        if (parentId && replyToMsg && replyToMsg.name !== msg.name) {
-          const targetName = replyToMsg.name;
+        // @이름 prefix 추가: 부모 체인을 거슬러 올라가 다른 사람 이름 찾기
+        let targetName: string | null = null;
+        let currentIdx = msg.replyTo as number;
+        for (let depth = 0; depth < 10; depth++) {
+          const searchMsg = messagesByIndex.get(currentIdx);
+          if (searchMsg && searchMsg.name !== msg.name) {
+            targetName = searchMsg.name;
+            break;
+          }
+          // 자기 자신이면 부모의 replyTo를 따라감
+          const parentReplyTo = parsed[currentIdx]?.replyTo;
+          if (parentReplyTo === null || parentReplyTo === undefined) break;
+          currentIdx = parentReplyTo;
+        }
+
+        if (parentId && targetName) {
           const alreadyMentioned = msg.content.startsWith('@') || msg.content.includes(targetName);
           if (!alreadyMentioned) {
             finalContent = `@${targetName} ${msg.content}`;

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDateSmart } from "@/lib/utils/format";
+import { PostDeleteButton } from "@/components/community/PostDeleteButton";
 
 export const revalidate = 60;
 
@@ -41,6 +42,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const limit = 20;
 
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const where: Record<string, unknown> = { isHidden: false };
   if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
@@ -153,6 +155,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     <th className="px-4 py-3 text-left text-sm font-semibold">작성자</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">조회수</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold">작성일</th>
+                    {isAdmin && <th className="px-4 py-3 text-center text-sm font-semibold w-16">관리</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -188,6 +191,11 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       <td className="px-4 py-3 text-right text-sm text-muted-foreground">
                         {formatDateSmart(post.createdAt)}
                       </td>
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-center">
+                          <PostDeleteButton postId={post.id} />
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

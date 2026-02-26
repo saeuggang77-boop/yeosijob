@@ -36,13 +36,25 @@ export async function POST(request: Request) {
       const { name, email, phone, password, businessName, businessNumber } =
         result.data;
 
-      const existing = await prisma.user.findFirst({
-        where: { OR: [{ email }, { phone }] },
-      });
+      const [existing, nameExists] = await Promise.all([
+        prisma.user.findFirst({
+          where: { OR: [{ email }, { phone }] },
+        }),
+        prisma.user.findFirst({
+          where: { name, isActive: true },
+          select: { id: true },
+        }),
+      ]);
       if (existing) {
         const field = existing.email === email ? "이메일" : "휴대폰 번호";
         return NextResponse.json(
           { error: `이미 사용 중인 ${field}입니다` },
+          { status: 409 }
+        );
+      }
+      if (nameExists) {
+        return NextResponse.json(
+          { error: "이미 사용 중인 닉네임입니다" },
           { status: 409 }
         );
       }
@@ -82,13 +94,25 @@ export async function POST(request: Request) {
 
       const { name, email, phone, password } = result.data;
 
-      const existing = await prisma.user.findFirst({
-        where: { OR: [{ email }, { phone }] },
-      });
+      const [existing, nameExists] = await Promise.all([
+        prisma.user.findFirst({
+          where: { OR: [{ email }, { phone }] },
+        }),
+        prisma.user.findFirst({
+          where: { name, isActive: true },
+          select: { id: true },
+        }),
+      ]);
       if (existing) {
         const field = existing.email === email ? "이메일" : "휴대폰 번호";
         return NextResponse.json(
           { error: `이미 사용 중인 ${field}입니다` },
+          { status: 409 }
+        );
+      }
+      if (nameExists) {
+        return NextResponse.json(
+          { error: "이미 사용 중인 닉네임입니다" },
           { status: 409 }
         );
       }

@@ -28,6 +28,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 닉네임 중복 체크
+    if (name) {
+      const nameExists = await prisma.user.findFirst({
+        where: { name, isActive: true, id: { not: session.user.id } },
+        select: { id: true },
+      });
+      if (nameExists) {
+        return NextResponse.json({ error: "이미 사용 중인 닉네임입니다" }, { status: 400 });
+      }
+    }
+
     // 업데이트 데이터 구성
     const updateData: Record<string, unknown> = {
       name,

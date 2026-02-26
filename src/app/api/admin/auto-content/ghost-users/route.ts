@@ -382,6 +382,18 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // 닉네임 중복 체크
+    const nameExists = await prisma.user.findFirst({
+      where: { name: name.trim(), isActive: true, id: { not: id } },
+      select: { id: true },
+    });
+    if (nameExists) {
+      return NextResponse.json(
+        { error: "이미 사용 중인 닉네임입니다" },
+        { status: 400 }
+      );
+    }
+
     const updated = await prisma.user.update({
       where: { id },
       data: { name: name.trim() },

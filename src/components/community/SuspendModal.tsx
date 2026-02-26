@@ -28,7 +28,7 @@ const DURATIONS = [
 ];
 
 export function SuspendModal({ userId, userName, isOpen, onClose, onSuccess }: SuspendModalProps) {
-  const [selectedReason, setSelectedReason] = useState("운영 원칙 위배");
+  const [selectedReason, setSelectedReason] = useState("바람직하지 않은 활동 (도배, 욕설, 비방 등)");
   const [customReason, setCustomReason] = useState("");
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(false);

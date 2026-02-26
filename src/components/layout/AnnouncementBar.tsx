@@ -114,7 +114,7 @@ export function AnnouncementBar() {
         <Smartphone className="h-4 w-4 shrink-0" />
         {mode === "install-android" ? (
           <>
-            <span>여시잡 앱을 설치하면 더 빠르게!</span>
+            <span>앱 설치하면 쪽지 알림을 실시간으로 받아요!</span>
             <button
               onClick={handleInstall}
               className="rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold transition-colors hover:bg-white/30"
@@ -126,7 +126,7 @@ export function AnnouncementBar() {
           <>
             <span className="flex items-center gap-1">
               <Share className="inline h-3.5 w-3.5" />
-              공유 버튼 → &quot;홈 화면에 추가&quot;로 앱 설치!
+              공유 버튼 → &quot;홈 화면에 추가&quot;하면 쪽지 알림을 실시간으로!
             </span>
           </>
         )}

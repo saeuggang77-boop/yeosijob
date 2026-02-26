@@ -228,6 +228,7 @@ model User {
   reports          Report[]
   sentMessages     Message[] @relation("sentMessages")
   receivedMessages Message[] @relation("receivedMessages")
+  pushSubscriptions PushSubscription[]
 
   @@index([role])
   @@index([isGhost])
@@ -695,4 +696,21 @@ model Message {
   @@index([senderId])
   @@index([receiverId, senderId])
   @@map("messages")
+}
+
+// ── PUSH SUBSCRIPTION ──
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @db.Text
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@index([userId])
+  @@map("push_subscriptions")
 }

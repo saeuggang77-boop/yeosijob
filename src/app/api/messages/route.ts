@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendPushNotification } from "@/lib/push-notification";
 
 // GET /api/messages - 대화 목록 (상대방별 최신 메시지 그룹)
 export async function GET(req: NextRequest) {
@@ -165,6 +166,13 @@ export async function POST(req: NextRequest) {
         link: `/messages/${userId}`,
       },
     });
+
+    // Push 알림 발송 (fire-and-forget)
+    sendPushNotification(receiverId, {
+      title: '새 쪽지',
+      body: `${sender?.name || "사용자"}님이 쪽지를 보냈습니다`,
+      url: `/messages/${userId}`,
+    }).catch(() => {}); // 실패해도 메인 흐름에 영향 없음
 
     return NextResponse.json({ message });
   } catch (error) {

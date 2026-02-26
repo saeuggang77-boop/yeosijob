@@ -29,8 +29,8 @@ export function MessageBell() {
     // Initial fetch
     queueMicrotask(() => fetchUnreadCount());
 
-    // Poll every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    // Poll every 5 seconds
+    const interval = setInterval(fetchUnreadCount, 5000);
 
     return () => clearInterval(interval);
   }, [session]);

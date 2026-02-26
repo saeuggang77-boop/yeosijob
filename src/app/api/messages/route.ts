@@ -252,6 +252,25 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+
+      // 6. BUSINESS 역할 유료서비스 체크
+      if (sender?.role === "BUSINESS") {
+        const PAID_TIERS: string[] = ["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"];
+        const hasQualifyingAd = await prisma.ad.findFirst({
+          where: {
+            userId,
+            status: "ACTIVE",
+            productId: { in: PAID_TIERS as any },
+          },
+        });
+
+        if (!hasQualifyingAd) {
+          return NextResponse.json(
+            { error: "추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다", code: "BUSINESS_NO_AD" },
+            { status: 403 }
+          );
+        }
+      }
     }
 
     // Message 생성

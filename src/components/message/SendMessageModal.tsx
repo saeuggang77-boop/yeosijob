@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -19,11 +20,32 @@ export function SendMessageModal({
 }: SendMessageModalProps) {
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
+  const [canSend, setCanSend] = useState(true);
+  const [reason, setReason] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const router = useRouter();
+
+  const checkCanSend = async () => {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/messages/can-send");
+      if (res.ok) {
+        const data = await res.json();
+        setCanSend(data.canSend);
+        setReason(data.reason || null);
+      }
+    } catch (error) {
+      console.error("Failed to check send eligibility:", error);
+    } finally {
+      setChecking(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       setContent("");
+      checkCanSend();
     } else {
       document.body.style.overflow = "";
     }
@@ -31,6 +53,7 @@ export function SendMessageModal({
     return () => {
       document.body.style.overflow = "";
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
@@ -104,31 +127,59 @@ export function SendMessageModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-4">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value.slice(0, 500))}
-            placeholder="쪽지 내용을 입력하세요"
-            className="min-h-[150px] resize-none"
-            maxLength={500}
-          />
-          <div className="mt-2 text-right text-xs text-muted-foreground">
-            {content.length} / 500
+        {checking ? (
+          <div className="flex items-center justify-center px-6 py-16">
+            <p className="text-sm text-muted-foreground">확인 중...</p>
           </div>
-        </div>
+        ) : !canSend && reason === "BUSINESS_NO_AD" ? (
+          <div className="flex flex-col items-center gap-4 px-6 py-8">
+            <p className="text-center text-sm text-muted-foreground">
+              추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  router.push("/business/ads/new");
+                  onClose();
+                }}
+              >
+                광고 등록하기
+              </Button>
+              <Button variant="ghost" onClick={onClose}>
+                닫기
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="px-6 py-4">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value.slice(0, 500))}
+                placeholder="쪽지 내용을 입력하세요"
+                className="min-h-[150px] resize-none"
+                maxLength={500}
+              />
+              <div className="mt-2 text-right text-xs text-muted-foreground">
+                {content.length} / 500
+              </div>
+            </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
-          <Button variant="outline" onClick={onClose}>
-            취소
-          </Button>
-          <Button
-            onClick={handleSend}
-            disabled={!content.trim() || sending}
-          >
-            {sending ? "전송 중..." : "보내기"}
-          </Button>
-        </div>
+            {/* Footer */}
+            <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
+              <Button variant="outline" onClick={onClose}>
+                취소
+              </Button>
+              <Button
+                onClick={handleSend}
+                disabled={!content.trim() || sending}
+              >
+                {sending ? "전송 중..." : "보내기"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

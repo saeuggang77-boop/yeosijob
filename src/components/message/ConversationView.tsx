@@ -29,6 +29,8 @@ export function ConversationView({
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [canSend, setCanSend] = useState(true);
+  const [canSendReason, setCanSendReason] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -73,6 +75,19 @@ export function ConversationView({
     }
   };
 
+  const checkCanSend = async () => {
+    try {
+      const res = await fetch("/api/messages/can-send");
+      if (res.ok) {
+        const data = await res.json();
+        setCanSend(data.canSend);
+        setCanSendReason(data.reason || null);
+      }
+    } catch (error) {
+      console.error("Failed to check send eligibility:", error);
+    }
+  };
+
   const handleBlock = async () => {
     if (isBlocked) {
       if (!confirm("차단을 해제하시겠습니까?")) return;
@@ -105,6 +120,7 @@ export function ConversationView({
     fetchMessages();
     markAsRead();
     checkBlockStatus();
+    checkCanSend();
 
     // Poll every 15 seconds
     const interval = setInterval(fetchMessages, 15000);
@@ -272,6 +288,19 @@ export function ConversationView({
           <p className="text-center text-sm text-muted-foreground">
             차단된 사용자입니다. 차단을 해제하면 쪽지를 보낼 수 있습니다.
           </p>
+        ) : !canSend && canSendReason === "BUSINESS_NO_AD" ? (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-center text-sm text-muted-foreground">
+              추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/business/ads/new")}
+            >
+              광고 등록하기
+            </Button>
+          </div>
         ) : (
           <div className="flex gap-2">
             <Input

@@ -3,7 +3,15 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateSlugFromTitle } from "@/lib/utils/slug";
 
+export async function GET() {
+  return runMigration();
+}
+
 export async function POST() {
+  return runMigration();
+}
+
+async function runMigration() {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

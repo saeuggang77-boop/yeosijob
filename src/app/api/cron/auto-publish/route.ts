@@ -11,6 +11,7 @@ import {
   getUnusedContent,
   getTodayGhostCounts,
   generateContextualComments,
+  generateContextualReplies,
   generateConversationThread,
 } from "@/lib/auto-content/scheduler";
 
@@ -171,6 +172,87 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // === 3. 고스트 글쓴이 티키타카 (실제 유저 댓글에 자동 답글) ===
+    let tikitakaReplies = 0;
+    {
+      const threeHoursAgo = new Date();
+      threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
+
+      // 최근 3시간 내 실제 유저가 고스트 게시글에 단 댓글 찾기
+      const realUserComments = await prisma.comment.findMany({
+        where: {
+          createdAt: { gte: threeHoursAgo },
+          author: { isGhost: false },
+          parentId: null,
+          post: {
+            author: { isGhost: true },
+            isHidden: false,
+          },
+        },
+        select: {
+          id: true,
+          content: true,
+          postId: true,
+          post: {
+            select: {
+              id: true,
+              title: true,
+              content: true,
+              authorId: true,
+              author: {
+                select: { ghostPersonality: true },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+        take: 10,
+      });
+
+      const repliedPostIds = new Set<string>();
+
+      for (const comment of realUserComments) {
+        if (tikitakaReplies >= 3) break; // 한 cron당 최대 3개
+        if (repliedPostIds.has(comment.postId)) continue; // 게시글당 1개
+
+        // 이미 글쓴이가 답글 달았는지 확인
+        const existingReply = await prisma.comment.findFirst({
+          where: {
+            parentId: comment.id,
+            authorId: comment.post.authorId,
+          },
+        });
+
+        if (!existingReply) {
+          try {
+            const personality = comment.post.author.ghostPersonality || undefined;
+            const replies = await generateContextualReplies(
+              comment.post.title,
+              comment.content,
+              1,
+              personality
+            );
+
+            if (replies.length > 0) {
+              await prisma.comment.create({
+                data: {
+                  authorId: comment.post.authorId,
+                  postId: comment.postId,
+                  content: replies[0],
+                  parentId: comment.id,
+                },
+              });
+              tikitakaReplies++;
+              repliedPostIds.add(comment.postId);
+            }
+          } catch (error) {
+            console.error(`Tikitaka reply failed for comment ${comment.id}:`, error);
+            continue;
+          }
+        }
+      }
+    }
+
     // === 4. 실제 사용자 게시글에 자동 댓글 (realPostAutoReply) ===
     if (config.realPostAutoReply) {
       const sixtyMinutesAgo = new Date();
@@ -237,6 +319,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       message: "Auto-publish completed",
       published,
+      tikitakaReplies,
       realPostReplies,
       kstHour,
       config: {

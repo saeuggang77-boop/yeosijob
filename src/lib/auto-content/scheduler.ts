@@ -230,12 +230,13 @@ export async function generateContextualComments(
 export async function generateContextualReplies(
   postTitle: string,
   commentContent: string,
-  count: number
+  count: number,
+  personality?: GhostPersonality
 ): Promise<string[]> {
   try {
     const anthropic = new Anthropic();
 
-    // 랜덤 성격 선택
+    // 지정된 성격 사용, 없으면 랜덤
     const personalities: GhostPersonality[] = [
       "CHATTY",
       "ADVISOR",
@@ -244,9 +245,9 @@ export async function generateContextualReplies(
       "CALM",
       "SASSY",
     ];
-    const randomPersonality = personalities[Math.floor(Math.random() * personalities.length)];
+    const selectedPersonality = personality || personalities[Math.floor(Math.random() * personalities.length)];
 
-    const prompt = getContextualReplyPrompt(randomPersonality, postTitle, commentContent, count);
+    const prompt = getContextualReplyPrompt(selectedPersonality, postTitle, commentContent, count);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",

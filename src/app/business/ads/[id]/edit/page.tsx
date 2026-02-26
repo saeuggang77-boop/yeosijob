@@ -32,20 +32,31 @@ export default function EditAdPage() {
   const [success, setSuccess] = useState("");
 
   const [showPostcode, setShowPostcode] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   const postcodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (document.getElementById("daum-postcode-script")) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).daum?.Postcode) {
+      setScriptLoaded(true);
+      return;
+    }
+    const existing = document.getElementById("daum-postcode-script");
+    if (existing) {
+      existing.addEventListener("load", () => setScriptLoaded(true));
+      return;
+    }
     const script = document.createElement("script");
     script.id = "daum-postcode-script";
-    script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.src = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
     script.async = true;
+    script.onload = () => setScriptLoaded(true);
     document.head.appendChild(script);
   }, []);
 
   const openPostcode = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!(window as any).daum?.Postcode) {
+    if (!scriptLoaded || !(window as any).daum?.Postcode) {
       alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -244,7 +255,7 @@ export default function EditAdPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="address">주소</Label>
+                <Label htmlFor="address">주소 *</Label>
                 <div className="mt-1 flex gap-2">
                   <input
                     id="address"

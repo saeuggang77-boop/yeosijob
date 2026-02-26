@@ -13,6 +13,7 @@ import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
+import { KakaoMap } from "@/components/map/KakaoMap";
 import type { Region } from "@/generated/prisma/client";
 
 interface PageProps {
@@ -285,6 +286,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               {ad.addressDetail && (
                 <p className="text-muted-foreground">{ad.addressDetail}</p>
               )}
+              <KakaoMap address={ad.address} />
             </div>
           ) : (
             <p className="text-muted-foreground">{regionLabels}</p>

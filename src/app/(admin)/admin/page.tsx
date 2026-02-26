@@ -4,6 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 import Link from "next/link";
+import {
+  getTrafficSummary,
+  getTopPages,
+  getTrafficSources,
+  getDeviceBreakdown,
+} from "@/lib/google-analytics-data";
 
 const STATUS_LABELS: Record<
   string,
@@ -120,6 +126,15 @@ export default async function AdminDashboardPage() {
       ad: { select: { title: true } },
     },
   });
+
+  // Section 6: Google Analytics Data
+  const [trafficSummary, topPages, trafficSources, deviceBreakdown] =
+    await Promise.all([
+      getTrafficSummary(),
+      getTopPages(10),
+      getTrafficSources(),
+      getDeviceBreakdown(),
+    ]);
 
   const stats = [
     { label: "전체 광고", value: totalAds, href: "/admin/ads" },
@@ -408,6 +423,192 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Section 6: Google Analytics - Site Traffic */}
+      {trafficSummary && (
+        <>
+          <Separator />
+
+          <section>
+            <h2 className="mb-4 text-lg font-semibold">사이트 트래픽</h2>
+
+            {/* Traffic Summary Cards */}
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">
+                    오늘 방문자
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">
+                    {trafficSummary.today.visitors.toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">
+                    오늘 페이지뷰
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">
+                    {trafficSummary.today.pageViews.toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">
+                    7일 방문자
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">
+                    {trafficSummary.last7Days.visitors.toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">
+                    30일 방문자
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">
+                    {trafficSummary.last30Days.visitors.toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Pages and Traffic Sources */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Top Pages */}
+              {topPages && topPages.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">인기 페이지 TOP 10</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="pb-2 text-left text-sm font-medium text-muted-foreground">
+                              페이지 경로
+                            </th>
+                            <th className="pb-2 text-right text-sm font-medium text-muted-foreground">
+                              페이지뷰
+                            </th>
+                            <th className="pb-2 text-right text-sm font-medium text-muted-foreground">
+                              방문자
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {topPages.map((page, index) => (
+                            <tr key={index} className="border-b last:border-0">
+                              <td className="py-2 text-sm font-medium">
+                                {page.pagePath}
+                              </td>
+                              <td className="py-2 text-right text-sm">
+                                {page.pageViews.toLocaleString()}
+                              </td>
+                              <td className="py-2 text-right text-sm">
+                                {page.visitors.toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Traffic Sources */}
+              {trafficSources && trafficSources.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">유입 경로</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {trafficSources.map((source, index) => {
+                        const maxSessions = Math.max(
+                          ...trafficSources.map((s) => s.sessions)
+                        );
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between"
+                          >
+                            <span className="text-sm font-medium">
+                              {source.source}
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <div className="h-2 w-32 overflow-hidden rounded-full bg-muted">
+                                <div
+                                  className="h-full bg-primary"
+                                  style={{
+                                    width: `${(source.sessions / maxSessions) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="w-16 text-right text-sm font-bold">
+                                {source.sessions.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Device Breakdown */}
+            {deviceBreakdown && deviceBreakdown.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-base">기기별 비율</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {deviceBreakdown.map((device, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-sm font-medium capitalize">
+                          {device.device}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 w-48 overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${device.percentage}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="w-24 text-right text-sm font-bold">
+                            {device.percentage.toFixed(1)}% ({device.sessions.toLocaleString()})
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

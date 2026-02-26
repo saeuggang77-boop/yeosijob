@@ -19,8 +19,13 @@ export default async function AutoContentPage() {
     });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // KST 자정 기준 (UTC+9)
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(now.getTime() + kstOffset);
+  const today = new Date(
+    Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - kstOffset
+  );
 
   // 모든 독립 쿼리를 하나의 Promise.all로 병렬 실행 (18개 → 6개 쿼리)
   const [

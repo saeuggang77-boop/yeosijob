@@ -34,7 +34,7 @@ async function findPostByIdOrSlug(idOrSlug: string) {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  const post = await findPostByIdOrSlug(id);
+  const post = await findPostByIdOrSlug(decodeURIComponent(id));
 
   if (!post) {
     return { title: "게시글을 찾을 수 없습니다" };
@@ -59,7 +59,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function PostDetailPage({ params }: PageProps) {
-  const { id: idOrSlug } = await params;
+  const { id: rawIdOrSlug } = await params;
+  const idOrSlug = decodeURIComponent(rawIdOrSlug);
   const session = await auth();
 
   // slug 또는 cuid로 게시글 찾기

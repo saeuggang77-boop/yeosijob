@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
               title: poolItem.title || "자유게시글",
               content: poolItem.content,
               category: poolItem.category || "CHAT",
-              viewCount: Math.floor(Math.random() * 6), // 0~5 (새 글이니까 낮게 시작)
+              viewCount: Math.floor(Math.random() * 2), // 0~1 (새 글이니까 낮게 시작)
               createdAt,
             },
           });
@@ -165,6 +165,16 @@ export async function GET(request: NextRequest) {
 
           published.comments += result.commentCount;
           published.replies += result.replyCount;
+
+          // 댓글/답글이 생성되면 조회수도 증가 (댓글 1개당 +2~5)
+          const totalInteractions = result.commentCount + result.replyCount;
+          if (totalInteractions > 0) {
+            const viewIncrement = totalInteractions * (Math.floor(Math.random() * 4) + 2); // 각각 +2~5
+            await prisma.post.update({
+              where: { id: post.id },
+              data: { viewCount: { increment: viewIncrement } },
+            });
+          }
         } catch (error) {
           console.error(`Thread generation failed for post ${post.id}:`, error);
           continue;
@@ -244,6 +254,13 @@ export async function GET(request: NextRequest) {
               });
               tikitakaReplies++;
               repliedPostIds.add(comment.postId);
+
+              // 답글이 생성되면 조회수도 증가 (+2~5)
+              const viewIncrement = Math.floor(Math.random() * 4) + 2;
+              await prisma.post.update({
+                where: { id: comment.postId },
+                data: { viewCount: { increment: viewIncrement } },
+              });
             }
           } catch (error) {
             console.error(`Tikitaka reply failed for comment ${comment.id}:`, error);
@@ -307,6 +324,13 @@ export async function GET(request: NextRequest) {
               });
 
               realPostReplies++;
+
+              // 댓글이 생성되면 조회수도 증가 (+2~5)
+              const viewIncrement = Math.floor(Math.random() * 4) + 2;
+              await prisma.post.update({
+                where: { id: post.id },
+                data: { viewCount: { increment: viewIncrement } },
+              });
             } catch (error) {
               console.error(`Real post comment generation failed for post ${post.id}:`, error);
               continue;

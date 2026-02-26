@@ -37,6 +37,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email: user.email },
         });
 
+        // OAuth 활동정지 체크 (기존 유저)
+        if (existingUser && !existingUser.isActive && existingUser.suspendedUntil) {
+          const now = new Date();
+          const isFarFuture = existingUser.suspendedUntil.getFullYear() >= 9999;
+
+          if (!isFarFuture && existingUser.suspendedUntil < now) {
+            // 기간 만료 → 자동 해제
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { isActive: true, suspendedUntil: null, suspendReason: null },
+            });
+            await prisma.notification.create({
+              data: {
+                userId: existingUser.id,
+                title: "활동정지 해제",
+                message: "활동정지 기간이 만료되어 자동 해제되었습니다.",
+              },
+            }).catch(() => {});
+          } else {
+            // 아직 정지 중
+            return false;
+          }
+        }
+
         if (!existingUser) {
           const newUser = await prisma.user.create({
             data: {
@@ -120,7 +144,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (!user.isActive) {
-          return null;
+          // 활동정지 자동 해제 체크
+          if (user.suspendedUntil) {
+            const now = new Date();
+            const isFarFuture = user.suspendedUntil.getFullYear() >= 9999;
+
+            if (!isFarFuture && user.suspendedUntil < now) {
+              // 기간 만료 → 자동 해제
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { isActive: true, suspendedUntil: null, suspendReason: null },
+              });
+              await prisma.notification.create({
+                data: {
+                  userId: user.id,
+                  title: "활동정지 해제",
+                  message: "활동정지 기간이 만료되어 자동 해제되었습니다.",
+                },
+              }).catch(() => {});
+              // 해제 후 로그인 허용 → 아래로 진행
+            } else {
+              // 아직 정지 중 → 로그인 거부
+              return null;
+            }
+          } else {
+            return null;
+          }
         }
 
         const isValid = await compare(password, user.hashedPassword);

@@ -204,6 +204,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 활동정지
+  suspendedUntil DateTime?
+  suspendReason  String?
+
   // 본인인증
   ageVerified    DateTime?
 
@@ -226,6 +230,8 @@ model User {
   notices          Notice[]
   ageVerifications AgeVerification[]
   reports          Report[]
+  suspensionLogs   SuspensionLog[] @relation("suspensionLogs")
+  suspensionActions SuspensionLog[] @relation("suspensionActions")
   // 쪽지 제재
   messageBannedUntil DateTime?
   messageBlockCount  Int      @default(0)
@@ -234,6 +240,8 @@ model User {
   pushSubscriptions PushSubscription[]
   messageBlocks   MessageBlock[] @relation("blockerMessages")
   blockedByUsers  MessageBlock[] @relation("blockedMessages")
+  postLikes       PostLike[]
+  commentLikes    CommentLike[]
 
   @@index([role])
   @@index([isGhost])
@@ -562,6 +570,7 @@ model Post {
   comments     Comment[]
   contentPools ContentPool[]
   reports      Report[]
+  likes        PostLike[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
@@ -582,6 +591,7 @@ model Comment {
   parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies Comment[] @relation("CommentReplies")
   reports Report[]
+  likes   CommentLike[]
 
   @@index([postId, createdAt(sort: Desc)])
   @@index([authorId])
@@ -609,6 +619,36 @@ model Report {
   @@unique([reporterId, commentId])
   @@index([status])
   @@map("reports")
+}
+
+// ── LIKE (좋아요) ──
+
+model PostLike {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("post_likes")
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
 }
 
 // ── CONTENT POOL (자동 콘텐츠) ──
@@ -718,6 +758,24 @@ model PushSubscription {
   @@unique([userId, endpoint])
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ── SUSPENSION LOG (활동정지 이력) ──
+
+model SuspensionLog {
+  id        String    @id @default(cuid())
+  userId    String
+  adminId   String
+  reason    String
+  days      Int       // 0=무기한
+  startedAt DateTime  @default(now())
+  expiresAt DateTime? // null=무기한
+
+  user  User @relation("suspensionLogs", fields: [userId], references: [id], onDelete: Cascade)
+  admin User @relation("suspensionActions", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("suspension_logs")
 }
 
 // ── MESSAGE BLOCK (쪽지 차단) ──

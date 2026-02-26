@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserPostsModal } from "./UserPostsModal";
 import { SendMessageModal } from "@/components/message/SendMessageModal";
+import { SuspendModal } from "./SuspendModal";
 
 interface AdminUserMenuProps {
   userId: string;
@@ -11,6 +12,7 @@ interface AdminUserMenuProps {
   currentRole?: string;
   isPostAuthor?: boolean;
   isAdmin?: boolean;
+  isUserActive?: boolean;
 }
 
 export function AdminUserMenu({
@@ -19,11 +21,13 @@ export function AdminUserMenu({
   currentRole = "JOBSEEKER",
   isPostAuthor = false,
   isAdmin = false,
+  isUserActive = true,
 }: AdminUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleSubmenu, setShowRoleSubmenu] = useState(false);
   const [showPostsModal, setShowPostsModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -84,16 +88,19 @@ export function AdminUserMenu({
     setShowRoleSubmenu(false);
   };
 
-  const handleSuspend = async () => {
-    if (!confirm(`${userName}님을 활동정지 하시겠습니까?`)) {
-      return;
-    }
+  const handleSuspend = () => {
+    setIsOpen(false);
+    setShowSuspendModal(true);
+  };
+
+  const handleUnsuspend = async () => {
+    if (!confirm(`${userName}님의 활동정지를 해제하시겠습니까?`)) return;
 
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "suspend" }),
+        body: JSON.stringify({ action: "unsuspend" }),
       });
 
       const data = await res.json();
@@ -102,11 +109,10 @@ export function AdminUserMenu({
         alert(data.message);
         router.refresh();
       } else {
-        alert(data.error || "활동정지에 실패했습니다");
+        alert(data.error || "활동정지 해제에 실패했습니다");
       }
-    } catch (error) {
-      console.error("Suspend error:", error);
-      alert("활동정지 중 오류가 발생했습니다");
+    } catch {
+      alert("활동정지 해제 중 오류가 발생했습니다");
     }
 
     setIsOpen(false);
@@ -233,14 +239,24 @@ export function AdminUserMenu({
                 )}
               </div>
 
-              {/* 활동정지 */}
-              <button
-                onClick={handleSuspend}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
-              >
-                <span>⏸️</span>
-                <span>활동정지</span>
-              </button>
+              {/* 활동정지 / 해제 */}
+              {isUserActive ? (
+                <button
+                  onClick={handleSuspend}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
+                >
+                  <span>⏸️</span>
+                  <span>활동정지</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleUnsuspend}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-green-500 hover:bg-green-500/10"
+                >
+                  <span>▶️</span>
+                  <span>활동정지 해제</span>
+                </button>
+              )}
 
               {/* 강퇴시키기 */}
               <button
@@ -269,6 +285,15 @@ export function AdminUserMenu({
         receiverName={userName}
         isOpen={showMessageModal}
         onClose={() => setShowMessageModal(false)}
+      />
+
+      {/* Suspend Modal */}
+      <SuspendModal
+        userId={userId}
+        userName={userName}
+        isOpen={showSuspendModal}
+        onClose={() => setShowSuspendModal(false)}
+        onSuccess={() => router.refresh()}
       />
     </div>
   );

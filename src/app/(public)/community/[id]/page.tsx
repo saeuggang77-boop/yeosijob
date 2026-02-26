@@ -4,12 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CommentForm } from "@/components/community/CommentForm";
 import { PostActions } from "@/components/community/PostActions";
-import { CommentDeleteButton } from "@/components/community/CommentDeleteButton";
-import { ReplyButton } from "@/components/community/ReplyButton";
 import { ReportButton } from "@/components/community/ReportButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
+import { LikeButton } from "@/components/community/LikeButton";
+import { CommentSection } from "@/components/community/CommentSection";
 import { formatDateSmart } from "@/lib/utils/format";
 
 interface PageProps {
@@ -58,19 +57,21 @@ export default async function PostDetailPage({ params }: PageProps) {
       viewCount: true,
       authorId: true,
       author: {
-        select: { id: true, name: true, role: true },
+        select: { id: true, name: true, role: true, isActive: true },
       },
+      _count: { select: { likes: true } },
       comments: {
         where: { parentId: null },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
         select: {
           id: true,
           content: true,
           createdAt: true,
           authorId: true,
           author: {
-            select: { id: true, name: true, role: true },
+            select: { id: true, name: true, role: true, isActive: true },
           },
+          _count: { select: { likes: true } },
           replies: {
             orderBy: { createdAt: "asc" },
             select: {
@@ -79,8 +80,9 @@ export default async function PostDetailPage({ params }: PageProps) {
               createdAt: true,
               authorId: true,
               author: {
-                select: { id: true, name: true, role: true },
+                select: { id: true, name: true, role: true, isActive: true },
               },
+              _count: { select: { likes: true } },
             },
           },
         },
@@ -95,8 +97,50 @@ export default async function PostDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  // 현재 유저의 좋아요 여부 조회 (로그인 시)
+  let postLiked = false;
+  let likedCommentIds: Set<string> = new Set();
+
+  if (session?.user?.id) {
+    const [postLikeResult, commentLikeResults] = await Promise.all([
+      prisma.postLike.findUnique({
+        where: { userId_postId: { userId: session.user.id, postId: id } },
+      }),
+      prisma.commentLike.findMany({
+        where: {
+          userId: session.user.id,
+          comment: { postId: id },
+        },
+        select: { commentId: true },
+      }),
+    ]);
+
+    postLiked = !!postLikeResult;
+    likedCommentIds = new Set(commentLikeResults.map((l) => l.commentId));
+  }
+
   const isAuthor = session?.user?.id === post.authorId;
   const isAdmin = session?.user?.role === "ADMIN";
+
+  // 댓글 데이터를 CommentSection에 전달할 형태로 변환
+  const commentsData = post.comments.map((comment) => ({
+    id: comment.id,
+    content: comment.content,
+    createdAt: comment.createdAt.toISOString(),
+    authorId: comment.authorId,
+    author: comment.author,
+    likeCount: comment._count.likes,
+    liked: likedCommentIds.has(comment.id),
+    replies: comment.replies.map((reply) => ({
+      id: reply.id,
+      content: reply.content,
+      createdAt: reply.createdAt.toISOString(),
+      authorId: reply.authorId,
+      author: reply.author,
+      likeCount: reply._count.likes,
+      liked: likedCommentIds.has(reply.id),
+    })),
+  }));
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
@@ -113,6 +157,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                     userName={post.author.name || "익명"}
                     currentRole={post.author.role}
                     isAdmin={isAdmin}
+                    isUserActive={post.author.isActive}
                   />
                 ) : (
                   <span>{post.author.name}</span>
@@ -130,6 +175,17 @@ export default async function PostDetailPage({ params }: PageProps) {
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
             {post.content}
           </div>
+          {/* 게시글 좋아요 */}
+          <div className="mt-4 border-t border-border pt-4">
+            <LikeButton
+              type="post"
+              targetId={post.id}
+              postId={post.id}
+              initialLiked={postLiked}
+              initialCount={post._count.likes}
+              isLoggedIn={!!session}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -146,153 +202,15 @@ export default async function PostDetailPage({ params }: PageProps) {
       </div>
 
       {/* Comments Section */}
-      <div className="mt-8">
-        <h2 className="mb-4 text-xl font-bold">
-          댓글 <span className="text-primary">{commentCount}</span>
-        </h2>
-
-        {/* Comment Form */}
-        <div className="mb-6">
-          <CommentForm postId={post.id} />
-        </div>
-
-        {/* Comments List */}
-        {post.comments.length === 0 ? (
-          <div className="rounded-md border border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground">
-            첫 댓글을 작성해보세요
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {post.comments.map((comment) => {
-              const canDeleteComment = isAdmin || session?.user?.id === comment.authorId;
-              return (
-                <div key={comment.id} className="space-y-2">
-                  {/* Top-level Comment */}
-                  <Card>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm">
-                            {session?.user?.id && session.user.id !== comment.author.id ? (
-                              <AdminUserMenu
-                                userId={comment.author.id}
-                                userName={comment.author.name || "익명"}
-                                currentRole={comment.author.role}
-                                isPostAuthor={comment.authorId === post.authorId}
-                                isAdmin={isAdmin}
-                              />
-                            ) : (
-                              <>
-                                <span className="font-medium">{comment.author.name}</span>
-                                {comment.authorId === post.authorId && (
-                                  <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
-                                    작성자
-                                  </span>
-                                )}
-                              </>
-                            )}
-                            <span className="text-muted-foreground">
-                              {formatDateSmart(comment.createdAt)}
-                            </span>
-                          </div>
-                          <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
-                            {comment.content}
-                          </div>
-                          <div className="mt-2">
-                            <ReplyButton
-                              postId={post.id}
-                              parentId={comment.id}
-                              replyToName={comment.author.name || "익명"}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {session?.user?.id !== comment.authorId && (
-                            <ReportButton commentId={comment.id} isLoggedIn={!!session} />
-                          )}
-                          {canDeleteComment && (
-                            <CommentDeleteButton postId={post.id} commentId={comment.id} />
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Replies */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <div className="ml-8 space-y-2 border-l-2 border-primary/20 pl-4">
-                      {comment.replies.map((reply) => {
-                        const canDeleteReply = isAdmin || session?.user?.id === reply.authorId;
-                        // Highlight @mentions in gold
-                        const contentParts = reply.content.split(/(@\S+)/g);
-                        return (
-                          <Card key={reply.id} className="bg-muted/30">
-                            <CardContent className="py-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    {session?.user?.id && session.user.id !== reply.author.id ? (
-                                      <AdminUserMenu
-                                        userId={reply.author.id}
-                                        userName={reply.author.name || "익명"}
-                                        currentRole={reply.author.role}
-                                        isPostAuthor={reply.authorId === post.authorId}
-                                        isAdmin={isAdmin}
-                                      />
-                                    ) : (
-                                      <>
-                                        <span className="font-medium">{reply.author.name}</span>
-                                        {reply.authorId === post.authorId && (
-                                          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
-                                            작성자
-                                          </span>
-                                        )}
-                                      </>
-                                    )}
-                                    <span className="text-muted-foreground">
-                                      {formatDateSmart(reply.createdAt)}
-                                    </span>
-                                  </div>
-                                  <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
-                                    {contentParts.map((part, idx) =>
-                                      part.startsWith("@") ? (
-                                        <span key={idx} className="text-primary font-medium">
-                                          {part}
-                                        </span>
-                                      ) : (
-                                        <span key={idx}>{part}</span>
-                                      )
-                                    )}
-                                  </div>
-                                  <div className="mt-2">
-                                    <ReplyButton
-                                      postId={post.id}
-                                      parentId={comment.id}
-                                      replyToName={reply.author.name || "익명"}
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {session?.user?.id !== reply.authorId && (
-                                    <ReportButton commentId={reply.id} isLoggedIn={!!session} />
-                                  )}
-                                  {canDeleteReply && (
-                                    <CommentDeleteButton postId={post.id} commentId={reply.id} />
-                                  )}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <CommentSection
+        comments={commentsData}
+        postId={post.id}
+        postAuthorId={post.authorId}
+        commentCount={commentCount}
+        currentUserId={session?.user?.id}
+        isAdmin={isAdmin}
+        isLoggedIn={!!session}
+      />
     </div>
   );
 }

@@ -64,6 +64,19 @@ export async function POST(
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
+    // 활동정지 체크
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isActive: true, suspendReason: true, suspendedUntil: true },
+    });
+    if (currentUser && !currentUser.isActive) {
+      const isFarFuture = currentUser.suspendedUntil && currentUser.suspendedUntil.getFullYear() >= 9999;
+      const msg = isFarFuture
+        ? `활동이 무기한 정지되었습니다. (사유: ${currentUser.suspendReason || "운영 원칙 위배"})`
+        : `활동이 정지되었습니다. (사유: ${currentUser.suspendReason || "운영 원칙 위배"} / 해제일: ${currentUser.suspendedUntil?.toLocaleDateString("ko-KR") || "미정"})`;
+      return NextResponse.json({ error: msg }, { status: 403 });
+    }
+
     const { success } = checkRateLimit(`comment:${session.user.id}`, 10, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });

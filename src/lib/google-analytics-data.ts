@@ -6,9 +6,9 @@ let analyticsClient: BetaAnalyticsDataClient | null = null;
 function getClient() {
   if (analyticsClient) return analyticsClient;
 
-  const propertyId = process.env.GA_PROPERTY_ID;
-  const clientEmail = process.env.GA_CLIENT_EMAIL;
-  const privateKey = process.env.GA_PRIVATE_KEY;
+  const propertyId = process.env.GA_PROPERTY_ID?.trim();
+  const clientEmail = process.env.GA_CLIENT_EMAIL?.trim();
+  const privateKey = process.env.GA_PRIVATE_KEY?.trim();
 
   if (!propertyId || !clientEmail || !privateKey) {
     console.warn("Google Analytics credentials not configured");

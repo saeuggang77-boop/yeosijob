@@ -7,9 +7,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const propertyId = process.env.GA_PROPERTY_ID;
-  const clientEmail = process.env.GA_CLIENT_EMAIL;
-  const privateKey = process.env.GA_PRIVATE_KEY;
+  const propertyId = process.env.GA_PROPERTY_ID?.trim();
+  const clientEmail = process.env.GA_CLIENT_EMAIL?.trim();
+  const privateKey = process.env.GA_PRIVATE_KEY?.trim();
 
   // 1. 환경변수 존재 여부 확인
   const envCheck = {

@@ -17,15 +17,15 @@ interface PageProps {
 
 // slug 또는 cuid로 게시글 조회
 async function findPostByIdOrSlug(idOrSlug: string) {
-  // 먼저 slug로 검색
-  const bySlug = await prisma.post.findUnique({
+  // 먼저 slug로 검색 (findFirst: PrismaPg 어댑터 호환)
+  const bySlug = await prisma.post.findFirst({
     where: { slug: idOrSlug },
     select: { id: true, slug: true, title: true, content: true },
   });
   if (bySlug) return bySlug;
 
   // slug로 못 찾으면 cuid로 검색
-  const byId = await prisma.post.findUnique({
+  const byId = await prisma.post.findFirst({
     where: { id: idOrSlug },
     select: { id: true, slug: true, title: true, content: true },
   });

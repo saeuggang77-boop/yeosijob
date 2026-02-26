@@ -294,8 +294,12 @@ export async function generateConversationThread(
       throw new Error("Author not found or not a ghost user");
     }
 
-    // 2. 랜덤 유령회원 2~4명 선택 (글쓴이 제외)
-    const commenterCount = Math.min(Math.max(2, Math.floor(Math.random() * 3) + 2), 4);
+    // 2. 랜덤 유령회원 선택 (글쓴이 제외)
+    // 30% 확률로 깊은 대화 모드 (1~2명으로 집중)
+    const isDeepConversation = Math.random() < 0.3;
+    const commenterCount = isDeepConversation
+      ? Math.floor(Math.random() * 2) + 1  // 1~2명
+      : Math.min(Math.max(2, Math.floor(Math.random() * 3) + 2), 4); // 2~4명
     const commenters = await getRandomGhostUsers(commenterCount, undefined, post.authorId);
 
     if (commenters.length === 0) {

@@ -24,6 +24,22 @@ export async function POST(
       await prisma.postLike.create({
         data: { userId: session.user.id, postId: id },
       });
+
+      // 게시글 작성자에게 좋아요 알림 (본인 제외)
+      const post = await prisma.post.findUnique({
+        where: { id },
+        select: { authorId: true, title: true },
+      });
+      if (post && post.authorId !== session.user.id) {
+        await prisma.notification.create({
+          data: {
+            userId: post.authorId,
+            title: "좋아요",
+            message: `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 좋아요를 눌렀습니다`,
+            link: `/community/${id}`,
+          },
+        }).catch(() => {}); // 알림 실패해도 좋아요는 정상 처리
+      }
     }
 
     const likeCount = await prisma.postLike.count({ where: { postId: id } });

@@ -675,18 +675,21 @@ model ContentPool {
 // ── AUTO CONTENT CONFIG ──
 
 model AutoContentConfig {
-  id                String   @id @default("singleton")
-  enabled           Boolean  @default(false)
-  postsPerDay       Int      @default(8)
-  commentsPerPost   Int      @default(3)
-  repliesPerComment Int      @default(1)
-  activeStartHour   Int      @default(14)
-  activeEndHour     Int      @default(4)
-  realPostAutoReply Boolean  @default(true)
-  monthlyBudgetKrw  Int      @default(100000)
-  seoKeywords       String[] @default([])
-  seoKeywordUsage   Json?    @default("{}")
-  updatedAt         DateTime @updatedAt
+  id                 String   @id @default("singleton")
+  enabled            Boolean  @default(false)
+  postsPerDay        Int      @default(8)
+  commentsPerPost    Int      @default(3)
+  commentsPerPostMin Int      @default(2)
+  commentsPerPostMax Int      @default(8)
+  repliesPerComment  Int      @default(1)
+  activeStartHour    Int      @default(14)
+  activeEndHour      Int      @default(4)
+  realPostAutoReply  Boolean  @default(true)
+  monthlyBudgetKrw   Int      @default(100000)
+  seoKeywords        String[] @default([])
+  seoKeywordUsage    Json?    @default("{}")
+  categoryWeights    Json?    @default("{\"CHAT\":30,\"BEAUTY\":25,\"QNA\":25,\"WORK\":20}")
+  updatedAt          DateTime @updatedAt
 
   @@map("auto_content_config")
 }

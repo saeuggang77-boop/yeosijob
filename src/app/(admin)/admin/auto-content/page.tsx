@@ -105,11 +105,14 @@ export default async function AutoContentPage() {
             enabled: config.enabled,
             postsPerDay: config.postsPerDay,
             commentsPerPost: config.commentsPerPost,
+            commentsPerPostMin: config.commentsPerPostMin,
+            commentsPerPostMax: config.commentsPerPostMax,
             repliesPerComment: config.repliesPerComment,
             activeStartHour: config.activeStartHour,
             activeEndHour: config.activeEndHour,
             realPostAutoReply: config.realPostAutoReply,
             seoKeywords: config.seoKeywords || [],
+            categoryWeights: (config.categoryWeights as Record<string, number>) || { CHAT: 30, BEAUTY: 25, QNA: 25, WORK: 20 },
           }}
           initialStats={{
             poolStats,

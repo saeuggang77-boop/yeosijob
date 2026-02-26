@@ -111,8 +111,9 @@ export async function GET(request: NextRequest) {
     }
 
     // === 2. 대화 스레드 발행 (댓글+답글 통합) ===
-    const dailyCommentTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost, 1);
-    const dailyReplyTarget = getDailyTarget(config.postsPerDay * config.commentsPerPost * config.repliesPerComment, 2);
+    const avgComments = Math.round(((config.commentsPerPostMin ?? 2) + (config.commentsPerPostMax ?? 8)) / 2);
+    const dailyCommentTarget = getDailyTarget(config.postsPerDay * avgComments, 1);
+    const dailyReplyTarget = getDailyTarget(config.postsPerDay * avgComments * config.repliesPerComment, 2);
     const remainingComments = Math.max(0, dailyCommentTarget - todayCounts.comments);
     const remainingReplies = Math.max(0, dailyReplyTarget - todayCounts.replies);
     const totalRemaining = remainingComments + remainingReplies;
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
         .map(post => ({
           ...post,
           current: totalCountMap.get(post.id) || 0,
-          target: config.commentsPerPost + config.commentsPerPost * config.repliesPerComment,
+          target: avgComments + avgComments * config.repliesPerComment,
         }))
         .filter(p => p.current < p.target)
         .sort((a, b) => (b.target - b.current) - (a.target - a.current))
@@ -158,8 +159,10 @@ export async function GET(request: NextRequest) {
 
       for (const post of needThreads) {
         try {
-          // 한 게시글당 4~6개 메시지 생성
-          const threadSize = Math.min(Math.floor(Math.random() * 3) + 4, 6);
+          // 한 게시글당 랜덤 메시지 생성 (config 범위 기반)
+          const commentsMin = config.commentsPerPostMin ?? 2;
+          const commentsMax = config.commentsPerPostMax ?? 8;
+          const threadSize = commentsMin + Math.floor(Math.random() * (commentsMax - commentsMin + 1));
 
           const result = await generateConversationThread(post, threadSize);
 
@@ -340,17 +343,92 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // === 5. 랜덤 좋아요 부여 (고스트 유저 → 고스트 게시글) ===
+    let randomLikes = { posts: 0, comments: 0 };
+    {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // 최근 7일 고스트 게시글 중 좋아요가 적은 것
+      const recentGhostPosts = await prisma.post.findMany({
+        where: {
+          createdAt: { gte: sevenDaysAgo },
+          isHidden: false,
+          author: { isGhost: true },
+        },
+        select: {
+          id: true,
+          _count: { select: { likes: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      });
+
+      // 좋아요가 3개 미만인 게시글 선별 (최대 5개)
+      const lowLikePosts = recentGhostPosts
+        .filter(p => p._count.likes < 3)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 5);
+
+      for (const post of lowLikePosts) {
+        const likeCount = Math.floor(Math.random() * 4); // 0~3개
+        if (likeCount === 0) continue;
+
+        const likers = await getRandomGhostUsers(likeCount);
+        for (const liker of likers) {
+          try {
+            await prisma.postLike.create({
+              data: { userId: liker.id, postId: post.id },
+            });
+            randomLikes.posts++;
+          } catch {
+            // unique constraint 위반 = 이미 좋아요 → skip
+          }
+        }
+
+        // 해당 게시글의 댓글 중 랜덤 1~3개에 좋아요
+        const comments = await prisma.comment.findMany({
+          where: { postId: post.id },
+          select: { id: true },
+          take: 10,
+        });
+
+        if (comments.length > 0) {
+          const commentCount = Math.min(Math.floor(Math.random() * 3) + 1, comments.length);
+          const shuffledComments = comments.sort(() => Math.random() - 0.5).slice(0, commentCount);
+
+          for (const comment of shuffledComments) {
+            const commentLikeCount = Math.floor(Math.random() * 3); // 0~2개
+            if (commentLikeCount === 0) continue;
+
+            const commentLikers = await getRandomGhostUsers(commentLikeCount);
+            for (const liker of commentLikers) {
+              try {
+                await prisma.commentLike.create({
+                  data: { userId: liker.id, commentId: comment.id },
+                });
+                randomLikes.comments++;
+              } catch {
+                // unique constraint 위반 → skip
+              }
+            }
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       message: "Auto-publish completed",
       published,
       tikitakaReplies,
       realPostReplies,
+      randomLikes,
       kstHour,
       config: {
         enabled: config.enabled,
         activeHours: `${config.activeStartHour}:00 ~ ${config.activeEndHour}:00`,
         postsPerDay: config.postsPerDay,
-        commentsPerPost: config.commentsPerPost,
+        commentsPerPost: `${config.commentsPerPostMin ?? 2}~${config.commentsPerPostMax ?? 8}`,
         repliesPerComment: config.repliesPerComment,
       },
       todayCounts,

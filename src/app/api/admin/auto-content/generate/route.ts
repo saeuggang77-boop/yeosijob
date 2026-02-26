@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "생성 수는 1~100 사이여야 합니다" }, { status: 400 });
     }
 
-    // SEO 키워드 + 사용 횟수 조회
+    // SEO 키워드 + 사용 횟수 + 카테고리 가중치 조회
     const config = await prisma.autoContentConfig.findUnique({
       where: { id: "singleton" },
-      select: { seoKeywords: true, seoKeywordUsage: true },
+      select: { seoKeywords: true, seoKeywordUsage: true, categoryWeights: true },
     });
     const allKeywords = config?.seoKeywords || [];
     const usageMap: Record<string, number> = (config?.seoKeywordUsage as Record<string, number>) || {};
@@ -45,15 +45,17 @@ export async function POST(request: NextRequest) {
     // 사용된 키워드 추적
     const usedKeywordsSet = new Set<string>();
 
-    // 카테고리 가중치 분배: 수다방 40%, 뷰티톡 20%, 질문방 20%, 업소톡 20%
-    const CATEGORIES = ["CHAT", "BEAUTY", "QNA", "WORK"] as const;
-    const CATEGORY_WEIGHTS = [0.4, 0.2, 0.2, 0.2];
+    // 카테고리 가중치 분배 (config에서 읽기)
+    const categoryWeightsConfig = (config?.categoryWeights as Record<string, number>) || { CHAT: 30, BEAUTY: 25, QNA: 25, WORK: 20 };
+    const CATEGORIES = Object.keys(categoryWeightsConfig);
+    const totalWeight = Object.values(categoryWeightsConfig).reduce((a, b) => a + b, 0);
+
     function getRandomCategory(): string {
-      const r = Math.random();
+      const r = Math.random() * totalWeight;
       let cumulative = 0;
-      for (let i = 0; i < CATEGORIES.length; i++) {
-        cumulative += CATEGORY_WEIGHTS[i];
-        if (r < cumulative) return CATEGORIES[i];
+      for (const [cat, weight] of Object.entries(categoryWeightsConfig)) {
+        cumulative += weight;
+        if (r < cumulative) return cat;
       }
       return "CHAT";
     }

@@ -42,11 +42,14 @@ export async function PUT(request: NextRequest) {
       enabled,
       postsPerDay,
       commentsPerPost,
+      commentsPerPostMin,
+      commentsPerPostMax,
       repliesPerComment,
       activeStartHour,
       activeEndHour,
       realPostAutoReply,
       seoKeywords,
+      categoryWeights,
     } = body;
 
     // seoKeywords 업데이트 시 usage도 정리
@@ -54,10 +57,13 @@ export async function PUT(request: NextRequest) {
       ...(typeof enabled === "boolean" && { enabled }),
       ...(typeof postsPerDay === "number" && { postsPerDay }),
       ...(typeof commentsPerPost === "number" && { commentsPerPost }),
+      ...(typeof commentsPerPostMin === "number" && { commentsPerPostMin }),
+      ...(typeof commentsPerPostMax === "number" && { commentsPerPostMax }),
       ...(typeof repliesPerComment === "number" && { repliesPerComment }),
       ...(typeof activeStartHour === "number" && { activeStartHour }),
       ...(typeof activeEndHour === "number" && { activeEndHour }),
       ...(typeof realPostAutoReply === "boolean" && { realPostAutoReply }),
+      ...(categoryWeights !== undefined && { categoryWeights }),
     };
 
     if (Array.isArray(seoKeywords)) {
@@ -82,12 +88,15 @@ export async function PUT(request: NextRequest) {
         enabled: enabled ?? false,
         postsPerDay: postsPerDay ?? 8,
         commentsPerPost: commentsPerPost ?? 3,
+        commentsPerPostMin: commentsPerPostMin ?? 2,
+        commentsPerPostMax: commentsPerPostMax ?? 8,
         repliesPerComment: repliesPerComment ?? 1,
         activeStartHour: activeStartHour ?? 14,
         activeEndHour: activeEndHour ?? 4,
         realPostAutoReply: realPostAutoReply ?? true,
         seoKeywords: seoKeywords ?? [],
         seoKeywordUsage: {},
+        categoryWeights: categoryWeights ?? { CHAT: 30, BEAUTY: 25, QNA: 25, WORK: 20 },
       },
       update: updateData,
     });

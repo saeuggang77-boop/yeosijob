@@ -36,11 +36,14 @@ interface Config {
   enabled: boolean;
   postsPerDay: number;
   commentsPerPost: number;
+  commentsPerPostMin: number;
+  commentsPerPostMax: number;
   repliesPerComment: number;
   activeStartHour: number;
   activeEndHour: number;
   realPostAutoReply: boolean;
   seoKeywords: string[];
+  categoryWeights: Record<string, number>;
 }
 
 interface PoolStat {
@@ -107,6 +110,9 @@ export function AutoContentManager({
   const [config, setConfig] = useState<Config>({
     ...initialConfig,
     seoKeywords: initialConfig.seoKeywords || [],
+    commentsPerPostMin: initialConfig.commentsPerPostMin ?? 2,
+    commentsPerPostMax: initialConfig.commentsPerPostMax ?? 8,
+    categoryWeights: initialConfig.categoryWeights ?? { CHAT: 30, BEAUTY: 25, QNA: 25, WORK: 20 },
   });
   const [stats, setStats] = useState<Stats>(initialStats);
   const [saving, setSaving] = useState(false);
@@ -459,9 +465,9 @@ export function AutoContentManager({
           </div>
 
           <div className="rounded-md bg-zinc-900 border border-zinc-700 p-3 text-xs text-muted-foreground space-y-1">
-            <p>댓글/답글은 게시글·댓글 단위로 편중 분배됩니다. (어떤 글은 많고, 어떤 글은 0개)</p>
+            <p>게시글마다 댓글 수가 최소~최대 범위 내에서 랜덤으로 결정됩니다.</p>
             <p>요일별 자동 변동: 금·토 +20~30% | 월·화 -10~20% | 수·목·일 ±10%</p>
-            <p>예시: 게시글 8개 × 댓글 3개 = 하루 약 24개 (편중+요일 변동 적용)</p>
+            <p>예시: 게시글 8개 × 댓글 2~8개 = 하루 약 40개 (편중+요일 변동 적용)</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
@@ -481,20 +487,38 @@ export function AutoContentManager({
               />
             </div>
             <div className="space-y-2">
-              <Label>게시글당 댓글 (기준값)</Label>
-              <Input
-                type="number"
-                min="0"
-                max="10"
-                value={config.commentsPerPost}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    commentsPerPost: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="bg-zinc-900 border-zinc-700"
-              />
+              <Label>게시글당 댓글 (최소~최대)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={config.commentsPerPostMin}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      commentsPerPostMin: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="bg-zinc-900 border-zinc-700"
+                  placeholder="최소"
+                />
+                <span className="text-muted-foreground">~</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={config.commentsPerPostMax}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      commentsPerPostMax: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="bg-zinc-900 border-zinc-700"
+                  placeholder="최대"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>댓글당 답글 (기준값)</Label>
@@ -512,6 +536,44 @@ export function AutoContentManager({
                 className="bg-zinc-900 border-zinc-700"
               />
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-base font-medium">카테고리 비율</Label>
+            <p className="text-sm text-muted-foreground">자동 생성 게시글의 카테고리 분배 비율</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { key: "CHAT", label: "수다방" },
+                { key: "BEAUTY", label: "뷰티톡" },
+                { key: "QNA", label: "질문방" },
+                { key: "WORK", label: "업소톡" },
+              ].map((cat) => (
+                <div key={cat.key} className="flex items-center gap-2">
+                  <Label className="w-16 shrink-0 text-sm">{cat.label}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={config.categoryWeights[cat.key] ?? 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setConfig({
+                        ...config,
+                        categoryWeights: { ...config.categoryWeights, [cat.key]: val },
+                      });
+                    }}
+                    className="bg-zinc-900 border-zinc-700 w-20"
+                  />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              합계: {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0)}%
+              {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0) !== 100 && (
+                <span className="text-yellow-500 ml-2">(100%가 아닙니다)</span>
+              )}
+            </p>
           </div>
 
           <div className="space-y-4">

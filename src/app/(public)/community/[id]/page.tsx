@@ -9,6 +9,7 @@ import { PostActions } from "@/components/community/PostActions";
 import { CommentDeleteButton } from "@/components/community/CommentDeleteButton";
 import { ReplyButton } from "@/components/community/ReplyButton";
 import { ReportButton } from "@/components/community/ReportButton";
+import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 import { formatDateSmart } from "@/lib/utils/format";
 
 interface PageProps {
@@ -57,7 +58,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       viewCount: true,
       authorId: true,
       author: {
-        select: { name: true },
+        select: { id: true, name: true, role: true },
       },
       comments: {
         where: { parentId: null },
@@ -68,7 +69,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           createdAt: true,
           authorId: true,
           author: {
-            select: { name: true },
+            select: { id: true, name: true, role: true },
           },
           replies: {
             orderBy: { createdAt: "asc" },
@@ -78,7 +79,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               createdAt: true,
               authorId: true,
               author: {
-                select: { name: true },
+                select: { id: true, name: true, role: true },
               },
             },
           },
@@ -106,7 +107,15 @@ export default async function PostDetailPage({ params }: PageProps) {
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{post.title}</h1>
               <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
-                <span>{post.author.name}</span>
+                {isAdmin && session.user.id !== post.author.id ? (
+                  <AdminUserMenu
+                    userId={post.author.id}
+                    userName={post.author.name || "익명"}
+                    currentRole={post.author.role}
+                  />
+                ) : (
+                  <span>{post.author.name}</span>
+                )}
                 <span>|</span>
                 <span>{formatDateSmart(post.createdAt)}</span>
                 <span>|</span>
@@ -163,11 +172,22 @@ export default async function PostDetailPage({ params }: PageProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium">{comment.author.name}</span>
-                            {comment.authorId === post.authorId && (
-                              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
-                                작성자
-                              </span>
+                            {isAdmin && session?.user?.id !== comment.author.id ? (
+                              <AdminUserMenu
+                                userId={comment.author.id}
+                                userName={comment.author.name || "익명"}
+                                currentRole={comment.author.role}
+                                isPostAuthor={comment.authorId === post.authorId}
+                              />
+                            ) : (
+                              <>
+                                <span className="font-medium">{comment.author.name}</span>
+                                {comment.authorId === post.authorId && (
+                                  <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                                    작성자
+                                  </span>
+                                )}
+                              </>
                             )}
                             <span className="text-muted-foreground">
                               {formatDateSmart(comment.createdAt)}
@@ -209,11 +229,22 @@ export default async function PostDetailPage({ params }: PageProps) {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 text-sm">
-                                    <span className="font-medium">{reply.author.name}</span>
-                                    {reply.authorId === post.authorId && (
-                                      <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
-                                        작성자
-                                      </span>
+                                    {isAdmin && session?.user?.id !== reply.author.id ? (
+                                      <AdminUserMenu
+                                        userId={reply.author.id}
+                                        userName={reply.author.name || "익명"}
+                                        currentRole={reply.author.role}
+                                        isPostAuthor={reply.authorId === post.authorId}
+                                      />
+                                    ) : (
+                                      <>
+                                        <span className="font-medium">{reply.author.name}</span>
+                                        {reply.authorId === post.authorId && (
+                                          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                                            작성자
+                                          </span>
+                                        )}
+                                      </>
                                     )}
                                     <span className="text-muted-foreground">
                                       {formatDateSmart(reply.createdAt)}

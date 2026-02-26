@@ -5,12 +5,12 @@
  *   TOSS_SECRET_KEY - 시크릿 키 (서버)
  */
 
-const _clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-if (!_clientKey) throw new Error("NEXT_PUBLIC_TOSS_CLIENT_KEY is required");
-export const TOSS_CLIENT_KEY: string = _clientKey;
+export const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? "";
+export const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY ?? "";
 
-const _secretKey = process.env.TOSS_SECRET_KEY;
-if (!_secretKey) throw new Error("TOSS_SECRET_KEY is required");
-export const TOSS_SECRET_KEY: string = _secretKey;
+export function assertTossKeys() {
+  if (!TOSS_CLIENT_KEY) throw new Error("NEXT_PUBLIC_TOSS_CLIENT_KEY is required");
+  if (!TOSS_SECRET_KEY) throw new Error("TOSS_SECRET_KEY is required");
+}
 
 export const TOSS_API_URL = "https://api.tosspayments.com/v1";

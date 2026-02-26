@@ -34,10 +34,16 @@ async function findPostByIdOrSlug(idOrSlug: string) {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  const post = await findPostByIdOrSlug(decodeURIComponent(id));
+  const idOrSlug = decodeURIComponent(id);
+  const post = await findPostByIdOrSlug(idOrSlug);
 
   if (!post) {
     return { title: "게시글을 찾을 수 없습니다" };
+  }
+
+  // cuid로 접근했는데 slug가 있으면 slug URL로 308 리다이렉트 (SEO)
+  if (post.slug && idOrSlug !== post.slug && idOrSlug !== encodeURIComponent(post.slug)) {
+    permanentRedirect(`/community/${encodeURIComponent(post.slug)}`);
   }
 
   const description = post.content.substring(0, 155).replace(/\n/g, ' ');
@@ -65,11 +71,6 @@ export default async function PostDetailPage({ params }: PageProps) {
   // slug 또는 cuid로 게시글 찾기
   const lookup = await findPostByIdOrSlug(idOrSlug);
   if (!lookup) notFound();
-
-  // cuid로 접근했는데 slug가 있으면 slug URL로 301 리다이렉트 (SEO)
-  if (lookup.slug && idOrSlug !== lookup.slug && idOrSlug !== encodeURIComponent(lookup.slug)) {
-    permanentRedirect(`/community/${encodeURIComponent(lookup.slug)}`);
-  }
 
   const session = await auth();
 

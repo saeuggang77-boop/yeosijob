@@ -70,6 +70,7 @@ interface PoolItem {
   title: string | null;
   content: string;
   personality: string;
+  category: string;
   createdAt: string;
 }
 
@@ -98,7 +99,15 @@ const PERSONALITY_LABELS: Record<string, string> = {
   EMOJI_LOVER: "이모지러버",
   CALM: "차분형",
   SASSY: "당돌형",
+  CUSTOM: "직접작성",
 };
+
+const CATEGORY_OPTIONS = [
+  { key: "CHAT", label: "수다방" },
+  { key: "BEAUTY", label: "뷰티톡" },
+  { key: "QNA", label: "질문방" },
+  { key: "WORK", label: "가게이야기" },
+];
 
 export function AutoContentManager({
   initialConfig,
@@ -129,6 +138,9 @@ export function AutoContentManager({
   const [deletingSelected, setDeletingSelected] = useState(false);
   const [selectedGhostIds, setSelectedGhostIds] = useState<Set<string>>(new Set());
   const [deletingSelectedGhosts, setDeletingSelectedGhosts] = useState(false);
+  const [editItem, setEditItem] = useState<{id: string; title: string; content: string; category: string} | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createForm, setCreateForm] = useState({ title: "", content: "", category: "CHAT" });
 
   const refreshStats = async () => {
     try {
@@ -348,6 +360,53 @@ export function AutoContentManager({
     }
   };
 
+  const handleEditItem = async () => {
+    if (!editItem) return;
+    try {
+      const res = await fetch("/api/admin/auto-content/pool", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editItem),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "수정 실패");
+        return;
+      }
+      toast.success("원고가 수정되었습니다");
+      setEditItem(null);
+      await loadPoolItems();
+    } catch (error) {
+      toast.error("수정 중 오류가 발생했습니다");
+    }
+  };
+
+  const handleCreateItem = async () => {
+    if (!createForm.title.trim() || !createForm.content.trim()) {
+      toast.error("제목과 내용을 입력해주세요");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/auto-content/pool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createForm),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "추가 실패");
+        return;
+      }
+      toast.success("원고가 추가되었습니다");
+      setCreateForm({ title: "", content: "", category: "CHAT" });
+      setShowCreateForm(false);
+      await loadPoolItems();
+      await refreshStats();
+    } catch (error) {
+      toast.error("추가 중 오류가 발생했습니다");
+    }
+  };
+
   const handleTogglePoolItems = async () => {
     if (!showPoolItems) {
       await loadPoolItems();
@@ -427,6 +486,127 @@ export function AutoContentManager({
 
   return (
     <div className="space-y-6">
+      {/* Edit Modal */}
+      {editItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-2xl rounded-lg border border-zinc-700 bg-zinc-800 p-6 shadow-xl mx-4">
+            <h3 className="text-lg font-semibold text-[#D4A853] mb-4">원고 수정</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-white">제목</Label>
+                <Input
+                  value={editItem.title}
+                  onChange={(e) => setEditItem({ ...editItem, title: e.target.value })}
+                  className="mt-1.5 bg-zinc-900 border-zinc-700 text-white"
+                  placeholder="제목을 입력하세요"
+                />
+              </div>
+              <div>
+                <Label className="text-white">내용</Label>
+                <textarea
+                  value={editItem.content}
+                  onChange={(e) => setEditItem({ ...editItem, content: e.target.value })}
+                  className="mt-1.5 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white min-h-[150px]"
+                  placeholder="내용을 입력하세요"
+                  rows={6}
+                />
+              </div>
+              <div>
+                <Label className="text-white">카테고리</Label>
+                <Select
+                  value={editItem.category}
+                  onValueChange={(value) => setEditItem({ ...editItem, category: value })}
+                >
+                  <SelectTrigger className="mt-1.5 bg-zinc-900 border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditItem(null)}
+                >
+                  취소
+                </Button>
+                <Button onClick={handleEditItem}>
+                  저장
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-2xl rounded-lg border border-zinc-700 bg-zinc-800 p-6 shadow-xl mx-4">
+            <h3 className="text-lg font-semibold text-[#D4A853] mb-4">원고 추가</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-white">제목</Label>
+                <Input
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                  className="mt-1.5 bg-zinc-900 border-zinc-700 text-white"
+                  placeholder="제목을 입력하세요"
+                />
+              </div>
+              <div>
+                <Label className="text-white">내용</Label>
+                <textarea
+                  value={createForm.content}
+                  onChange={(e) => setCreateForm({ ...createForm, content: e.target.value })}
+                  className="mt-1.5 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white min-h-[150px]"
+                  placeholder="내용을 입력하세요"
+                  rows={6}
+                />
+              </div>
+              <div>
+                <Label className="text-white">카테고리</Label>
+                <Select
+                  value={createForm.category}
+                  onValueChange={(value) => setCreateForm({ ...createForm, category: value })}
+                >
+                  <SelectTrigger className="mt-1.5 bg-zinc-900 border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setCreateForm({ title: "", content: "", category: "CHAT" });
+                  }}
+                >
+                  취소
+                </Button>
+                <Button onClick={handleCreateItem}>
+                  추가
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Vercel Pro 불필요 알림 */}
       {!config.enabled && stats.todayActivity.posts === 0 && stats.todayActivity.comments === 0 && stats.todayActivity.replies === 0 && (
         <div className="rounded-lg border border-yellow-600/50 bg-yellow-900/20 p-4">
@@ -683,7 +863,7 @@ export function AutoContentManager({
                 { key: "CHAT", label: "수다방" },
                 { key: "BEAUTY", label: "뷰티톡" },
                 { key: "QNA", label: "질문방" },
-                { key: "WORK", label: "업소톡" },
+                { key: "WORK", label: "가게이야기" },
               ].map((cat) => (
                 <div key={cat.key} className="flex items-center gap-2">
                   <Label className="w-16 shrink-0 text-sm">{cat.label}</Label>
@@ -792,6 +972,15 @@ export function AutoContentManager({
                 )
               )}
             </Button>
+            {showPoolItems && (
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                variant="outline"
+                size="sm"
+              >
+                원고 추가
+              </Button>
+            )}
             {showPoolItems && selectedPoolIds.size > 0 && (
               <Button
                 onClick={handleDeleteSelected}
@@ -820,6 +1009,7 @@ export function AutoContentManager({
                     </TableHead>
                     <TableHead className="text-muted-foreground">제목</TableHead>
                     <TableHead className="text-muted-foreground">내용</TableHead>
+                    <TableHead className="text-muted-foreground">카테고리</TableHead>
                     <TableHead className="text-muted-foreground">성격유형</TableHead>
                     <TableHead className="text-muted-foreground text-right">액션</TableHead>
                   </TableRow>
@@ -827,7 +1017,7 @@ export function AutoContentManager({
                 <TableBody>
                   {poolItems.length === 0 ? (
                     <TableRow className="border-zinc-700">
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
                         미사용 원고가 없습니다
                       </TableCell>
                     </TableRow>
@@ -875,22 +1065,45 @@ export function AutoContentManager({
                           )}
                         </TableCell>
                         <TableCell>
+                          <Badge variant="outline">
+                            {CATEGORY_OPTIONS.find(c => c.key === item.category)?.label || item.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           <Badge variant="secondary" className="text-[#D4A853]">
                             {PERSONALITY_LABELS[item.personality] || item.personality}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-8 hover:text-red-500"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeletePoolItem(item.id);
-                            }}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8 hover:text-[#D4A853]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditItem({
+                                  id: item.id,
+                                  title: item.title || "",
+                                  content: item.content,
+                                  category: item.category,
+                                });
+                              }}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8 hover:text-red-500"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePoolItem(item.id);
+                              }}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))

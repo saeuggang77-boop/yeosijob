@@ -351,7 +351,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                       post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                       "bg-muted text-muted-foreground"
                     }`}>
-                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
+                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                     </span>
                     <span className="truncate text-sm font-medium">{post.title}</span>
                     {post._count.comments > 0 && (

@@ -120,7 +120,7 @@ export function UserPostsModal({
       case "QNA":
         return "질문방";
       case "WORK":
-        return "업소톡";
+        return "가게이야기";
       default:
         return category;
     }

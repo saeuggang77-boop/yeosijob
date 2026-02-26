@@ -25,7 +25,7 @@ const CATEGORIES = [
   { key: "CHAT", label: "수다방" },
   { key: "BEAUTY", label: "뷰티톡" },
   { key: "QNA", label: "질문방" },
-  { key: "WORK", label: "업소톡" },
+  { key: "WORK", label: "가게이야기" },
 ];
 
 interface PageProps {
@@ -128,7 +128,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                       "bg-muted text-muted-foreground"
                     }`}>
-                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
+                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                     </span>
                     <span className="min-w-0 truncate text-sm font-medium">{post.title}</span>
                     {post._count.comments > 0 && (
@@ -190,7 +190,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
                             "bg-muted text-muted-foreground"
                           }`}>
-                            {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "업소톡"}
+                            {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                           </span>
                           <span className="text-sm font-medium">{post.title}</span>
                           {post._count.comments > 0 && (

@@ -72,6 +72,7 @@ enum GhostPersonality {
   EMOJI_LOVER
   CALM
   SASSY
+  CUSTOM
 }
 
 enum ContentType {

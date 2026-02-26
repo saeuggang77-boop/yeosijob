@@ -71,7 +71,7 @@ export default function NewPostPage() {
                 <option value="CHAT">수다방</option>
                 <option value="BEAUTY">뷰티톡</option>
                 <option value="QNA">질문방</option>
-                <option value="WORK">업소톡</option>
+                <option value="WORK">가게이야기</option>
               </select>
             </div>
 

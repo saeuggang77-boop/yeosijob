@@ -208,6 +208,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             userName={post.author.name || "익명"}
                             currentRole={post.author.role}
                             isAdmin={isAdmin}
+                            isUserActive={post.author.isActive}
                           />
                         ) : (
                           post.author.name

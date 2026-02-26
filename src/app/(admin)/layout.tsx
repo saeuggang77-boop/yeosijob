@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/resumes", label: "이력서", icon: "📄" },
   { href: "/admin/reviews", label: "후기 관리", icon: "⭐" },
   { href: "/admin/posts", label: "게시판 관리", icon: "💬" },
+  { href: "/admin/reports", label: "신고 관리", icon: "🚨" },
   { href: "/admin/notices", label: "공지사항 관리", icon: "📣" },
   { href: "/admin/auto-content", label: "자동 콘텐츠", icon: "🤖" },
   { href: "/admin/verification", label: "업소 인증", icon: "✅" },

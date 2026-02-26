@@ -80,6 +80,20 @@ enum ContentType {
   REPLY
 }
 
+enum ReportReason {
+  ABUSE
+  OBSCENE
+  SPAM
+  PRIVACY
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
 enum BusinessType {
   KARAOKE
   ROOM_SALON
@@ -211,6 +225,7 @@ model User {
   comments         Comment[]
   notices          Notice[]
   ageVerifications AgeVerification[]
+  reports          Report[]
 
   @@index([role])
   @@index([isGhost])
@@ -538,6 +553,7 @@ model Post {
   author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments     Comment[]
   contentPools ContentPool[]
+  reports      Report[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
@@ -557,11 +573,34 @@ model Comment {
   post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies Comment[] @relation("CommentReplies")
+  reports Report[]
 
   @@index([postId, createdAt(sort: Desc)])
   @@index([authorId])
   @@index([parentId])
   @@map("comments")
+}
+
+// ── REPORT (신고) ──
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  postId     String?
+  commentId  String?
+  reason     ReportReason
+  detail     String?      @db.Text
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  reporter User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  post     Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, postId])
+  @@unique([reporterId, commentId])
+  @@index([status])
+  @@map("reports")
 }
 
 // ── CONTENT POOL (자동 콘텐츠) ──

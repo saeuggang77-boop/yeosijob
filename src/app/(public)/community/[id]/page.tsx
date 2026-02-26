@@ -8,6 +8,7 @@ import { CommentForm } from "@/components/community/CommentForm";
 import { PostActions } from "@/components/community/PostActions";
 import { CommentDeleteButton } from "@/components/community/CommentDeleteButton";
 import { ReplyButton } from "@/components/community/ReplyButton";
+import { ReportButton } from "@/components/community/ReportButton";
 import { formatDateSmart } from "@/lib/utils/format";
 
 interface PageProps {
@@ -122,8 +123,13 @@ export default async function PostDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* Back to List */}
-      <div className="mt-4 flex justify-center">
+      {/* Actions Bar */}
+      <div className="mt-4 flex items-center justify-between">
+        <div>
+          {!isAuthor && (
+            <ReportButton postId={post.id} isLoggedIn={!!session} />
+          )}
+        </div>
         <Link href="/community">
           <Button variant="outline">목록으로</Button>
         </Link>
@@ -178,9 +184,14 @@ export default async function PostDetailPage({ params }: PageProps) {
                             />
                           </div>
                         </div>
-                        {canDeleteComment && (
-                          <CommentDeleteButton postId={post.id} commentId={comment.id} />
-                        )}
+                        <div className="flex items-center gap-2">
+                          {session?.user?.id !== comment.authorId && (
+                            <ReportButton commentId={comment.id} isLoggedIn={!!session} />
+                          )}
+                          {canDeleteComment && (
+                            <CommentDeleteButton postId={post.id} commentId={comment.id} />
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -227,9 +238,14 @@ export default async function PostDetailPage({ params }: PageProps) {
                                     />
                                   </div>
                                 </div>
-                                {canDeleteReply && (
-                                  <CommentDeleteButton postId={post.id} commentId={reply.id} />
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {session?.user?.id !== reply.authorId && (
+                                    <ReportButton commentId={reply.id} isLoggedIn={!!session} />
+                                  )}
+                                  {canDeleteReply && (
+                                    <CommentDeleteButton postId={post.id} commentId={reply.id} />
+                                  )}
+                                </div>
                               </div>
                             </CardContent>
                           </Card>

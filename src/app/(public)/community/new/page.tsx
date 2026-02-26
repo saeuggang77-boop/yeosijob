@@ -42,7 +42,7 @@ export default function NewPostPage() {
       if (!res.ok) throw new Error("Failed to create post");
 
       const data = await res.json();
-      router.push(`/community/${data.id}`);
+      router.push(`/community/${data.slug || data.id}`);
     } catch (error) {
       console.error("Error creating post:", error);
       alert("게시글 작성에 실패했습니다.");

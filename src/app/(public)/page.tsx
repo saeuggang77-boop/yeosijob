@@ -144,6 +144,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       take: 5,
       select: {
         id: true,
+        slug: true,
         title: true,
         category: true,
         viewCount: true,
@@ -342,7 +343,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           </div>
           <div className="divide-y divide-border rounded-lg border">
             {recentPosts.map((post) => (
-              <Link key={post.id} href={`/community/${post.id}`} className="block transition-colors hover:bg-muted/50">
+              <Link key={post.id} href={`/community/${post.slug || post.id}`} className="block transition-colors hover:bg-muted/50">
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${

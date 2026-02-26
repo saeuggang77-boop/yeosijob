@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/utils/format";
+import { createUniqueSlug } from "@/lib/utils/slug";
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         select: {
           id: true,
+          slug: true,
           title: true,
           content: true,
           category: true,
@@ -122,15 +124,19 @@ export async function POST(request: NextRequest) {
     const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
     const postCategory = validCategories.includes(category) ? category : "CHAT";
 
+    const slug = await createUniqueSlug(title.trim());
+
     const post = await prisma.post.create({
       data: {
         title: title.trim(),
+        slug,
         content: content.trim(),
         category: postCategory,
         authorId: session.user.id,
       },
       select: {
         id: true,
+        slug: true,
         title: true,
         content: true,
         category: true,
@@ -154,6 +160,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+    // Note: slug is included in the response for redirect
   } catch (error) {
     console.error("Post creation error:", error);
     return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });

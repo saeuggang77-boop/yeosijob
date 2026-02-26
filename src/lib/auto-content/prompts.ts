@@ -130,10 +130,29 @@ const CATEGORY_TOPICS: Record<string, { name: string; topics: string }> = {
   },
 };
 
+// 성격별 제목 길이 가이드 (SEO 최적화 + 자연스러움 공존)
+const TITLE_LENGTH_GUIDE: Record<GhostPersonality, string> = {
+  CHATTY: `제목은 10~20자로 짧고 수다스럽게 작성하세요.
+예시: "오늘 손님 레전드ㅋㅋ", "출근하기싫다ㅠ", "아 오늘 대박이었어요"`,
+  SASSY: `제목은 10~20자로 짧고 임팩트있게 작성하세요.
+예시: "사장 진짜 어이없네", "오늘 빡침 주의", "솔직히 이건 좀"`,
+  EMOJI_LOVER: `제목은 10~20자로 짧게, 이모티콘 포함 작성하세요.
+예시: "첫출근 떨려요ㅠㅠ", "오늘 대박ㅋㅋ♥", "언니들 도와주세요ㅠ"`,
+  ADVISOR: `제목은 25~40자로 구체적이고 정보성 있게 작성하세요.
+예시: "강남 카페알바 3개월차 팁 공유합니다", "면접 볼 때 꼭 확인해야 할 것들 정리"`,
+  CALM: `제목은 25~40자로 차분하고 구체적으로 작성하세요.
+예시: "텐카페 면접 준비할 때 알아두면 좋은 것들", "가게 옮기려고 하는데 고민 정리해봤어요"`,
+  QUESTIONER: `제목은 20~35자로 질문형으로 작성하세요.
+예시: "노래방 알바 시급 보통 얼마 정도예요?", "신입인데 첫날 뭐 준비해야 하나요"`,
+  CUSTOM: `제목은 15~30자로 자연스럽게 작성하세요.`,
+};
+
 export function getPostGenerationPrompt(personality: GhostPersonality, count: number, keywords?: string[], categories?: string[]): string {
   const keywordSection = keywords && keywords.length > 0
     ? `\n\nSEO 키워드: ${keywords.join(', ')}\n위 키워드 중 2~3개를 제목과 본문에 자연스럽게 포함하세요. 키워드 스터핑이 아닌 자연스러운 문맥으로 녹여야 합니다.`
     : '';
+
+  const titleGuide = TITLE_LENGTH_GUIDE[personality];
 
   // 각 글마다 다른 스타일 + 카테고리 배정
   const cats = categories || Array.from({ length: count }, () => "CHAT");
@@ -152,7 +171,8 @@ ${getRandomStyle()}`;
 ${PERSONALITY_PROMPTS[personality]}
 ${keywordSection}
 
-제목은 15자 이내로 자연스럽게 작성하세요.
+${titleGuide}
+본문은 최소 150자 이상 작성하세요. 너무 짧으면 검색엔진에 불리합니다.
 각 글은 지정된 카테고리(수다방/뷰티톡/질문방/가게이야기)의 주제에 맞게 작성하세요.
 
 🔥 가장 중요한 규칙: 각 글은 완전히 다른 사람이 쓴 것처럼 보여야 합니다!

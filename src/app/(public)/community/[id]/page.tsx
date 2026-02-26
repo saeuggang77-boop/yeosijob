@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -15,41 +15,72 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+// slug 또는 cuid로 게시글 조회
+async function findPostByIdOrSlug(idOrSlug: string) {
+  // 먼저 slug로 검색
+  const bySlug = await prisma.post.findUnique({
+    where: { slug: idOrSlug },
+    select: { id: true, slug: true, title: true, content: true },
+  });
+  if (bySlug) return bySlug;
+
+  // slug로 못 찾으면 cuid로 검색
+  const byId = await prisma.post.findUnique({
+    where: { id: idOrSlug },
+    select: { id: true, slug: true, title: true, content: true },
+  });
+  return byId;
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  const post = await prisma.post.findUnique({
-    where: { id },
-    select: { title: true, content: true },
-  });
+  const post = await findPostByIdOrSlug(id);
 
   if (!post) {
     return { title: "게시글을 찾을 수 없습니다" };
   }
 
+  const description = post.content.substring(0, 155).replace(/\n/g, ' ');
+  const canonicalId = post.slug || post.id;
+
   return {
     title: post.title,
-    description: post.content.substring(0, 100),
+    description,
+    alternates: {
+      canonical: `/community/${canonicalId}`,
+    },
     openGraph: {
       type: "article",
       title: `${post.title} | 여시잡`,
-      description: post.content.substring(0, 100),
+      description,
       images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
     },
   };
 }
 
 export default async function PostDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id: idOrSlug } = await params;
   const session = await auth();
+
+  // slug 또는 cuid로 게시글 찾기
+  const lookup = await findPostByIdOrSlug(idOrSlug);
+  if (!lookup) notFound();
+
+  // cuid로 접근했는데 slug가 있으면 slug URL로 리다이렉트 (SEO)
+  if (lookup.slug && idOrSlug !== lookup.slug) {
+    redirect(`/community/${lookup.slug}`);
+  }
+
+  const postId = lookup.id;
 
   // Increment view count
   await prisma.post.update({
-    where: { id },
+    where: { id: postId },
     data: { viewCount: { increment: 1 } },
   });
 
   const post = await prisma.post.findUnique({
-    where: { id },
+    where: { id: postId },
     select: {
       id: true,
       title: true,
@@ -92,7 +123,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   });
 
   // Get total comment count (including replies)
-  const commentCount = await prisma.comment.count({ where: { postId: id } });
+  const commentCount = await prisma.comment.count({ where: { postId } });
 
   if (!post) {
     notFound();
@@ -105,12 +136,12 @@ export default async function PostDetailPage({ params }: PageProps) {
   if (session?.user?.id) {
     const [postLikeResult, commentLikeResults] = await Promise.all([
       prisma.postLike.findUnique({
-        where: { userId_postId: { userId: session.user.id, postId: id } },
+        where: { userId_postId: { userId: session.user.id, postId } },
       }),
       prisma.commentLike.findMany({
         where: {
           userId: session.user.id,
-          comment: { postId: id },
+          comment: { postId },
         },
         select: { commentId: true },
       }),
@@ -143,8 +174,38 @@ export default async function PostDetailPage({ params }: PageProps) {
     })),
   }));
 
+  // JSON-LD 구조화 데이터
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: post.title,
+    text: post.content.substring(0, 200),
+    datePublished: post.createdAt.toISOString(),
+    author: {
+      "@type": "Person",
+      name: post.author.name || "익명",
+    },
+    interactionStatistic: [
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/CommentAction",
+        userInteractionCount: commentCount,
+      },
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/LikeAction",
+        userInteractionCount: post._count.likes,
+      },
+    ],
+    url: `https://yeosijob.com/community/${lookup.slug || postId}`,
+  };
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Post */}
       <Card>
         <CardHeader>

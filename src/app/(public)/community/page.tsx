@@ -57,6 +57,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
       take: limit,
       select: {
         id: true,
+        slug: true,
         title: true,
         category: true,
         createdAt: true,
@@ -118,7 +119,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  href={`/community/${post.id}`}
+                  href={`/community/${post.slug || post.id}`}
                   className="block px-4 py-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-2">
@@ -183,7 +184,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         {total - (page - 1) * limit - idx}
                       </td>
                       <td className="px-4 py-3">
-                        <Link href={`/community/${post.id}`} className="hover:underline">
+                        <Link href={`/community/${post.slug || post.id}`} className="hover:underline">
                           <span className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${
                             post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
                             post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :

@@ -83,13 +83,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       isHidden: false,
       createdAt: { gte: ninetyDaysAgo },
     },
-    select: { id: true, updatedAt: true },
+    select: { id: true, slug: true, updatedAt: true },
     orderBy: { createdAt: "desc" },
     take: 500,
   });
 
   const communityPages: MetadataRoute.Sitemap = communityPosts.map((post) => ({
-    url: `${baseUrl}/community/${post.id}`,
+    url: `${baseUrl}/community/${post.slug || post.id}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.5,

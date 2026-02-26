@@ -14,6 +14,7 @@ import {
   generateContextualReplies,
   generateConversationThread,
 } from "@/lib/auto-content/scheduler";
+import { createUniqueSlug } from "@/lib/utils/slug";
 
 /**
  * 자동 콘텐츠 발행 cron - 매 30분 실행
@@ -84,6 +85,8 @@ export async function GET(request: NextRequest) {
         const ghost = ghostUsers[i];
         const poolItem = postContents[i];
 
+        const slug = await createUniqueSlug(poolItem.title || "자유게시글");
+
         await prisma.$transaction(async (tx) => {
           // 게시글 생성 (1~25분 전 랜덤 시간으로)
           const createdAt = new Date(Date.now() - (Math.floor(Math.random() * 25) + 1) * 60 * 1000);
@@ -92,6 +95,7 @@ export async function GET(request: NextRequest) {
             data: {
               authorId: ghost.id,
               title: poolItem.title || "자유게시글",
+              slug,
               content: poolItem.content,
               category: poolItem.category || "CHAT",
               viewCount: Math.floor(Math.random() * 2), // 0~1 (새 글이니까 낮게 시작)

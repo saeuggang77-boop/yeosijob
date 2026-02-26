@@ -31,6 +31,7 @@ export const metadata: Metadata = {
   },
   other: {
     "mobile-web-app-capable": "yes",
+    "naver-site-verification": process.env.NAVER_SITE_VERIFICATION || "",
   },
   icons: {
     icon: [

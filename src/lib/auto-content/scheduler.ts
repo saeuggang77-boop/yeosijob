@@ -12,7 +12,8 @@ import { logAiUsage } from "@/lib/ai-usage";
  * 자정 넘기는 시간대 처리 (예: 14시~4시)
  */
 export function isWithinActiveHours(kstHour: number, start: number, end: number): boolean {
-  if (start <= end) {
+  if (start === end) return true; // 0시~0시 = 24시간
+  if (start < end) {
     return kstHour >= start && kstHour < end;
   }
   return kstHour >= start || kstHour < end;
@@ -66,7 +67,8 @@ export function getContentTarget(id: string, base: number): number {
  * 활성 시간대의 총 시간 수 계산
  */
 export function getActiveHoursCount(start: number, end: number): number {
-  if (start <= end) {
+  if (start === end) return 24; // 0시~0시 = 24시간
+  if (start < end) {
     return end - start;
   }
   return (24 - start) + end;

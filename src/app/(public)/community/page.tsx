@@ -152,7 +152,6 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     <th className="px-4 py-3 text-left text-sm font-semibold">제목</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">작성자</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">조회수</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold">댓글</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold">작성일</th>
                   </tr>
                 </thead>
@@ -185,9 +184,6 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-muted-foreground">
                         {post.viewCount.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-center text-sm text-muted-foreground">
-                        {post._count.comments}
                       </td>
                       <td className="px-4 py-3 text-right text-sm text-muted-foreground">
                         {formatDateSmart(post.createdAt)}

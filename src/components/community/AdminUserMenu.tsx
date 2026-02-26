@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { UserPostsModal } from "./UserPostsModal";
 
 interface AdminUserMenuProps {
   userId: string;
@@ -18,6 +19,7 @@ export function AdminUserMenu({
 }: AdminUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleSubmenu, setShowRoleSubmenu] = useState(false);
+  const [showPostsModal, setShowPostsModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -37,8 +39,8 @@ export function AdminUserMenu({
   }, [isOpen]);
 
   const handleViewPosts = () => {
-    window.open(`/admin/posts?authorId=${userId}`, "_blank");
     setIsOpen(false);
+    setShowPostsModal(true);
   };
 
   const handleChangeRole = async (newRole: "JOBSEEKER" | "BUSINESS") => {
@@ -230,6 +232,14 @@ export function AdminUserMenu({
           </button>
         </div>
       )}
+
+      {/* User Posts Modal */}
+      <UserPostsModal
+        userId={userId}
+        userName={userName}
+        isOpen={showPostsModal}
+        onClose={() => setShowPostsModal(false)}
+      />
     </div>
   );
 }

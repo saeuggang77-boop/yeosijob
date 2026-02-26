@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resumeSchema } from "@/lib/validators/resume";
+import { sendPushNotification } from "@/lib/push-notification";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 
@@ -83,30 +84,62 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Notify PREMIUM/VIP/BANNER ad owners when a new resume is created
+    // Notify ad owners when a new resume is created
     if (isNew) {
-      // Find business users with PREMIUM, VIP, or BANNER active ads
-      // that match the resume's region and desired jobs
-      const premiumAds = await prisma.ad.findMany({
-        where: {
-          status: "ACTIVE",
-          productId: { in: ["PREMIUM", "VIP", "BANNER"] },
-          regions: { has: data.region as Region },
-          businessType: { in: data.desiredJobs as BusinessType[] },
-        },
-        select: { userId: true },
-        distinct: ["userId"],
-      });
+      // 1. includeResumeAlert 상품 (PREMIUM/VIP/BANNER)
+      // 2. KAKAO_ALERT 옵션 구매자
+      const [premiumAds, alertOptionAds] = await Promise.all([
+        prisma.ad.findMany({
+          where: {
+            status: "ACTIVE",
+            productId: { in: ["PREMIUM", "VIP", "BANNER"] },
+            regions: { has: data.region as Region },
+            businessType: { in: data.desiredJobs as BusinessType[] },
+          },
+          select: { userId: true },
+          distinct: ["userId"],
+        }),
+        prisma.ad.findMany({
+          where: {
+            status: "ACTIVE",
+            regions: { has: data.region as Region },
+            businessType: { in: data.desiredJobs as BusinessType[] },
+            options: { some: { optionId: "KAKAO_ALERT" } },
+          },
+          select: { userId: true },
+          distinct: ["userId"],
+        }),
+      ]);
 
-      if (premiumAds.length > 0) {
+      // 중복 제거
+      const userIds = [...new Set([
+        ...premiumAds.map((a) => a.userId),
+        ...alertOptionAds.map((a) => a.userId),
+      ])];
+
+      if (userIds.length > 0) {
+        const message = `새로운 구직자(${data.nickname})가 이력서를 등록했습니다. ${data.region} 지역, ${data.desiredJobs.join(", ")} 희망`;
+
+        // 앱 내 알림 생성
         await prisma.notification.createMany({
-          data: premiumAds.map((ad) => ({
-            userId: ad.userId,
+          data: userIds.map((userId) => ({
+            userId,
             title: "새 이력서 등록",
-            message: `새로운 구직자(${data.nickname})가 이력서를 등록했습니다. ${data.region} 지역, ${data.desiredJobs.join(", ")} 희망`,
+            message,
             link: "/business/resumes",
           })),
         });
+
+        // 브라우저 푸시 알림 (fire and forget)
+        Promise.allSettled(
+          userIds.map((userId) =>
+            sendPushNotification(userId, {
+              title: "새 이력서 등록",
+              body: message,
+              url: "/business/resumes",
+            })
+          )
+        ).catch(() => {});
       }
     }
 

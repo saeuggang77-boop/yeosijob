@@ -156,6 +156,11 @@ export default async function PostDetailPage({ params }: PageProps) {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-sm">
                             <span className="font-medium">{comment.author.name}</span>
+                            {comment.authorId === post.authorId && (
+                              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                                작성자
+                              </span>
+                            )}
                             <span className="text-muted-foreground">
                               {comment.createdAt.toLocaleDateString("ko-KR")}
                             </span>
@@ -192,6 +197,11 @@ export default async function PostDetailPage({ params }: PageProps) {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 text-sm">
                                     <span className="font-medium">{reply.author.name}</span>
+                                    {reply.authorId === post.authorId && (
+                                      <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
+                                        작성자
+                                      </span>
+                                    )}
                                     <span className="text-muted-foreground">
                                       {reply.createdAt.toLocaleDateString("ko-KR")}
                                     </span>

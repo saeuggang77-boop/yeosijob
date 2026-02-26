@@ -514,47 +514,69 @@ export function AutoContentManager({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>활동 시작 시간</Label>
-              <Select
-                value={String(config.activeStartHour)}
-                onValueChange={(value) =>
-                  setConfig({ ...config, activeStartHour: parseInt(value) })
-                }
-              >
-                <SelectTrigger className="bg-zinc-900 border-zinc-700">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <SelectItem key={i} value={String(i)}>
-                      {i}시
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-medium">24시간 운영</Label>
+                <p className="text-sm text-muted-foreground">
+                  시간 제한 없이 하루 종일 콘텐츠 생성
+                </p>
+              </div>
+              <Switch
+                checked={config.activeStartHour === config.activeEndHour}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setConfig({ ...config, activeStartHour: 0, activeEndHour: 0 });
+                  } else {
+                    setConfig({ ...config, activeStartHour: 14, activeEndHour: 4 });
+                  }
+                }}
+              />
             </div>
-            <div className="space-y-2">
-              <Label>활동 종료 시간</Label>
-              <Select
-                value={String(config.activeEndHour)}
-                onValueChange={(value) =>
-                  setConfig({ ...config, activeEndHour: parseInt(value) })
-                }
-              >
-                <SelectTrigger className="bg-zinc-900 border-zinc-700">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <SelectItem key={i} value={String(i)}>
-                      {i}시
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {config.activeStartHour !== config.activeEndHour && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>활동 시작 시간</Label>
+                  <Select
+                    value={String(config.activeStartHour)}
+                    onValueChange={(value) =>
+                      setConfig({ ...config, activeStartHour: parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger className="bg-zinc-900 border-zinc-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {i}시
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>활동 종료 시간</Label>
+                  <Select
+                    value={String(config.activeEndHour)}
+                    onValueChange={(value) =>
+                      setConfig({ ...config, activeEndHour: parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger className="bg-zinc-900 border-zinc-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {i}시
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">

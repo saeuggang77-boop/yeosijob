@@ -1,19 +1,24 @@
 import webpush from 'web-push';
 import { prisma } from '@/lib/prisma';
 
-// VAPID 설정
-if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    'mailto:saeuggang77@gmail.com',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
+// VAPID 설정 (런타임에 lazy 초기화)
+let vapidConfigured = false;
+function ensureVapidConfig() {
+  if (vapidConfigured) return true;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) return false;
+  webpush.setVapidDetails('mailto:saeuggang77@gmail.com', publicKey, privateKey);
+  vapidConfigured = true;
+  return true;
 }
 
 export async function sendPushNotification(
   userId: string,
   payload: { title: string; body: string; url?: string }
 ) {
+  if (!ensureVapidConfig()) return;
+
   try {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId },

@@ -77,7 +77,7 @@ export default async function PricingPage() {
         <CardHeader>
           <CardTitle className="text-2xl">광고 등급별 비교</CardTitle>
           <CardDescription>
-            등급에 따라 노출 위치, 점프 횟수, 이력서 열람 기능이 달라집니다
+            등급에 따라 노출 위치, 점프 횟수, 이력서 열람, 쪽지 기능이 달라집니다
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -118,6 +118,16 @@ export default async function PricingPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">쪽지</span>
+                    <span>
+                      {["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"].includes(tier.id) ? (
+                        <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-muted-foreground">디자인 포함</span>
                     <span>{formatNumber(tier.includeDesignCount)}</span>
                   </div>
@@ -146,6 +156,7 @@ export default async function PricingPage() {
                   <th className="text-center p-3 font-bold">자동점프/일</th>
                   <th className="text-center p-3 font-bold">수동점프/일</th>
                   <th className="text-center p-3 font-bold">이력서 열람</th>
+                  <th className="text-center p-3 font-bold">쪽지</th>
                   <th className="text-left p-3 font-bold">노출 위치</th>
                   <th className="text-center p-3 font-bold">디자인 포함</th>
                   <th className="text-center p-3 font-bold">최대 지역</th>
@@ -162,6 +173,13 @@ export default async function PricingPage() {
                     <td className="text-center p-3">{formatNumber(tier.manualJumpPerDay)}</td>
                     <td className="text-center p-3">
                       {tier.includeResumeView ? (
+                        <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </td>
+                    <td className="text-center p-3">
+                      {["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"].includes(tier.id) ? (
                         <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
                       ) : (
                         <span className="text-muted-foreground">-</span>

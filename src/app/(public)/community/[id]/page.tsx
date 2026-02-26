@@ -94,6 +94,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   }
 
   const isAuthor = session?.user?.id === post.authorId;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
@@ -111,7 +112,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                 <span>조회 {post.viewCount.toLocaleString()}</span>
               </div>
             </div>
-            {isAuthor && <PostActions postId={post.id} />}
+            {(isAuthor || isAdmin) && <PostActions postId={post.id} />}
           </div>
         </CardHeader>
         <CardContent>
@@ -147,7 +148,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         ) : (
           <div className="space-y-4">
             {post.comments.map((comment) => {
-              const isCommentAuthor = session?.user?.id === comment.authorId;
+              const canDeleteComment = isAdmin || session?.user?.id === comment.authorId;
               return (
                 <div key={comment.id} className="space-y-2">
                   {/* Top-level Comment */}
@@ -177,7 +178,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                             />
                           </div>
                         </div>
-                        {isCommentAuthor && (
+                        {canDeleteComment && (
                           <CommentDeleteButton postId={post.id} commentId={comment.id} />
                         )}
                       </div>
@@ -188,7 +189,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                   {comment.replies && comment.replies.length > 0 && (
                     <div className="ml-8 space-y-2 border-l-2 border-primary/20 pl-4">
                       {comment.replies.map((reply) => {
-                        const isReplyAuthor = session?.user?.id === reply.authorId;
+                        const canDeleteReply = isAdmin || session?.user?.id === reply.authorId;
                         // Highlight @mentions in gold
                         const contentParts = reply.content.split(/(@\S+)/g);
                         return (
@@ -226,7 +227,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                                     />
                                   </div>
                                 </div>
-                                {isReplyAuthor && (
+                                {canDeleteReply && (
                                   <CommentDeleteButton postId={post.id} commentId={reply.id} />
                                 )}
                               </div>

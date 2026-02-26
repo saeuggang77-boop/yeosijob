@@ -147,7 +147,7 @@ export function AutoContentManager({
       const res = await fetch("/api/admin/auto-content/stats");
       if (res.ok) {
         const data = await res.json();
-        setStats(data);
+        setStats(prev => ({ ...prev, ...data }));
       }
     } catch (error) {
       console.error("Stats refresh error:", error);

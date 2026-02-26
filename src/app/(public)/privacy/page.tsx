@@ -5,6 +5,9 @@ export const metadata = {
     title: "개인정보처리방침 | 여시잡",
     description: "여시잡 개인정보처리방침",
   },
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {

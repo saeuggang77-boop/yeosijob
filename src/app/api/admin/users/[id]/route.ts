@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -82,6 +83,8 @@ export async function PATCH(
         },
       });
 
+      revalidatePath("/community");
+
       return NextResponse.json({
         message: `${user.name}님을 활동정지 처리했습니다. (${periodText})`,
       });
@@ -107,6 +110,8 @@ export async function PATCH(
           message: "활동정지가 해제되었습니다. 정상적으로 활동하실 수 있습니다.",
         },
       });
+
+      revalidatePath("/community");
 
       return NextResponse.json({
         message: `${user.name}님의 활동정지를 해제했습니다.`,

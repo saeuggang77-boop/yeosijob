@@ -38,25 +38,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         // OAuth 활동정지 체크 (기존 유저)
-        if (existingUser && !existingUser.isActive && existingUser.suspendedUntil) {
-          const now = new Date();
-          const isFarFuture = existingUser.suspendedUntil.getFullYear() >= 9999;
+        if (existingUser && !existingUser.isActive) {
+          // suspendedUntil이 있는 경우 기간 체크, 없으면 영구 정지
+          if (existingUser.suspendedUntil) {
+            const now = new Date();
+            const isFarFuture = existingUser.suspendedUntil.getFullYear() >= 9999;
 
-          if (!isFarFuture && existingUser.suspendedUntil < now) {
-            // 기간 만료 → 자동 해제
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: { isActive: true, suspendedUntil: null, suspendReason: null },
-            });
-            await prisma.notification.create({
-              data: {
-                userId: existingUser.id,
-                title: "활동정지 해제",
-                message: "활동정지 기간이 만료되어 자동 해제되었습니다.",
-              },
-            }).catch(() => {});
+            if (!isFarFuture && existingUser.suspendedUntil < now) {
+              // 기간 만료 → 자동 해제
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { isActive: true, suspendedUntil: null, suspendReason: null },
+              });
+              await prisma.notification.create({
+                data: {
+                  userId: existingUser.id,
+                  title: "활동정지 해제",
+                  message: "활동정지 기간이 만료되어 자동 해제되었습니다.",
+                },
+              }).catch(() => {});
+            } else {
+              // 아직 정지 중
+              return false;
+            }
           } else {
-            // 아직 정지 중
+            // suspendedUntil이 null = 영구 정지
             return false;
           }
         }
@@ -165,10 +171,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               // 해제 후 로그인 허용 → 아래로 진행
             } else {
               // 아직 정지 중 → 로그인 거부
-              return null;
+              throw new Error("활동정지 중입니다. 정지 기간: " + user.suspendedUntil.toLocaleDateString("ko-KR"));
             }
           } else {
-            return null;
+            // suspendedUntil이 null = 영구 정지
+            throw new Error("계정이 영구 정지되었습니다");
           }
         }
 

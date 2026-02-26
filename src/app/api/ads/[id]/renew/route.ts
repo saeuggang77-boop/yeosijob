@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
 import type { AdOptionId, PaymentMethod } from "@/generated/prisma/client";
 
@@ -12,6 +13,12 @@ export async function POST(
     const session = await auth();
     if (!session || session.user.role !== "BUSINESS") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
+    }
+
+    // #29: Rate limiting (분당 5회)
+    const { success: rateLimitOk } = checkRateLimit(`ad-renew:${session.user.id}`, 5, 60_000);
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }
 
     const { id } = await params;

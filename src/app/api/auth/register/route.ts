@@ -11,8 +11,9 @@ import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
-    // Rate limiting
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    // Rate limiting (x-forwarded-for 스푸핑 방지)
+    const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+               request.headers.get("x-real-ip") || "unknown";
     const rateLimitResult = checkRateLimit(`register:${ip}`, 5, 60 * 1000); // 5 requests per minute
     if (!rateLimitResult.success) {
       return NextResponse.json(
@@ -77,7 +78,9 @@ export async function POST(request: Request) {
       await prisma.verificationToken.create({
         data: { identifier: email, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
       });
-      sendVerificationEmail(email, token).catch(() => {});
+      sendVerificationEmail(email, token).catch((err) => {
+        console.error("Email send failed:", err);
+      });
 
       return NextResponse.json(
         { message: "회원가입이 완료되었습니다. 이메일 인증 링크를 발송했습니다.", userId: user.id },
@@ -133,7 +136,9 @@ export async function POST(request: Request) {
       await prisma.verificationToken.create({
         data: { identifier: email, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
       });
-      sendVerificationEmail(email, token).catch(() => {});
+      sendVerificationEmail(email, token).catch((err) => {
+        console.error("Email send failed:", err);
+      });
 
       return NextResponse.json(
         { message: "회원가입이 완료되었습니다. 이메일 인증 링크를 발송했습니다.", userId: user.id },
@@ -141,6 +146,13 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
+    // P2002: Unique constraint violation
+    if (error instanceof Error && 'code' in error && (error as any).code === 'P2002') {
+      return NextResponse.json(
+        { error: "이미 사용 중인 이메일 또는 전화번호입니다" },
+        { status: 409 }
+      );
+    }
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "서버 오류가 발생했습니다" },

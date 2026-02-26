@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "신고 대상을 지정해주세요" }, { status: 400 });
     }
 
+    if (postId && commentId) {
+      return NextResponse.json({ error: "게시글과 댓글 신고는 별도로 해주세요" }, { status: 400 });
+    }
+
     if (!reason || !VALID_REASONS.includes(reason)) {
       return NextResponse.json({ error: "신고 사유를 선택해주세요" }, { status: 400 });
     }
@@ -59,7 +63,8 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.report.findFirst({
       where: {
         reporterId: session.user.id,
-        ...(postId ? { postId } : { commentId }),
+        ...(postId ? { postId } : {}),
+        ...(commentId ? { commentId } : {}),
       },
     });
 

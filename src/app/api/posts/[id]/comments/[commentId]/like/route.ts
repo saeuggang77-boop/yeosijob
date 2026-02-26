@@ -18,12 +18,29 @@ export async function POST(
       where: { userId_commentId: { userId: session.user.id, commentId } },
     });
 
+    let liked: boolean;
+
     if (existing) {
       await prisma.commentLike.delete({ where: { id: existing.id } });
+      liked = false;
     } else {
-      await prisma.commentLike.create({
-        data: { userId: session.user.id, commentId },
-      });
+      try {
+        await prisma.commentLike.create({
+          data: { userId: session.user.id, commentId },
+        });
+        liked = true;
+      } catch (error: any) {
+        if (error?.code === "P2002") {
+          // 레이스 컨디션: 이미 존재하면 삭제로 전환
+          await prisma.commentLike.delete({
+            where: { userId_commentId: { userId: session.user.id, commentId } },
+          });
+          liked = false;
+          const likeCount = await prisma.commentLike.count({ where: { commentId } });
+          return NextResponse.json({ liked, likeCount });
+        }
+        throw error;
+      }
 
       // 댓글 작성자에게 좋아요 알림 (본인 제외)
       const comment = await prisma.comment.findUnique({
@@ -44,7 +61,7 @@ export async function POST(
 
     const likeCount = await prisma.commentLike.count({ where: { commentId } });
 
-    return NextResponse.json({ liked: !existing, likeCount });
+    return NextResponse.json({ liked, likeCount });
   } catch (error) {
     console.error("Comment like error:", error);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });

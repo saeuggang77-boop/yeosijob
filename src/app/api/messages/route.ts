@@ -33,46 +33,58 @@ export async function GET(req: NextRequest) {
       ]),
     ];
 
-    // 2. 각 상대방별 최신 메시지 및 안읽은 수 조회
-    const conversations = await Promise.all(
-      partnerIds.map(async (partnerId) => {
-        // 최신 메시지
-        const lastMessage = await prisma.message.findFirst({
-          where: {
-            OR: [
-              { senderId: userId, receiverId: partnerId },
-              { senderId: partnerId, receiverId: userId },
-            ],
-          },
-          orderBy: { createdAt: "desc" },
-        });
+    // 2. 파트너 이름 일괄 조회
+    const partners = await prisma.user.findMany({
+      where: { id: { in: partnerIds } },
+      select: { id: true, name: true },
+    });
+    const partnerMap = new Map(partners.map((p) => [p.id, p.name]));
 
-        // 안읽은 수 (상대방이 나에게 보낸 것 중)
-        const unreadCount = await prisma.message.count({
-          where: {
-            senderId: partnerId,
-            receiverId: userId,
-            isRead: false,
-          },
-        });
+    // 3. 각 파트너별 최근 메시지 일괄 조회
+    const allLastMessages = await prisma.message.findMany({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: { in: partnerIds } },
+          { senderId: { in: partnerIds }, receiverId: userId },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-        // 상대방 이름
-        const partner = await prisma.user.findUnique({
-          where: { id: partnerId },
-          select: { name: true },
-        });
+    // 파트너별 최신 메시지 매핑
+    const lastMessageMap = new Map<string, typeof allLastMessages[0]>();
+    for (const msg of allLastMessages) {
+      const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      if (!lastMessageMap.has(partnerId)) {
+        lastMessageMap.set(partnerId, msg);
+      }
+    }
 
-        return {
-          partnerId,
-          partnerName: partner?.name || "알 수 없음",
-          lastMessage: lastMessage?.content || "",
-          lastMessageAt: lastMessage?.createdAt || new Date(),
-          lastMessageSenderId: lastMessage?.senderId || null,
-          lastMessageIsRead: lastMessage?.isRead ?? true,
-          unreadCount,
-        };
-      })
-    );
+    // 4. 안 읽은 수 일괄 조회
+    const unreadCounts = await prisma.message.groupBy({
+      by: ["senderId"],
+      where: {
+        senderId: { in: partnerIds },
+        receiverId: userId,
+        isRead: false,
+      },
+      _count: { id: true },
+    });
+    const unreadMap = new Map(unreadCounts.map((u) => [u.senderId, u._count.id]));
+
+    // 5. 결과 조합
+    const conversations = partnerIds.map((partnerId) => {
+      const lastMessage = lastMessageMap.get(partnerId);
+      return {
+        partnerId,
+        partnerName: partnerMap.get(partnerId) || "알 수 없음",
+        lastMessage: lastMessage?.content || "",
+        lastMessageAt: lastMessage?.createdAt || new Date(),
+        lastMessageSenderId: lastMessage?.senderId || null,
+        lastMessageIsRead: lastMessage?.isRead ?? true,
+        unreadCount: unreadMap.get(partnerId) || 0,
+      };
+    });
 
     // 정렬: lastMessageAt desc
     conversations.sort(

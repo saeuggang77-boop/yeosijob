@@ -15,6 +15,15 @@ export async function PATCH(
     }
 
     const { id } = await params;
+
+    // 자기 자신에 대한 작업 방지
+    if (id === session.user.id) {
+      return NextResponse.json(
+        { error: "자기 자신에 대한 작업은 할 수 없습니다" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { action, role, reason, days } = body;
 
@@ -141,10 +150,18 @@ export async function DELETE(
 
     const { id } = await params;
 
+    // 자기 자신에 대한 작업 방지
+    if (id === session.user.id) {
+      return NextResponse.json(
+        { error: "자기 자신에 대한 작업은 할 수 없습니다" },
+        { status: 403 }
+      );
+    }
+
     // 유저 정보 조회
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { name: true },
+      select: { name: true, email: true },
     });
 
     if (!user) {
@@ -154,9 +171,36 @@ export async function DELETE(
       );
     }
 
-    // 유저 삭제 (관련 게시글/댓글은 cascade로 자동 삭제)
-    await prisma.user.delete({
-      where: { id },
+    // 트랜잭션으로 관련 데이터 삭제 (자기 계정 삭제 로직 참고)
+    await prisma.$transaction(async (tx) => {
+      // 1. 사용자의 광고 ID 목록 조회
+      const userAds = await tx.ad.findMany({
+        where: { userId: id },
+        select: { id: true },
+      });
+      const adIds = userAds.map((a) => a.id);
+
+      if (adIds.length > 0) {
+        // 2. 광고 관련 데이터 삭제
+        await tx.review.deleteMany({ where: { adId: { in: adIds } } });
+        await tx.scrap.deleteMany({ where: { adId: { in: adIds } } });
+      }
+
+      // 3. 사용자 직접 연결 데이터 삭제 (cascade 안 되는 것들)
+      await tx.review.deleteMany({ where: { userId: id } });
+      await tx.payment.deleteMany({ where: { userId: id } });
+      await tx.resumeViewLog.deleteMany({ where: { userId: id } });
+
+      // 4. Ad 삭제
+      await tx.ad.deleteMany({ where: { userId: id } });
+
+      // 5. PasswordResetToken 삭제
+      if (user.email) {
+        await tx.passwordResetToken.deleteMany({ where: { email: user.email } });
+      }
+
+      // 6. User 삭제 (나머지는 cascade로 자동 삭제)
+      await tx.user.delete({ where: { id } });
     });
 
     return NextResponse.json({

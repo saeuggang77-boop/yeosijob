@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+
+    // Rate limiting
+    const rateLimitResult = checkRateLimit(`delete-account:${session.user.id}`, 5, 60 * 1000);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();

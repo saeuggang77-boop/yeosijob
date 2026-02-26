@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { resetPasswordSchema } from "@/lib/validators/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+               request.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = checkRateLimit(`reset-password:${ip}`, 5, 60 * 1000);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = resetPasswordSchema.safeParse(body);
 

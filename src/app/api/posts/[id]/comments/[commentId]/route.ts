@@ -12,15 +12,15 @@ export async function DELETE(
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
-    const { commentId } = await params;
+    const { id, commentId } = await params;
     const isAdmin = session.user.role === "ADMIN";
 
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { authorId: true },
+      select: { authorId: true, postId: true },
     });
 
-    if (!comment) {
+    if (!comment || comment.postId !== id) {
       return NextResponse.json({ error: "댓글을 찾을 수 없습니다" }, { status: 404 });
     }
 

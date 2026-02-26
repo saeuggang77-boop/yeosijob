@@ -86,76 +86,79 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 차단 추가
-    const block = await prisma.messageBlock.create({
-      data: {
-        blockerId: userId,
-        blockedId,
-      },
-    });
-
-    // messageBlockCount 증가
-    const updatedUser = await prisma.user.update({
-      where: { id: blockedId },
-      data: {
-        messageBlockCount: {
-          increment: 1,
-        },
-      },
-      select: {
-        messageBlockCount: true,
-      },
-    });
-
-    const blockCount = updatedUser.messageBlockCount;
-
-    // 누적 횟수에 따른 자동 제재
-    if (blockCount === 3) {
-      // 3회: 경고 알림
-      await prisma.notification.create({
+    // 차단 추가 + 횟수 증가 + 제재를 하나의 트랜잭션으로 처리
+    const { block, blockCount } = await prisma.$transaction(async (tx) => {
+      const block = await tx.messageBlock.create({
         data: {
-          userId: blockedId,
-          title: "쪽지 경고",
-          message:
-            "수신거부가 3회 누적되었습니다. 추가 누적 시 쪽지 기능이 정지됩니다.",
+          blockerId: userId,
+          blockedId,
         },
       });
-    } else if (blockCount === 5) {
-      // 5회: 10일 정지
-      const banUntil = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
-      await prisma.user.update({
+
+      const updatedUser = await tx.user.update({
         where: { id: blockedId },
         data: {
-          messageBannedUntil: banUntil,
+          messageBlockCount: {
+            increment: 1,
+          },
+        },
+        select: {
+          messageBlockCount: true,
         },
       });
 
-      await prisma.notification.create({
-        data: {
-          userId: blockedId,
-          title: "쪽지 기능 정지",
-          message: `수신거부가 5회 누적되어 쪽지 기능이 정지되었습니다 (해제일: ${banUntil.toISOString().split("T")[0]})`,
-        },
-      });
-    } else if (blockCount === 10) {
-      // 10회: 영구 정지
-      const permanentBan = new Date("9999-12-31");
-      await prisma.user.update({
-        where: { id: blockedId },
-        data: {
-          messageBannedUntil: permanentBan,
-        },
-      });
+      const blockCount = updatedUser.messageBlockCount;
 
-      await prisma.notification.create({
-        data: {
-          userId: blockedId,
-          title: "쪽지 기능 영구 정지",
-          message:
-            "수신거부가 10회 누적되어 쪽지 기능이 영구 정지되었습니다.",
-        },
-      });
-    }
+      // 누적 횟수에 따른 자동 제재
+      if (blockCount === 3) {
+        // 3회: 경고 알림
+        await tx.notification.create({
+          data: {
+            userId: blockedId,
+            title: "쪽지 경고",
+            message:
+              "수신거부가 3회 누적되었습니다. 추가 누적 시 쪽지 기능이 정지됩니다.",
+          },
+        });
+      } else if (blockCount === 5) {
+        // 5회: 10일 정지
+        const banUntil = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+        await tx.user.update({
+          where: { id: blockedId },
+          data: {
+            messageBannedUntil: banUntil,
+          },
+        });
+
+        await tx.notification.create({
+          data: {
+            userId: blockedId,
+            title: "쪽지 기능 정지",
+            message: `수신거부가 5회 누적되어 쪽지 기능이 정지되었습니다 (해제일: ${banUntil.toISOString().split("T")[0]})`,
+          },
+        });
+      } else if (blockCount === 10) {
+        // 10회: 영구 정지
+        const permanentBan = new Date("9999-12-31");
+        await tx.user.update({
+          where: { id: blockedId },
+          data: {
+            messageBannedUntil: permanentBan,
+          },
+        });
+
+        await tx.notification.create({
+          data: {
+            userId: blockedId,
+            title: "쪽지 기능 영구 정지",
+            message:
+              "수신거부가 10회 누적되어 쪽지 기능이 영구 정지되었습니다.",
+          },
+        });
+      }
+
+      return { block, blockCount };
+    });
 
     return NextResponse.json({ block, blockCount });
   } catch (error) {

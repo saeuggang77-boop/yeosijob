@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { timingSafeEqual } from "crypto";
 
 /**
  * Vercel Cron 또는 수동 호출 시 CRON_SECRET 검증
@@ -9,5 +10,14 @@ export function verifyCronAuth(request: NextRequest): boolean {
   if (!authHeader) return false;
 
   const token = authHeader.replace("Bearer ", "");
-  return token === process.env.CRON_SECRET;
+  const secret = process.env.CRON_SECRET || "";
+
+  if (!token || !secret) return false;
+  if (token.length !== secret.length) return false;
+
+  try {
+    return timingSafeEqual(Buffer.from(token), Buffer.from(secret));
+  } catch {
+    return false;
+  }
 }

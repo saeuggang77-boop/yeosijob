@@ -19,7 +19,7 @@ export async function GET(
     // 페이지네이션
     const searchParams = req.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = Math.min(Number(searchParams.get("limit")) || 50, 100);
     const skip = (page - 1) * limit;
 
     // 해당 상대와의 메시지 전체 조회

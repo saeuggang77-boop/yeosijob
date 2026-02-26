@@ -1,3 +1,4 @@
+// NOTE: 서버리스 환경에서는 인스턴스별 독립 동작. 완전한 보호를 위해 Redis 전환 필요
 const rateLimit = new Map<string, { count: number; resetAt: number }>();
 
 export function checkRateLimit(
@@ -6,6 +7,14 @@ export function checkRateLimit(
   windowMs: number = 60 * 1000 // 1 minute
 ): { success: boolean; remaining: number } {
   const now = Date.now();
+
+  // Lazy cleanup: 호출 시마다 만료된 항목 정리
+  for (const [k, entry] of rateLimit) {
+    if (now > entry.resetAt) {
+      rateLimit.delete(k);
+    }
+  }
+
   const entry = rateLimit.get(key);
 
   if (!entry || now > entry.resetAt) {
@@ -20,13 +29,3 @@ export function checkRateLimit(
   entry.count++;
   return { success: true, remaining: limit - entry.count };
 }
-
-// Cleanup old entries periodically (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimit) {
-    if (now > entry.resetAt) {
-      rateLimit.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);

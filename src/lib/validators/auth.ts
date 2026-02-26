@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 export const loginSchema = z.object({
   email: z.email("올바른 이메일을 입력해주세요"),
-  password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+  password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다").max(100, "비밀번호는 100자 이하여야 합니다"),
 });
 
 export const registerJobseekerSchema = z
@@ -12,7 +12,7 @@ export const registerJobseekerSchema = z
     phone: z
       .string()
       .regex(/^01[016789]\d{7,8}$/, "올바른 휴대폰 번호를 입력해주세요"),
-    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다").max(100, "비밀번호는 100자 이하여야 합니다"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -27,7 +27,7 @@ export const registerBusinessSchema = z
     phone: z
       .string()
       .regex(/^01[016789]\d{7,8}$/, "올바른 휴대폰 번호를 입력해주세요"),
-    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다").max(100, "비밀번호는 100자 이하여야 합니다"),
     confirmPassword: z.string(),
     businessName: z.string().min(1, "업소명을 입력해주세요"),
     businessNumber: z
@@ -46,7 +46,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1, "토큰이 필요합니다"),
-    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다").max(100, "비밀번호는 100자 이하여야 합니다"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -56,8 +56,8 @@ export const resetPasswordSchema = z
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요"),
-    newPassword: z.string().min(6, "새 비밀번호는 6자 이상이어야 합니다"),
+    currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요").max(100, "비밀번호는 100자 이하여야 합니다"),
+    newPassword: z.string().min(6, "새 비밀번호는 6자 이상이어야 합니다").max(100, "비밀번호는 100자 이하여야 합니다"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword !== data.currentPassword, {

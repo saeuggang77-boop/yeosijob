@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripHtml } from "@/lib/utils/format";
 
 export async function GET(
   request: NextRequest,
@@ -71,7 +72,9 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { title, content } = body;
+    const { title: rawTitle, content: rawContent } = body;
+    const title = stripHtml(rawTitle || "");
+    const content = stripHtml(rawContent || "");
 
     // Validation
     if (!title || title.length < 1 || title.length > 50) {

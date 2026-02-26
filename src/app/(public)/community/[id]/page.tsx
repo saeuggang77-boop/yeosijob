@@ -202,7 +202,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     <div className="mx-auto max-w-screen-xl px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       {/* Post */}
       <Card>

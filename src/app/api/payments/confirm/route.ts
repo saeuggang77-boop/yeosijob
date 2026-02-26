@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { confirmTossPayment } from "@/lib/toss/confirm";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "BUSINESS") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
+    }
+
+    // #29: Rate limiting (분당 5회)
+    const { success: rateLimitOk } = checkRateLimit(`payment-confirm:${session.user.id}`, 5, 60_000);
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }
 
     const { paymentKey, orderId, amount } = await request.json();
@@ -51,8 +58,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // #19: 이중 결제 방지 - atomic PENDING 상태 확인
+    const lockResult = await prisma.payment.updateMany({
+      where: { id: payment.id, status: "PENDING" },
+      data: { tossPaymentKey: paymentKey },
+    });
+    if (lockResult.count === 0) {
+      return NextResponse.json(
+        { error: "이미 처리 중인 결제입니다" },
+        { status: 400 }
+      );
+    }
+
     // Toss API 승인 요청
     const tossResult = await confirmTossPayment({ paymentKey, orderId, amount });
+
+    // #3: Toss 결제 금액 재검증
+    if (tossResult.totalAmount !== payment.amount) {
+      console.error(
+        `Payment amount mismatch: toss=${tossResult.totalAmount}, db=${payment.amount}, orderId=${orderId}`
+      );
+      return NextResponse.json(
+        { error: "결제 금액이 일치하지 않습니다" },
+        { status: 400 }
+      );
+    }
 
     const now = new Date();
 

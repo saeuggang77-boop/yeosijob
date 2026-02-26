@@ -178,22 +178,23 @@ export async function POST(request: NextRequest) {
 
     // 무료 광고권 사용
     if (productId !== "FREE" && useCredit) {
-      const creditResult = await prisma.$queryRaw<{ freeAdCredits: number }[]>`
-        SELECT "freeAdCredits" FROM "users" WHERE id = ${session.user.id}
-      `;
-
-      if (!creditResult[0] || creditResult[0].freeAdCredits < 1) {
-        return NextResponse.json({ error: "무료 광고권이 없습니다" }, { status: 400 });
-      }
-
       const now = new Date();
       const endDate = new Date(now);
       endDate.setDate(endDate.getDate() + durationDays);
 
       const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-      // Transaction: create ad + decrement credit + create payment record
+      // #4: TOCTOU 수정 - 크레딧 확인을 트랜잭션 안으로 이동, atomic UPDATE 사용
       const ad = await prisma.$transaction(async (tx) => {
+        // Atomic credit decrement with check
+        const updateResult = await tx.$executeRaw`
+          UPDATE "users" SET "freeAdCredits" = "freeAdCredits" - 1
+          WHERE id = ${session.user.id} AND "freeAdCredits" >= 1
+        `;
+        if (updateResult === 0) {
+          throw new Error("무료 광고권이 없습니다");
+        }
+
         const newAd = await tx.ad.create({
           data: {
             userId: session.user.id,
@@ -250,11 +251,6 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Decrement credit
-        await tx.$queryRaw`
-          UPDATE "users" SET "freeAdCredits" = "freeAdCredits" - 1 WHERE id = ${session.user.id}
-        `;
-
         return newAd;
       });
 
@@ -275,16 +271,6 @@ export async function POST(request: NextRequest) {
         { error: `${product.name}은 최대 ${product.maxRegions}개 지역만 선택 가능합니다` },
         { status: 400 }
       );
-    }
-
-    // 노블레스 12건 한정 확인
-    if (productId === "BANNER") {
-      const activeCount = await prisma.ad.count({
-        where: { productId: "BANNER", status: "ACTIVE" },
-      });
-      if (activeCount >= 12) {
-        return NextResponse.json({ error: "노블레스는 현재 만석입니다" }, { status: 400 });
-      }
     }
 
     // 금액 계산
@@ -310,6 +296,16 @@ export async function POST(request: NextRequest) {
 
     // 트랜잭션으로 Ad + Payment 생성 (FREE는 Payment 생성 안 함)
     const result = await prisma.$transaction(async (tx) => {
+      // #18: 배너 슬롯 체크를 트랜잭션 안으로 이동
+      if (productId === "BANNER") {
+        const activeCount = await tx.ad.count({
+          where: { productId: "BANNER", status: "ACTIVE" },
+        });
+        if (activeCount >= 12) {
+          throw new Error("노블레스는 현재 만석입니다");
+        }
+      }
+
       const ad = await tx.ad.create({
         data: {
           userId: session.user.id,
@@ -423,6 +419,13 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Ad creation error:", error);
-    return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "서버 오류가 발생했습니다";
+    // 사용자에게 보여줄 수 있는 에러 메시지
+    const userMessages = ["노블레스는 현재 만석입니다", "무료 광고권이 없습니다"];
+    const isUserError = userMessages.some((m) => message.includes(m));
+    return NextResponse.json(
+      { error: isUserError ? message : "서버 오류가 발생했습니다" },
+      { status: isUserError ? 400 : 500 }
+    );
   }
 }

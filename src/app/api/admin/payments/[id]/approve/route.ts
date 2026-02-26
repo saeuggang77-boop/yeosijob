@@ -35,7 +35,8 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const snapshot = payment.itemSnapshot as any;
     const isUpgrade = snapshot?.type === "upgrade";
-    const durationDays = isUpgrade
+    const isRenew = snapshot?.type === "renew";
+    const durationDays = (isUpgrade || isRenew)
       ? snapshot.duration
       : (payment.ad?.durationDays || 30);
     const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
@@ -50,9 +51,9 @@ export async function POST(
         },
       });
 
-      // Ad 활성화 또는 업그레이드
+      // Ad 활성화, 업그레이드 또는 연장
       if (payment.adId) {
-        if (isUpgrade) {
+        if (isUpgrade || isRenew) {
           // 기존 옵션 삭제
           await tx.adOption.deleteMany({
             where: { adId: payment.adId },
@@ -74,20 +75,21 @@ export async function POST(
             }
           }
 
-          // 광고 업그레이드
+          // #7: 광고 업그레이드/연장 (renew 시 totalAmount 교체, editCount 리셋, 점프 횟수 복원)
           await tx.ad.update({
             where: { id: payment.adId },
             data: {
               status: "ACTIVE",
               productId: snapshot.product.id,
               durationDays: snapshot.duration,
-              totalAmount: { increment: payment.amount },
+              totalAmount: isRenew ? payment.amount : { increment: payment.amount },
               autoJumpPerDay: snapshot.newFeatures.autoJumpPerDay,
               manualJumpPerDay: snapshot.newFeatures.manualJumpPerDay,
               maxEdits: snapshot.newFeatures.maxEdits,
               startDate: now,
               endDate,
               lastJumpedAt: now,
+              manualJumpUsedToday: 0,
               editCount: 0,
             },
           });
@@ -106,15 +108,17 @@ export async function POST(
       }
     });
 
-    // 사업자에게 입금 확인 알림
-    await prisma.notification.create({
-      data: {
-        userId: payment.ad!.userId,
-        title: "입금이 확인되었습니다",
-        message: `'${payment.ad!.title}' 광고가 활성화되었습니다. 광고 기간: ${durationDays}일`,
-        link: `/business/dashboard`,
-      },
-    });
+    // #5: Null pointer 수정 - ad가 없으면 알림 생성 건너뛰기
+    if (payment.ad) {
+      await prisma.notification.create({
+        data: {
+          userId: payment.ad.userId,
+          title: "입금이 확인되었습니다",
+          message: `'${payment.ad.title}' 광고가 활성화되었습니다. 광고 기간: ${durationDays}일`,
+          link: `/business/dashboard`,
+        },
+      });
+    }
 
     return NextResponse.json({
       message: "입금이 확인되었습니다",

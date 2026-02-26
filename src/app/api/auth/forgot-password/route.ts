@@ -7,8 +7,9 @@ import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    // Rate limiting (x-forwarded-for 스푸핑 방지)
+    const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+               request.headers.get("x-real-ip") || "unknown";
     const rateLimitResult = checkRateLimit(`forgot-password:${ip}`, 3, 60 * 1000); // 3 requests per minute
     if (!rateLimitResult.success) {
       return NextResponse.json(

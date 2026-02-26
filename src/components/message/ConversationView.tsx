@@ -12,6 +12,7 @@ interface Message {
   content: string;
   senderId: string;
   createdAt: string;
+  isRead: boolean;
 }
 
 interface ConversationViewProps {
@@ -258,16 +259,21 @@ export function ConversationView({
                     <div
                       className={`flex max-w-[70%] flex-col gap-1 ${isMyMessage ? "items-end" : "items-start"}`}
                     >
-                      <div
-                        className={`rounded-2xl px-4 py-2 ${
-                          isMyMessage
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap break-words text-sm">
-                          {msg.content}
-                        </p>
+                      <div className="flex items-end gap-1">
+                        {isMyMessage && !msg.isRead && (
+                          <span className="text-xs font-medium text-primary">1</span>
+                        )}
+                        <div
+                          className={`rounded-2xl px-4 py-2 ${
+                            isMyMessage
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap break-words text-sm">
+                            {msg.content}
+                          </p>
+                        </div>
                       </div>
                       <span className="px-2 text-xs text-muted-foreground">
                         {formatDateSmart(msg.createdAt)}

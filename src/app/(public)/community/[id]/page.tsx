@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -61,16 +61,17 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function PostDetailPage({ params }: PageProps) {
   const { id: rawIdOrSlug } = await params;
   const idOrSlug = decodeURIComponent(rawIdOrSlug);
-  const session = await auth();
 
   // slug 또는 cuid로 게시글 찾기
   const lookup = await findPostByIdOrSlug(idOrSlug);
   if (!lookup) notFound();
 
-  // cuid로 접근했는데 slug가 있으면 slug URL로 리다이렉트 (SEO)
+  // cuid로 접근했는데 slug가 있으면 slug URL로 301 리다이렉트 (SEO)
   if (lookup.slug && idOrSlug !== lookup.slug && idOrSlug !== encodeURIComponent(lookup.slug)) {
-    redirect(`/community/${encodeURIComponent(lookup.slug)}`);
+    permanentRedirect(`/community/${encodeURIComponent(lookup.slug)}`);
   }
+
+  const session = await auth();
 
   const postId = lookup.id;
 

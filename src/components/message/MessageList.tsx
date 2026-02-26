@@ -10,10 +10,16 @@ interface Conversation {
   partnerName: string;
   lastMessage: string;
   lastMessageAt: string;
+  lastMessageSenderId: string | null;
+  lastMessageIsRead: boolean;
   unreadCount: number;
 }
 
-export function MessageList() {
+interface MessageListProps {
+  currentUserId: string;
+}
+
+export function MessageList({ currentUserId }: MessageListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -85,6 +91,9 @@ export function MessageList() {
               </span>
             </div>
             <div className="mt-1 flex items-center gap-2">
+              {conv.lastMessageSenderId === currentUserId && !conv.lastMessageIsRead && (
+                <span className="flex-shrink-0 text-xs font-medium text-primary">1</span>
+              )}
               <p className="flex-1 truncate text-sm text-muted-foreground">
                 {truncate(conv.lastMessage, 50)}
               </p>

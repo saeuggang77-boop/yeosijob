@@ -67,6 +67,8 @@ export async function GET(req: NextRequest) {
           partnerName: partner?.name || "알 수 없음",
           lastMessage: lastMessage?.content || "",
           lastMessageAt: lastMessage?.createdAt || new Date(),
+          lastMessageSenderId: lastMessage?.senderId || null,
+          lastMessageIsRead: lastMessage?.isRead ?? true,
           unreadCount,
         };
       })

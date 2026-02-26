@@ -135,7 +135,11 @@ export function AdminUserMenu({
     <div ref={menuRef} className="relative inline-block">
       {/* 닉네임 버튼 */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         className="inline-flex items-center gap-1.5 font-medium underline decoration-dotted underline-offset-2 hover:text-primary"
       >
         {userName}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDateSmart } from "@/lib/utils/format";
 import { PostDeleteButton } from "@/components/community/PostDeleteButton";
+import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 
 export const revalidate = 60;
 
@@ -61,8 +62,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         category: true,
         createdAt: true,
         viewCount: true,
+        authorId: true,
         author: {
-          select: { name: true },
+          select: { id: true, name: true, role: true },
         },
         _count: {
           select: { comments: true },
@@ -135,7 +137,15 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
-                    <span>{post.author.name}</span>
+                    {isAdmin && session?.user?.id !== post.authorId ? (
+                      <AdminUserMenu
+                        userId={post.author.id}
+                        userName={post.author.name || "익명"}
+                        currentRole={post.author.role}
+                      />
+                    ) : (
+                      <span>{post.author.name}</span>
+                    )}
                     <span>·</span>
                     <span>{formatDateSmart(post.createdAt)}</span>
                     <span>·</span>
@@ -183,7 +193,15 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {post.author.name}
+                        {isAdmin && session?.user?.id !== post.authorId ? (
+                          <AdminUserMenu
+                            userId={post.author.id}
+                            userName={post.author.name || "익명"}
+                            currentRole={post.author.role}
+                          />
+                        ) : (
+                          post.author.name
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-muted-foreground">
                         {post.viewCount.toLocaleString()}

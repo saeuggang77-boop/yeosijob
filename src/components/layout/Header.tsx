@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { NotificationBell } from "@/components/notification/NotificationBell";
+import { MessageBell } from "@/components/message/MessageBell";
 import { Menu } from "lucide-react";
 
 export function Header() {
@@ -167,6 +168,7 @@ export function Header() {
           <ThemeToggle />
           {session ? (
             <>
+              <MessageBell />
               <NotificationBell />
               <span className="hidden text-sm text-muted-foreground md:inline">
                 {session.user.name}님

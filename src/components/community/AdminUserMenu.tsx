@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserPostsModal } from "./UserPostsModal";
+import { SendMessageModal } from "@/components/message/SendMessageModal";
 
 interface AdminUserMenuProps {
   userId: string;
@@ -20,6 +21,7 @@ export function AdminUserMenu({
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleSubmenu, setShowRoleSubmenu] = useState(false);
   const [showPostsModal, setShowPostsModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -41,6 +43,11 @@ export function AdminUserMenu({
   const handleViewPosts = () => {
     setIsOpen(false);
     setShowPostsModal(true);
+  };
+
+  const handleSendMessage = () => {
+    setIsOpen(false);
+    setShowMessageModal(true);
   };
 
   const handleChangeRole = async (newRole: "JOBSEEKER" | "BUSINESS") => {
@@ -164,6 +171,15 @@ export function AdminUserMenu({
             <span>게시글 보기</span>
           </button>
 
+          {/* 쪽지보내기 */}
+          <button
+            onClick={handleSendMessage}
+            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
+          >
+            <span>💌</span>
+            <span>쪽지보내기</span>
+          </button>
+
           {/* 등급변경 */}
           <div className="relative">
             <button
@@ -239,6 +255,14 @@ export function AdminUserMenu({
         userName={userName}
         isOpen={showPostsModal}
         onClose={() => setShowPostsModal(false)}
+      />
+
+      {/* Send Message Modal */}
+      <SendMessageModal
+        receiverId={userId}
+        receiverName={userName}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
       />
     </div>
   );

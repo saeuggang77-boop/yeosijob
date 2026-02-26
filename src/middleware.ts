@@ -10,6 +10,7 @@ export const config = {
     "/business/:path*",
     "/jobseeker/:path*",
     "/notifications",
+    "/messages/:path*",
     "/admin/:path*",
     "/login",
     "/register",

@@ -226,6 +226,8 @@ model User {
   notices          Notice[]
   ageVerifications AgeVerification[]
   reports          Report[]
+  sentMessages     Message[] @relation("sentMessages")
+  receivedMessages Message[] @relation("receivedMessages")
 
   @@index([role])
   @@index([isGhost])
@@ -674,4 +676,23 @@ model Notice {
 
   @@index([isPinned(sort: Desc), createdAt(sort: Desc)])
   @@map("notices")
+}
+
+// ── MESSAGE (쪽지/DM) ──
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("sentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("receivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId, isRead])
+  @@index([senderId])
+  @@index([receiverId, senderId])
+  @@map("messages")
 }

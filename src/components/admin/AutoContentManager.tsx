@@ -538,44 +538,6 @@ export function AutoContentManager({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-base font-medium">카테고리 비율</Label>
-            <p className="text-sm text-muted-foreground">자동 생성 게시글의 카테고리 분배 비율</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { key: "CHAT", label: "수다방" },
-                { key: "BEAUTY", label: "뷰티톡" },
-                { key: "QNA", label: "질문방" },
-                { key: "WORK", label: "업소톡" },
-              ].map((cat) => (
-                <div key={cat.key} className="flex items-center gap-2">
-                  <Label className="w-16 shrink-0 text-sm">{cat.label}</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={config.categoryWeights[cat.key] ?? 0}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 0;
-                      setConfig({
-                        ...config,
-                        categoryWeights: { ...config.categoryWeights, [cat.key]: val },
-                      });
-                    }}
-                    className="bg-zinc-900 border-zinc-700 w-20"
-                  />
-                  <span className="text-xs text-muted-foreground">%</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              합계: {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0)}%
-              {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0) !== 100 && (
-                <span className="text-yellow-500 ml-2">(100%가 아닙니다)</span>
-              )}
-            </p>
-          </div>
-
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -713,6 +675,55 @@ export function AutoContentManager({
           <CardDescription>AI가 생성한 콘텐츠 재고 관리</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-6 space-y-3">
+            <Label className="text-base font-medium">카테고리 비율</Label>
+            <p className="text-sm text-muted-foreground">자동 생성 게시글의 카테고리 분배 비율</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { key: "CHAT", label: "수다방" },
+                { key: "BEAUTY", label: "뷰티톡" },
+                { key: "QNA", label: "질문방" },
+                { key: "WORK", label: "업소톡" },
+              ].map((cat) => (
+                <div key={cat.key} className="flex items-center gap-2">
+                  <Label className="w-16 shrink-0 text-sm">{cat.label}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={config.categoryWeights[cat.key] ?? 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setConfig({
+                        ...config,
+                        categoryWeights: { ...config.categoryWeights, [cat.key]: val },
+                      });
+                    }}
+                    className="bg-zinc-900 border-zinc-700 w-20"
+                  />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-muted-foreground">
+                합계: {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0)}%
+                {Object.values(config.categoryWeights).reduce((a, b) => a + b, 0) !== 100 && (
+                  <span className="text-yellow-500 ml-2">(100%가 아닙니다)</span>
+                )}
+              </p>
+              <Button
+                onClick={handleSaveConfig}
+                disabled={saving}
+                size="sm"
+                variant="outline"
+              >
+                {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+                비율 저장
+              </Button>
+            </div>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow className="border-zinc-700 hover:bg-zinc-800">

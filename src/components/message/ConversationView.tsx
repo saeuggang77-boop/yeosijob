@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, ShieldBan, ShieldCheck } from "lucide-react";
 import { formatDateSmart } from "@/lib/utils/format";
 
 interface Message {
@@ -28,6 +28,7 @@ export function ConversationView({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -57,9 +58,53 @@ export function ConversationView({
     }
   };
 
+  const checkBlockStatus = async () => {
+    try {
+      const res = await fetch("/api/messages/block");
+      if (res.ok) {
+        const data = await res.json();
+        const blocked = data.blocks?.some(
+          (b: { blockedId: string }) => b.blockedId === partnerId
+        );
+        setIsBlocked(!!blocked);
+      }
+    } catch (error) {
+      console.error("Failed to check block status:", error);
+    }
+  };
+
+  const handleBlock = async () => {
+    if (isBlocked) {
+      if (!confirm("차단을 해제하시겠습니까?")) return;
+      try {
+        const res = await fetch("/api/messages/block", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blockedId: partnerId }),
+        });
+        if (res.ok) setIsBlocked(false);
+      } catch (error) {
+        console.error("Unblock error:", error);
+      }
+    } else {
+      if (!confirm("이 사용자의 쪽지를 차단하시겠습니까?")) return;
+      try {
+        const res = await fetch("/api/messages/block", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blockedId: partnerId }),
+        });
+        if (res.ok) setIsBlocked(true);
+      } catch (error) {
+        console.error("Block error:", error);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchMessages();
     markAsRead();
+    checkBlockStatus();
 
     // Poll every 15 seconds
     const interval = setInterval(fetchMessages, 15000);
@@ -158,7 +203,20 @@ export function ConversationView({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-lg font-semibold">{partnerName}</h1>
+        <h1 className="flex-1 text-lg font-semibold">{partnerName}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleBlock}
+          aria-label={isBlocked ? "차단 해제" : "차단"}
+          className={isBlocked ? "text-destructive" : "text-muted-foreground"}
+        >
+          {isBlocked ? (
+            <ShieldBan className="h-5 w-5" />
+          ) : (
+            <ShieldCheck className="h-5 w-5" />
+          )}
+        </Button>
       </div>
 
       {/* Messages */}
@@ -210,22 +268,28 @@ export function ConversationView({
 
       {/* Input area */}
       <div className="border-t px-4 py-3">
-        <div className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="메시지를 입력하세요"
-            disabled={sending}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!newMessage.trim() || sending}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        {isBlocked ? (
+          <p className="text-center text-sm text-muted-foreground">
+            차단된 사용자입니다. 차단을 해제하면 쪽지를 보낼 수 있습니다.
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="메시지를 입력하세요"
+              disabled={sending}
+            />
+            <Button
+              onClick={handleSend}
+              disabled={!newMessage.trim() || sending}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -142,11 +142,117 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 보낸 사람 이름 조회
+    // 보낸 사람 정보 조회 (제재 정보 포함)
     const sender = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true },
+      select: {
+        name: true,
+        role: true,
+        messageBannedUntil: true,
+        createdAt: true
+      },
     });
+
+    // ADMIN은 모든 제한 우회
+    const isAdmin = sender?.role === "ADMIN";
+
+    if (!isAdmin) {
+      // 1. 쪽지 정지 체크
+      if (sender?.messageBannedUntil) {
+        const now = new Date();
+        if (sender.messageBannedUntil > now) {
+          // 영구 정지 체크 (9999-12-31)
+          const isPermanent = sender.messageBannedUntil.getFullYear() === 9999;
+          const message = isPermanent
+            ? "쪽지 기능이 영구 정지되었습니다"
+            : `쪽지 기능이 정지되었습니다 (해제일: ${sender.messageBannedUntil.toISOString().split('T')[0]})`;
+
+          return NextResponse.json(
+            { error: message },
+            { status: 403 }
+          );
+        }
+      }
+
+      // 2. 신규 회원 체크 (가입 후 24시간)
+      if (sender?.createdAt) {
+        const accountAge = Date.now() - sender.createdAt.getTime();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        if (accountAge < oneDayMs) {
+          return NextResponse.json(
+            { error: "가입 후 24시간이 지나야 쪽지를 보낼 수 있습니다" },
+            { status: 429 }
+          );
+        }
+      }
+
+      // 3. Rate limit 체크
+      const now = new Date();
+      const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+      const recentMessages1Min = await prisma.message.count({
+        where: {
+          senderId: userId,
+          createdAt: { gte: oneMinuteAgo },
+        },
+      });
+
+      if (recentMessages1Min >= 3) {
+        return NextResponse.json(
+          { error: "쪽지를 너무 빠르게 보내고 있습니다. 잠시 후 다시 시도해주세요" },
+          { status: 429 }
+        );
+      }
+
+      const recentMessages1Hour = await prisma.message.count({
+        where: {
+          senderId: userId,
+          createdAt: { gte: oneHourAgo },
+        },
+      });
+
+      if (recentMessages1Hour >= 10) {
+        return NextResponse.json(
+          { error: "시간당 발송 한도(10건)를 초과했습니다" },
+          { status: 429 }
+        );
+      }
+
+      // 4. 동일 상대 쿨다운 (30초)
+      const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
+      const recentToSameUser = await prisma.message.findFirst({
+        where: {
+          senderId: userId,
+          receiverId,
+          createdAt: { gte: thirtySecondsAgo },
+        },
+      });
+
+      if (recentToSameUser) {
+        return NextResponse.json(
+          { error: "같은 상대에게 연속 발송은 30초 간격이 필요합니다" },
+          { status: 429 }
+        );
+      }
+
+      // 5. 차단 확인
+      const isBlocked = await prisma.messageBlock.findUnique({
+        where: {
+          blockerId_blockedId: {
+            blockerId: receiverId,
+            blockedId: userId,
+          },
+        },
+      });
+
+      if (isBlocked) {
+        return NextResponse.json(
+          { error: "상대방이 쪽지 수신을 거부했습니다" },
+          { status: 403 }
+        );
+      }
+    }
 
     // Message 생성
     const message = await prisma.message.create({

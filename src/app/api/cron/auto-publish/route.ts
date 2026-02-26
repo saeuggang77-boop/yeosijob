@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           // 게시글 생성 (1~25분 전 랜덤 시간으로)
           const createdAt = new Date(Date.now() - (Math.floor(Math.random() * 25) + 1) * 60 * 1000);
 
-          await tx.post.create({
+          const newPost = await tx.post.create({
             data: {
               authorId: ghost.id,
               title: poolItem.title || "자유게시글",
@@ -99,10 +99,10 @@ export async function GET(request: NextRequest) {
             },
           });
 
-          // ContentPool 사용 표시
+          // ContentPool 사용 표시 + 발행된 게시글 ID 기록
           await tx.contentPool.update({
             where: { id: poolItem.id },
-            data: { isUsed: true },
+            data: { isUsed: true, publishedPostId: newPost.id },
           });
         });
 

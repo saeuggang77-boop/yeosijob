@@ -155,8 +155,16 @@ export async function DELETE(
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
-    await prisma.post.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      // ContentPool에서 해당 게시글로 발행된 항목의 isUsed 리셋
+      await tx.contentPool.updateMany({
+        where: { publishedPostId: id },
+        data: { isUsed: false, publishedPostId: null },
+      });
+
+      await tx.post.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json({ success: true });

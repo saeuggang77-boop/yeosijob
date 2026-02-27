@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
-import { getBannerUrl } from "@/lib/constants/banner-themes";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface TierCardProps {
@@ -53,15 +52,9 @@ export function TierCard({ ad, tier }: TierCardProps) {
       <div
         className={`flex gap-3 rounded-lg p-4 transition-all duration-200 ${style.card}`}
       >
-        {/* Banner Image with CSS-only fallback */}
-        <div className="relative flex h-[120px] w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
-          <span className="text-2xl">{bizIcon}</span>
-          <img
-            src={getBannerUrl(ad, 200, 120)}
-            alt={`${ad.businessName} 배너`}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+        {/* Industry icon with gradient background */}
+        <div className="flex h-[120px] w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-accent/30">
+          <span className="text-5xl">{bizIcon}</span>
         </div>
 
         {/* Content */}

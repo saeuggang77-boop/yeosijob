@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
-import { getBannerUrl } from "@/lib/constants/banner-themes";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
@@ -201,18 +200,6 @@ export default async function JobDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-
-      {/* Banner Image */}
-      {(ad.productId === "BANNER" || ad.productId === "VIP" || ad.productId === "PREMIUM" || ad.productId === "SPECIAL") && (
-        <div className="mb-6 overflow-hidden rounded-xl">
-          <img
-            src={getBannerUrl(ad, 1200, 300)}
-            alt={`${ad.businessName} 배너`}
-            loading="lazy"
-            className="h-auto w-full object-cover"
-          />
-        </div>
-      )}
 
       {/* 상단 정보 */}
       <div className="mb-6">

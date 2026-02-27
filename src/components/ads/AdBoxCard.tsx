@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
-import { getBannerUrl } from "@/lib/constants/banner-themes";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface AdBoxCardProps {
@@ -43,17 +42,7 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
       <div className={`relative w-full overflow-hidden rounded-lg border transition-all duration-200 hover:-translate-y-1 hover:bg-muted/50 ${productStyles}`}>
-        {/* Banner Image at top */}
-        <div className="relative h-20 overflow-hidden rounded-t-lg bg-muted">
-          <img
-            src={getBannerUrl(ad, 400, 160)}
-            alt={`${ad.businessName} 배너`}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        {/* Content below image */}
+        {/* Content */}
         <div className="p-3">
           {productId === "VIP" && (
             <span className="absolute -top-2 -right-2 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">VIP</span>

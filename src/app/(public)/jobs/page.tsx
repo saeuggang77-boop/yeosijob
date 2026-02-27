@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AdCard } from "@/components/ads/AdCard";
-import { DebouncedSearch } from "@/components/ads/DebouncedSearch";
+import { REGIONS } from "@/lib/constants/regions";
+import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 export const revalidate = 60;
@@ -109,15 +110,23 @@ export default async function JobsPage({ searchParams }: PageProps) {
 
       {/* Filters */}
       <div className="sticky top-14 z-40 border-b bg-background px-4 py-3">
-        <DebouncedSearch
-          defaultValue={search}
-          baseUrl="/jobs"
-          additionalParams={{
-            ...(region && { region }),
-            ...(businessType && { businessType }),
-            ...(productId && { productId }),
-          }}
-        />
+        <form action="/jobs" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+          <select name="region" defaultValue={region || ""} className="h-10 rounded-md border bg-background px-3 text-sm">
+            <option value="">지역 전체</option>
+            {Object.entries(REGIONS).map(([key, val]) => (
+              <option key={key} value={key}>{val.label}</option>
+            ))}
+          </select>
+          <select name="businessType" defaultValue={businessType || ""} className="h-10 rounded-md border bg-background px-3 text-sm">
+            <option value="">업종 전체</option>
+            {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
+              <option key={key} value={key}>{val.label}</option>
+            ))}
+          </select>
+          {productId && <input type="hidden" name="productId" value={productId} />}
+          <input type="text" name="search" defaultValue={search} placeholder="업소명 / 제목 검색" className="h-10 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm placeholder:text-muted-foreground" />
+          <button type="submit" className="h-10 rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90">검색</button>
+        </form>
       </div>
 
       {/* Ad list */}

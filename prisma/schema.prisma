@@ -297,6 +297,7 @@ model Ad {
   regions       Region[]
   address       String?
   addressDetail String?
+  locationHint  String?              // 근무지 위치 힌트 (예: "강남구 역삼동", "역삼역 3번출구 근처")
 
   // 광고 상품
   productId    AdProductId

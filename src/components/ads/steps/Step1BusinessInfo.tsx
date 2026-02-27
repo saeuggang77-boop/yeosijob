@@ -98,6 +98,7 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
       contactPhone: (formData.get("contactPhone") as string).replace(/-/g, ""),
       contactKakao: formData.get("contactKakao") as string,
       contactTelegram: formData.get("contactTelegram") as string,
+      locationHint: formData.get("locationHint") as string,
       address: formData.get("address") as string,
       addressDetail: formData.get("addressDetail") as string,
     };
@@ -205,9 +206,19 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">
-              주소 <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="locationHint">근무지 위치 (선택)</Label>
+            <Input
+              id="locationHint"
+              name="locationHint"
+              defaultValue={data.locationHint}
+              placeholder="예: 강남구 역삼동, 역삼역 3번출구 근처"
+              maxLength={100}
+            />
+            <p className="text-xs text-muted-foreground">정확한 주소 대신 대략적 위치를 알릴 수 있습니다</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">주소 (선택)</Label>
             <div className="flex gap-2">
               <Input
                 id="address"
@@ -234,6 +245,7 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
                 </button>
               </div>
             )}
+            <p className="text-xs text-muted-foreground">📍 상세주소 입력 시 구직자의 신뢰도가 높아집니다</p>
             {errors.address && (
               <p className="text-xs text-destructive">{errors.address}</p>
             )}

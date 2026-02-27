@@ -11,6 +11,10 @@ import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
 
+function isNewPost(createdAt: Date): boolean {
+  return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
+}
+
 export const revalidate = 60;
 
 export const metadata = {
@@ -365,6 +369,9 @@ export default async function HomePage({ searchParams }: PageProps) {
                     <span className="truncate text-sm font-medium">{post.title}</span>
                     {post._count.comments > 0 && (
                       <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
+                    )}
+                    {isNewPost(post.createdAt) && (
+                      <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">

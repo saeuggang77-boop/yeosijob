@@ -7,6 +7,10 @@ import { formatDateSmart } from "@/lib/utils/format";
 import { PostDeleteButton } from "@/components/community/PostDeleteButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 
+function isNewPost(createdAt: Date): boolean {
+  return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
+}
+
 export const metadata = {
   title: "커뮤니티",
   description: "유흥업계 종사자들의 커뮤니티 게시판",
@@ -135,6 +139,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {post._count.comments > 0 && (
                       <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
                     )}
+                    {isNewPost(post.createdAt) && (
+                      <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
+                    )}
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
                     {session?.user?.id && session.user.id !== post.authorId ? (
@@ -198,6 +205,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             <span className="ml-1.5 text-xs text-primary">
                               [{post._count.comments}]
                             </span>
+                          )}
+                          {isNewPost(post.createdAt) && (
+                            <span className="ml-1.5 inline-block rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
                           )}
                         </Link>
                       </td>

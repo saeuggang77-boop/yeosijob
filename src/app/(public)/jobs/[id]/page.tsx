@@ -81,6 +81,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       regions: true,
       address: true,
       addressDetail: true,
+      locationHint: true,
       productId: true,
       status: true,
       viewCount: true,
@@ -349,6 +350,8 @@ export default async function JobDetailPage({ params }: PageProps) {
               )}
               <KakaoMap address={ad.address} />
             </div>
+          ) : ad.locationHint ? (
+            <p className="font-medium">{ad.locationHint}</p>
           ) : (
             <p className="text-muted-foreground">{regionLabels}</p>
           )}

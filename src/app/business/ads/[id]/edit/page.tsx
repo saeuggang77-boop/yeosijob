@@ -21,6 +21,7 @@ interface AdData {
   contactKakao: string | null;
   address: string | null;
   addressDetail: string | null;
+  locationHint: string | null;
   status: string;
   businessName: string;
   businessType: string;
@@ -101,6 +102,7 @@ export default function EditAdPage() {
     contactKakao: "",
     address: "",
     addressDetail: "",
+    locationHint: "",
     bannerColor: 0,
     bannerTitle: "",
     bannerSubtitle: "",
@@ -125,6 +127,7 @@ export default function EditAdPage() {
           contactKakao: data.contactKakao || "",
           address: data.address || "",
           addressDetail: data.addressDetail || "",
+          locationHint: data.locationHint || "",
           bannerColor: data.bannerColor ?? 0,
           bannerTitle: data.bannerTitle || "",
           bannerSubtitle: data.bannerSubtitle || "",
@@ -305,7 +308,19 @@ export default function EditAdPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="address">주소 *</Label>
+                <Label htmlFor="locationHint">근무지 위치 (선택)</Label>
+                <input
+                  id="locationHint"
+                  value={form.locationHint}
+                  onChange={(e) => updateField("locationHint", e.target.value)}
+                  maxLength={100}
+                  placeholder="예: 강남구 역삼동, 역삼역 3번출구 근처"
+                  className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">정확한 주소 대신 대략적 위치를 알릴 수 있습니다</p>
+              </div>
+              <div>
+                <Label htmlFor="address">주소 (선택)</Label>
                 <div className="mt-1 flex gap-2">
                   <input
                     id="address"
@@ -331,6 +346,7 @@ export default function EditAdPage() {
                     </button>
                   </div>
                 )}
+                <p className="mt-1 text-xs text-muted-foreground">📍 상세주소 입력 시 구직자의 신뢰도가 높아집니다</p>
               </div>
               <div>
                 <Label htmlFor="addressDetail">상세주소</Label>

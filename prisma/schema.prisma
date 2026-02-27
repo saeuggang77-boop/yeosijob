@@ -199,7 +199,8 @@ model User {
   businessName   String?
   businessNumber String?
   isVerifiedBiz  Boolean  @default(false)
-  freeAdCredits  Int      @default(0)
+  freeAdCredits    Int      @default(0)
+  totalPaidAdDays  Int      @default(0)
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())

@@ -15,6 +15,7 @@ import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
 import { KakaoMap } from "@/components/map/KakaoMap";
 import { Banner } from "@/components/ads/Banner";
+import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region } from "@/generated/prisma/client";
 
@@ -64,7 +65,7 @@ export default async function JobDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       user: {
-        select: { isVerifiedBiz: true },
+        select: { isVerifiedBiz: true, totalPaidAdDays: true },
       },
       reviews: {
         where: { isHidden: false },
@@ -250,6 +251,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-lg font-semibold">{ad.businessName}</span>
+          <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="md" showDays={true} />
           {(ad.isVerified || ad.user.isVerifiedBiz) && (
             <Badge variant="secondary">인증업소</Badge>
           )}

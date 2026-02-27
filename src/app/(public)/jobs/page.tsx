@@ -71,6 +71,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
         bannerTemplate: true,
         endDate: true,
         options: { select: { optionId: true, value: true } },
+        user: { select: { totalPaidAdDays: true } },
       },
     }),
     prisma.ad.count({ where }),

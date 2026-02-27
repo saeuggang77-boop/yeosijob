@@ -105,6 +105,14 @@ export async function POST(
             },
           });
         }
+
+        // FREE가 아닌 유료 광고만 누적일수 갱신
+        if (payment.ad && payment.ad.productId !== "FREE") {
+          await tx.user.update({
+            where: { id: payment.ad.userId },
+            data: { totalPaidAdDays: { increment: durationDays } },
+          });
+        }
       }
     });
 

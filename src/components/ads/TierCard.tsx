@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Banner } from "@/components/ads/Banner";
+import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
@@ -22,6 +23,7 @@ interface TierCardProps {
     bannerTitle?: string | null;
     bannerTemplate?: number;
     endDate?: Date | null;
+    user?: { totalPaidAdDays: number };
   };
   tier: "VIP" | "PREMIUM" | "SPECIAL";
 }
@@ -101,9 +103,15 @@ export function TierCard({ ad, tier }: TierCardProps) {
             )}
           </div>
 
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {ad.businessName} · {regionLabels} · {bizLabel}
-          </p>
+          <div className="mt-0.5 flex items-center gap-1">
+            <p className="truncate text-xs text-muted-foreground">
+              {ad.businessName}
+            </p>
+            <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="sm" />
+            <p className="truncate text-xs text-muted-foreground">
+              · {regionLabels} · {bizLabel}
+            </p>
+          </div>
 
           {oneLiner && (
             <p className="mt-1 truncate text-xs text-muted-foreground/80">

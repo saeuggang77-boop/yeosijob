@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import GradeBadge from "@/components/ads/GradeBadge";
 import { timeAgo } from "@/lib/utils/format";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
@@ -19,6 +20,7 @@ interface AdCardProps {
     lastJumpedAt: Date | string;
     endDate?: Date | null;
     options?: { optionId: string; value?: string | null }[];
+    user?: { totalPaidAdDays: number };
   };
   productId?: string;
   emphasized?: boolean;
@@ -125,6 +127,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
             <span>{ad.businessName}</span>
+            <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="sm" />
             <span>·</span>
             <span>{regionLabels}</span>
             <span>·</span>

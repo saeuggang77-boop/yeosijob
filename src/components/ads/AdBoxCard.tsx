@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
@@ -18,6 +19,7 @@ interface AdBoxCardProps {
     thumbnailUrl?: string | null;
     bannerColor?: number;
     endDate?: Date | null;
+    user?: { totalPaidAdDays: number };
   };
   productId?: string;
   compact?: boolean;
@@ -57,6 +59,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
                     <span className="text-success">✓</span>
                   </Badge>
                 )}
+                <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="sm" />
               </div>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {ad.businessName} · {regionLabels} · {bizLabel}
@@ -105,7 +108,10 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
               </Badge>
             )}
           </div>
-          <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
+          <div className="mt-1 flex items-center gap-1">
+            <p className="truncate text-xs text-muted-foreground">{ad.businessName}</p>
+            <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="sm" />
+          </div>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
           <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>
           {ad.viewCount !== undefined && (

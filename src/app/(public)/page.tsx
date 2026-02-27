@@ -60,6 +60,9 @@ export default async function HomePage({ searchParams }: PageProps) {
     options: {
       select: { optionId: true, value: true },
     },
+    user: {
+      select: { totalPaidAdDays: true },
+    },
   };
 
   const [

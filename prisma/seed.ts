@@ -1358,6 +1358,11 @@ async function main() {
         description: sample.description,
         contactPhone: sample.contactPhone,
         contactKakao: sample.contactKakao || null,
+        contactTelegram: (sample as any).contactTelegram || null,
+        workEnvironment: (sample as any).workEnvironment || null,
+        safetyInfo: (sample as any).safetyInfo || null,
+        bannerTemplate: i % 30,
+        bannerColor: i % 15,
         productId: productIds[i],
         durationDays: isFreeAd ? 0 : 30,
         totalAmount: amounts[i],
@@ -1373,6 +1378,14 @@ async function main() {
       },
     });
   }
+
+  // 사장님 유료 광고 누적일수 업데이트 (FREE 제외 광고 수 × 30일)
+  // FREE 광고: 기존 3개 + 추가 10개 = 13개, 전체 98개 중 85개가 유료
+  const totalPaidAds = 85;
+  await prisma.user.update({
+    where: { id: bizUser.id },
+    data: { totalPaidAdDays: totalPaidAds * 30 },
+  });
 
   // 구직자 이력서 생성
   const jobUser = await prisma.user.findUnique({ where: { email: "job@yeosialba.com" } });
@@ -1418,6 +1431,8 @@ async function main() {
         phone: "010-7777-6666",
         title: "성실하게 일하겠습니다",
         introduction: "안녕하세요. 밝은 성격의 25세 여성입니다. 경험은 적지만 항상 밝은 미소로 열심히 하겠습니다. 강남/서초 지역에서 근무를 희망합니다.",
+        strengths: "밝은 미소, 친화력, 성실함",
+        experience: "카페 서빙 6개월 경험. 서비스업 기본 매너를 배웠습니다.",
         isPublic: true,
         lastBumpedAt: now,
       },
@@ -1442,6 +1457,8 @@ async function main() {
       kakaoId: "pretty_unni28",
       title: "경력 2년차 프로입니다",
       introduction: "텐카페, 바라운지 경력 2년입니다. 서비스 마인드가 좋다는 평가를 많이 받았습니다. 마포/영등포 지역 희망합니다.",
+      strengths: "뛰어난 서비스 마인드, 대화 능력, 깔끔한 외모 관리",
+      experience: "텐카페 1년, 바라운지 1년 경력. 단골 고객 관리 경험이 있습니다.",
       isPublic: true,
       lastBumpedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
     },
@@ -1463,6 +1480,8 @@ async function main() {
       phone: "010-3333-2222",
       title: "초보지만 열심히 하겠습니다",
       introduction: "안녕하세요! 부산 해운대 거주 22세입니다. 처음이라 긴장되지만 열심히 배우겠습니다.",
+      strengths: "배움에 대한 열정, 체력, 밝은 성격",
+      experience: null,
       isPublic: true,
       lastBumpedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
     },

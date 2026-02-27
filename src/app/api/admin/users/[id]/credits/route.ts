@@ -14,12 +14,13 @@ export async function GET(
     }
 
     const { id } = await params;
-    const result = await prisma.$queryRaw<{ freeAdCredits: number }[]>`
-      SELECT "freeAdCredits" FROM "users" WHERE id = ${id}
-    `;
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { freeAdCredits: true },
+    });
 
     return NextResponse.json({
-      freeAdCredits: result[0]?.freeAdCredits ?? 0,
+      freeAdCredits: user?.freeAdCredits ?? 0,
     });
   } catch (error) {
     console.error("Get credits error:", error);
@@ -47,14 +48,12 @@ export async function POST(
         return NextResponse.json({ error: "0~100 사이의 값을 입력해주세요" }, { status: 400 });
       }
 
-      const result = await prisma.$queryRaw<{ name: string; freeAdCredits: number }[]>`
-        UPDATE "users"
-        SET "freeAdCredits" = ${credits}
-        WHERE id = ${id}
-        RETURNING name, "freeAdCredits"
-      `;
+      const user = await prisma.user.update({
+        where: { id },
+        data: { freeAdCredits: credits },
+        select: { name: true, freeAdCredits: true },
+      });
 
-      const user = result[0];
       return NextResponse.json({
         message: `${user.name}님의 무료 광고권을 ${user.freeAdCredits}회로 변경했습니다.`,
         freeAdCredits: user.freeAdCredits,
@@ -66,14 +65,12 @@ export async function POST(
       return NextResponse.json({ error: "1~100 사이의 값을 입력해주세요" }, { status: 400 });
     }
 
-    const result = await prisma.$queryRaw<{ name: string; freeAdCredits: number }[]>`
-      UPDATE "users"
-      SET "freeAdCredits" = "freeAdCredits" + ${credits}
-      WHERE id = ${id}
-      RETURNING name, "freeAdCredits"
-    `;
+    const user = await prisma.user.update({
+      where: { id },
+      data: { freeAdCredits: { increment: credits } },
+      select: { name: true, freeAdCredits: true },
+    });
 
-    const user = result[0];
     return NextResponse.json({
       message: `${user.name}님에게 무료 광고권 ${credits}회 부여 완료 (총 ${user.freeAdCredits}회)`,
       freeAdCredits: user.freeAdCredits,

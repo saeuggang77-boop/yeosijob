@@ -77,17 +77,13 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { businessNumber: true, isVerifiedBiz: true },
+      select: { businessNumber: true, isVerifiedBiz: true, freeAdCredits: true },
     });
-
-    const creditResult = await prisma.$queryRaw<{ freeAdCredits: number }[]>`
-      SELECT "freeAdCredits" FROM "users" WHERE id = ${session.user.id}
-    `;
 
     return NextResponse.json({
       businessNumber: user?.businessNumber || null,
       isVerified: user?.isVerifiedBiz || false,
-      freeAdCredits: creditResult[0]?.freeAdCredits || 0,
+      freeAdCredits: user?.freeAdCredits || 0,
     });
   } catch (error) {
     console.error("Verification check error:", error);

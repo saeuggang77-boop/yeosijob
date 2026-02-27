@@ -71,6 +71,8 @@ export async function PUT(
         id: true,
         userId: true,
         status: true,
+        editCount: true,
+        maxEdits: true,
       },
     });
 
@@ -84,6 +86,14 @@ export async function PUT(
 
     if (ad.status !== "ACTIVE") {
       return NextResponse.json({ error: "게재중인 광고만 수정할 수 있습니다" }, { status: 400 });
+    }
+
+    // 수정 횟수 제한 체크
+    if (ad.maxEdits > 0 && ad.editCount >= ad.maxEdits) {
+      return NextResponse.json(
+        { error: `수정 횟수를 초과했습니다 (최대 ${ad.maxEdits}회)` },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -124,6 +134,7 @@ export async function PUT(
         ...(bannerSubtitle !== undefined && { bannerSubtitle: bannerSubtitle || null }),
         ...(bannerTemplate !== undefined && { bannerTemplate }),
         ...(bannerColor !== undefined && { bannerColor }),
+        editCount: { increment: 1 },
       },
     });
 

@@ -50,14 +50,15 @@ export async function GET(request: NextRequest) {
       for (const ad of expiringAds) {
         if (!ad.user.email) continue;
 
-        // 중복 알림 방지: 해당 광고에 대해 같은 D-day 알림이 이미 있는지 확인
+        // 중복 알림 방지: 24시간 이내 동일 알림이 있는지 확인
+        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const existingNotification = await prisma.notification.findFirst({
           where: {
             userId: ad.userId,
             title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
             link: `/business/ads/${ad.id}`,
             createdAt: {
-              gte: startOfDay,
+              gte: twentyFourHoursAgo,
             },
           },
         });

@@ -191,11 +191,11 @@ export async function POST(request: NextRequest) {
       // #4: TOCTOU 수정 - 크레딧 확인을 트랜잭션 안으로 이동, atomic UPDATE 사용
       const ad = await prisma.$transaction(async (tx) => {
         // Atomic credit decrement with check
-        const updateResult = await tx.$executeRaw`
-          UPDATE "users" SET "freeAdCredits" = "freeAdCredits" - 1
-          WHERE id = ${session.user.id} AND "freeAdCredits" >= 1
-        `;
-        if (updateResult === 0) {
+        const updateResult = await tx.user.updateMany({
+          where: { id: session.user.id, freeAdCredits: { gte: 1 } },
+          data: { freeAdCredits: { decrement: 1 } },
+        });
+        if (updateResult.count === 0) {
           throw new Error("무료 광고권이 없습니다");
         }
 

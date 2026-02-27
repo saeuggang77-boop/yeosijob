@@ -18,7 +18,7 @@ export function calculateDday(targetDate: Date | string | null | undefined): {
   target.setHours(0, 0, 0, 0);
 
   const diffTime = target.getTime() - now.getTime();
-  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   // Already expired
   if (daysLeft < 0) {

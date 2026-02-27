@@ -253,6 +253,30 @@ export default async function AdDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {/* Work Environment */}
+      {ad.workEnvironment && (
+        <Card>
+          <CardHeader>
+            <CardTitle>근무환경</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{ad.workEnvironment}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Safety Info */}
+      {ad.safetyInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle>안전 / 보안 정보</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{ad.safetyInfo}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Contact Information */}
       <Card>
         <CardHeader>

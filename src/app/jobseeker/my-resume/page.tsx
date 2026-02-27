@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { DISTRICTS } from "@/lib/constants/districts";
 import { EXPERIENCE_LEVELS, SALARY_TYPES, GENDER_OPTIONS } from "@/lib/constants/resume";
 import { REGION_LIST } from "@/lib/constants/regions";
@@ -33,6 +34,8 @@ interface ResumeData {
   phone?: string;
   title: string;
   introduction: string;
+  strengths?: string;
+  experience?: string;
   photoUrl?: string;
   isPublic: boolean;
   canBumpToday?: boolean;
@@ -73,6 +76,8 @@ export default function MyResumePage() {
     phone: "",
     title: "",
     introduction: "",
+    strengths: "",
+    experience: "",
     photoUrl: "",
     isPublic: true,
   });
@@ -240,6 +245,8 @@ export default function MyResumePage() {
       phone: form.phone || undefined,
       title: form.title,
       introduction: form.introduction,
+      strengths: form.strengths || undefined,
+      experience: form.experience || undefined,
       photoUrl: form.photoUrl || undefined,
       isPublic: form.isPublic,
     };
@@ -296,6 +303,8 @@ export default function MyResumePage() {
         phone: "",
         title: "",
         introduction: "",
+        strengths: "",
+        experience: "",
         photoUrl: "",
         isPublic: true,
       });
@@ -362,6 +371,8 @@ export default function MyResumePage() {
       phone: resumeData.phone || "",
       title: resumeData.title || "",
       introduction: resumeData.introduction || "",
+      strengths: resumeData.strengths || "",
+      experience: resumeData.experience || "",
       photoUrl: resumeData.photoUrl || "",
       isPublic: resumeData.isPublic !== false,
     });
@@ -557,6 +568,30 @@ export default function MyResumePage() {
             <p className="text-sm whitespace-pre-wrap">{resumeData.introduction}</p>
           </CardContent>
         </Card>
+
+        {/* Strengths */}
+        {resumeData.strengths && (
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-base">장점 / 특기</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{resumeData.strengths}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Experience */}
+        {resumeData.experience && (
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-base">경력 상세</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{resumeData.experience}</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Public Status */}
         <Card className={`transition-colors ${resumeData.isPublic ? "border-green-200 bg-green-50/50" : "border-gray-200 bg-gray-50/50"}`}>
@@ -883,7 +918,7 @@ export default function MyResumePage() {
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="introduction">자기소개 (500자 이내) *</Label>
+                <Label htmlFor="introduction">자기소개 (1000자 이내) *</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -899,13 +934,40 @@ export default function MyResumePage() {
                 id="introduction"
                 value={form.introduction}
                 onChange={(e) => updateField("introduction", e.target.value)}
-                maxLength={500}
+                maxLength={1000}
                 rows={5}
                 className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 required
               />
-              <p className="mt-1 text-xs text-muted-foreground">{form.introduction.length}/500</p>
+              <p className="mt-1 text-xs text-muted-foreground">{form.introduction.length}/1000자</p>
               <FieldError field="introduction" />
+            </div>
+            <div>
+              <Label htmlFor="strengths">장점 / 특기</Label>
+              <input
+                id="strengths"
+                value={form.strengths}
+                onChange={(e) => updateField("strengths", e.target.value)}
+                placeholder="예: 밝은 성격, 서비스 마인드, 빠른 적응력"
+                maxLength={200}
+                className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">{form.strengths.length}/200자</p>
+              <FieldError field="strengths" />
+            </div>
+            <div>
+              <Label htmlFor="experience">경력 상세 (선택)</Label>
+              <Textarea
+                id="experience"
+                value={form.experience}
+                onChange={(e) => updateField("experience", e.target.value)}
+                placeholder="이전 근무 경험을 자유롭게 작성해주세요"
+                rows={4}
+                maxLength={1000}
+                className="mt-1"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">{form.experience.length}/1000자</p>
+              <FieldError field="experience" />
             </div>
           </CardContent>
         </Card>

@@ -95,6 +95,8 @@ export default function EditAdPage() {
     workHours: "",
     benefits: "",
     description: "",
+    workEnvironment: "",
+    safetyInfo: "",
     contactPhone: "",
     contactKakao: "",
     address: "",
@@ -117,6 +119,8 @@ export default function EditAdPage() {
           workHours: data.workHours || "",
           benefits: data.benefits || "",
           description: data.description || "",
+          workEnvironment: data.workEnvironment || "",
+          safetyInfo: data.safetyInfo || "",
           contactPhone: data.contactPhone || "",
           contactKakao: data.contactKakao || "",
           address: data.address || "",
@@ -247,6 +251,30 @@ export default function EditAdPage() {
                   rows={5}
                   className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="workEnvironment">근무환경</Label>
+                <textarea
+                  id="workEnvironment"
+                  value={form.workEnvironment}
+                  onChange={(e) => updateField("workEnvironment", e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="근무 장소, 분위기, 동료 구성 등"
+                />
+              </div>
+              <div>
+                <Label htmlFor="safetyInfo">안전 / 보안 정보</Label>
+                <textarea
+                  id="safetyInfo"
+                  value={form.safetyInfo}
+                  onChange={(e) => updateField("safetyInfo", e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="CCTV 유무, 비상연락망, 안전 수칙 등"
                 />
               </div>
             </CardContent>

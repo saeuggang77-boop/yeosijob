@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
         phone: data.phone,
         title: data.title,
         introduction: data.introduction,
+        strengths: data.strengths || undefined,
+        experience: data.experience || undefined,
         photoUrl: data.photoUrl,
         isPublic: data.isPublic,
         lastBumpedAt: now,
@@ -78,6 +80,8 @@ export async function POST(request: NextRequest) {
         phone: data.phone,
         title: data.title,
         introduction: data.introduction,
+        strengths: data.strengths || undefined,
+        experience: data.experience || undefined,
         photoUrl: data.photoUrl,
         isPublic: data.isPublic,
         // Don't update lastBumpedAt on regular updates

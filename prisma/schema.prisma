@@ -165,7 +165,7 @@ model Session {
 
 model VerificationToken {
   identifier String
-  token      String @unique
+  token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
@@ -186,21 +186,21 @@ model PasswordResetToken {
 // ── USER ──
 
 model User {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String?
-  email          String?  @unique
+  email          String?   @unique
   emailVerified  DateTime?
   image          String?
-  phone          String?  @unique
+  phone          String?   @unique
   hashedPassword String?
-  role           UserRole @default(JOBSEEKER)
+  role           UserRole  @default(JOBSEEKER)
 
   // 업소 사장님 전용
-  businessName   String?
-  businessNumber String?
-  isVerifiedBiz  Boolean  @default(false)
-  freeAdCredits    Int      @default(0)
-  totalPaidAdDays  Int      @default(0)
+  businessName    String?
+  businessNumber  String?
+  isVerifiedBiz   Boolean @default(false)
+  freeAdCredits   Int     @default(0)
+  totalPaidAdDays Int     @default(0)
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -211,39 +211,39 @@ model User {
   suspendReason  String?
 
   // 본인인증
-  ageVerified    DateTime?
+  ageVerified DateTime?
 
   // 유령회원
-  isGhost          Boolean          @default(false)
+  isGhost          Boolean           @default(false)
   ghostPersonality GhostPersonality?
 
-  accounts         Account[]
-  sessions         Session[]
-  ads              Ad[]
-  payments         Payment[]
-  resumes          Resume[]
-  reviews          Review[]
-  scraps           Scrap[]
-  jumpLogs         JumpLog[]
-  notifications    Notification[]
-  resumeViews      ResumeViewLog[] @relation("resumeViews")
-  posts            Post[]
-  comments         Comment[]
-  notices          Notice[]
-  ageVerifications AgeVerification[]
-  reports          Report[]
-  suspensionLogs   SuspensionLog[] @relation("suspensionLogs")
-  suspensionActions SuspensionLog[] @relation("suspensionActions")
+  accounts           Account[]
+  sessions           Session[]
+  ads                Ad[]
+  payments           Payment[]
+  resumes            Resume[]
+  reviews            Review[]
+  scraps             Scrap[]
+  jumpLogs           JumpLog[]
+  notifications      Notification[]
+  resumeViews        ResumeViewLog[]    @relation("resumeViews")
+  posts              Post[]
+  comments           Comment[]
+  notices            Notice[]
+  ageVerifications   AgeVerification[]
+  reports            Report[]
+  suspensionLogs     SuspensionLog[]    @relation("suspensionLogs")
+  suspensionActions  SuspensionLog[]    @relation("suspensionActions")
   // 쪽지 제재
   messageBannedUntil DateTime?
-  messageBlockCount  Int      @default(0)
-  sentMessages     Message[] @relation("sentMessages")
-  receivedMessages Message[] @relation("receivedMessages")
-  pushSubscriptions PushSubscription[]
-  messageBlocks   MessageBlock[] @relation("blockerMessages")
-  blockedByUsers  MessageBlock[] @relation("blockedMessages")
-  postLikes       PostLike[]
-  commentLikes    CommentLike[]
+  messageBlockCount  Int                @default(0)
+  sentMessages       Message[]          @relation("sentMessages")
+  receivedMessages   Message[]          @relation("receivedMessages")
+  pushSubscriptions  PushSubscription[]
+  messageBlocks      MessageBlock[]     @relation("blockerMessages")
+  blockedByUsers     MessageBlock[]     @relation("blockedMessages")
+  postLikes          PostLike[]
+  commentLikes       CommentLike[]
 
   @@index([role])
   @@index([isGhost])
@@ -278,18 +278,20 @@ model Ad {
   userId String
 
   // 업소 정보
-  businessName String
-  businessType BusinessType
-  contactPhone String
-  contactKakao String?
+  businessName    String
+  businessType    BusinessType
+  contactPhone    String
+  contactKakao    String?
   contactTelegram String?
 
   // 채용 조건
-  title       String
-  description String  @db.Text
-  salaryText  String
-  workHours   String?
-  benefits    String? @db.Text
+  title           String
+  description     String  @db.Text
+  salaryText      String
+  workHours       String?
+  benefits        String? @db.Text
+  workEnvironment String? @db.Text
+  safetyInfo      String? @db.Text
 
   // 위치
   regions       Region[]
@@ -307,19 +309,19 @@ model Ad {
   endDate   DateTime?
 
   // 점프 시스템
-  autoJumpPerDay      Int      @default(0)
-  manualJumpPerDay    Int      @default(0)
-  manualJumpUsedToday Int      @default(0)
-  lastJumpedAt        DateTime @default(now())
+  autoJumpPerDay      Int       @default(0)
+  manualJumpPerDay    Int       @default(0)
+  manualJumpUsedToday Int       @default(0)
+  lastJumpedAt        DateTime  @default(now())
   lastManualJumpAt    DateTime?
 
   // 이미지 / 배너
   imageUrl       String?
   thumbnailUrl   String?
-  bannerColor    Int      @default(0)
+  bannerColor    Int     @default(0)
   bannerTitle    String?
   bannerSubtitle String?
-  bannerTemplate Int      @default(0)
+  bannerTemplate Int     @default(0)
 
   // 통계
   viewCount  Int @default(0)
@@ -435,44 +437,46 @@ model JumpLog {
 // ── RESUME (구직자 이력서) ──
 
 model Resume {
-  id           String         @id @default(cuid())
-  userId       String         @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   // 기본정보
-  nickname     String
-  gender       String         @default("여성")
-  age          Int
-  height       Int?
-  weight       Int?
+  nickname String
+  gender   String @default("여성")
+  age      Int
+  height   Int?
+  weight   Int?
 
   // 희망 근무지역
-  region       Region
-  districts    String[]
+  region    Region
+  districts String[]
 
   // 희망 업종/경력/급여
-  desiredJobs        BusinessType[]
-  experienceLevel    String         @default("BEGINNER")
-  desiredSalaryType  String?
+  desiredJobs         BusinessType[]
+  experienceLevel     String         @default("BEGINNER")
+  desiredSalaryType   String?
   desiredSalaryAmount Int?
-  availableHours     String?
+  availableHours      String?
 
   // 연락처
-  kakaoId      String         @default("")
-  phone        String?
+  kakaoId String  @default("")
+  phone   String?
 
   // 이력서 내용
-  title        String         @default("")
-  introduction String         @db.Text @default("")
+  title        String  @default("")
+  introduction String  @default("") @db.Text
+  strengths    String?
+  experience   String? @db.Text
   photoUrl     String?
 
   // 공개
-  isPublic        Boolean   @default(true)
-  lastBumpedAt    DateTime?
+  isPublic     Boolean   @default(true)
+  lastBumpedAt DateTime?
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  viewLogs     ResumeViewLog[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewLogs  ResumeViewLog[]
 
   @@index([region])
   @@index([isPublic, lastBumpedAt(sort: Desc)])
@@ -547,13 +551,13 @@ model Notification {
 // ── RESUME VIEW LOG ──
 
 model ResumeViewLog {
-  id        String   @id @default(cuid())
-  userId    String
-  resumeId  String
-  adId      String?
-  viewedAt  DateTime @default(now())
-  user      User     @relation("resumeViews", fields: [userId], references: [id])
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  userId   String
+  resumeId String
+  adId     String?
+  viewedAt DateTime @default(now())
+  user     User     @relation("resumeViews", fields: [userId], references: [id])
+  resume   Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([userId, viewedAt])
   @@index([resumeId])
@@ -594,10 +598,10 @@ model Comment {
   parentId  String?
   createdAt DateTime @default(now())
 
-  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[]     @relation("CommentReplies")
   reports Report[]
   likes   CommentLike[]
 
@@ -778,7 +782,7 @@ model SuspensionLog {
   userId    String
   adminId   String
   reason    String
-  days      Int       // 0=무기한
+  days      Int // 0=무기한
   startedAt DateTime  @default(now())
   expiresAt DateTime? // null=무기한
 

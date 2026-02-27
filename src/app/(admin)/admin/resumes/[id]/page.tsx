@@ -240,6 +240,18 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
               <h3 className="text-base font-bold">{resume.title}</h3>
             )}
             <p className="whitespace-pre-wrap">{resume.introduction}</p>
+            {resume.strengths && (
+              <div className="border-t pt-3">
+                <h4 className="mb-1 text-sm font-medium text-muted-foreground">장점 / 특기</h4>
+                <p className="text-sm">{resume.strengths}</p>
+              </div>
+            )}
+            {resume.experience && (
+              <div className="border-t pt-3">
+                <h4 className="mb-1 text-sm font-medium text-muted-foreground">경력 상세</h4>
+                <p className="whitespace-pre-wrap text-sm">{resume.experience}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

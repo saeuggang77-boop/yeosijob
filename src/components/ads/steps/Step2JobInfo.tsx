@@ -28,6 +28,8 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
       workHours: formData.get("workHours") as string,
       benefits: formData.get("benefits") as string,
       description: formData.get("description") as string,
+      workEnvironment: formData.get("workEnvironment") as string,
+      safetyInfo: formData.get("safetyInfo") as string,
     };
 
     const result = step2Schema.safeParse(values);
@@ -127,6 +129,30 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
             {errors.description && (
               <p className="text-xs text-destructive">{errors.description}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="workEnvironment">근무환경 (선택)</Label>
+            <Textarea
+              id="workEnvironment"
+              name="workEnvironment"
+              defaultValue={data.workEnvironment}
+              placeholder="근무 장소, 분위기, 동료 구성 등"
+              rows={3}
+              maxLength={500}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="safetyInfo">안전 / 보안 정보 (선택)</Label>
+            <Textarea
+              id="safetyInfo"
+              name="safetyInfo"
+              defaultValue={data.safetyInfo}
+              placeholder="CCTV 유무, 비상연락망, 안전 수칙 등"
+              rows={3}
+              maxLength={500}
+            />
           </div>
 
           <div className="flex gap-3">

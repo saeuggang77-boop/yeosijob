@@ -18,7 +18,9 @@ export const resumeSchema = z.object({
   kakaoId: z.string().min(1, "카카오톡 ID를 입력해주세요").max(30),
   phone: z.string().regex(phoneRegex, "올바른 전화번호 형식이 아닙니다").optional().or(z.literal("")),
   title: z.string().min(1, "제목을 입력해주세요").max(30, "제목은 30자 이내로 입력해주세요"),
-  introduction: z.string().min(1, "자기소개를 입력해주세요").max(500, "자기소개는 500자 이내로 입력해주세요"),
+  introduction: z.string().min(1, "자기소개를 입력해주세요").max(1000, "자기소개는 1000자 이내로 입력해주세요"),
+  strengths: z.string().max(200, "장점/특기는 200자 이내로 입력해주세요").optional().or(z.literal("")),
+  experience: z.string().max(1000, "경력 상세는 1000자 이내로 입력해주세요").optional().or(z.literal("")),
   photoUrl: z.string().optional(),
   isPublic: z.boolean(),
 });

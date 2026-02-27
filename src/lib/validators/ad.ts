@@ -25,6 +25,8 @@ export const step2Schema = z.object({
   workHours: z.string().optional(),
   benefits: z.string().optional(),
   description: z.string().min(10, "상세 설명은 10자 이상 입력해주세요"),
+  workEnvironment: z.string().max(500, "근무환경은 500자 이내로 입력해주세요").optional(),
+  safetyInfo: z.string().max(500, "안전정보는 500자 이내로 입력해주세요").optional(),
 });
 
 export const step3Schema = z.object({

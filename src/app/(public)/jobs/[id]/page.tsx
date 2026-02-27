@@ -76,6 +76,8 @@ export default async function JobDetailPage({ params }: PageProps) {
       salaryText: true,
       workHours: true,
       benefits: true,
+      workEnvironment: true,
+      safetyInfo: true,
       regions: true,
       address: true,
       addressDetail: true,
@@ -353,29 +355,49 @@ export default async function JobDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* 혜택/복리후생 */}
-      {ad.benefits && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle className="text-lg">혜택/복리후생</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-              {ad.benefits}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 상세 설명 */}
+      {/* 채용 상세 */}
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="text-lg">상세 설명</CardTitle>
+          <CardTitle className="text-lg">채용 상세</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {ad.description}
+        <CardContent className="space-y-4">
+          {/* 상세 설명 */}
+          <div>
+            <h4 className="mb-1 font-medium text-sm text-muted-foreground">상세 설명</h4>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+              {ad.description}
+            </div>
           </div>
+
+          {/* 근무환경 */}
+          {ad.workEnvironment && (
+            <div className="border-t pt-3">
+              <h4 className="mb-1 font-medium text-sm text-muted-foreground">근무환경</h4>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {ad.workEnvironment}
+              </div>
+            </div>
+          )}
+
+          {/* 안전/보안 */}
+          {ad.safetyInfo && (
+            <div className="border-t pt-3">
+              <h4 className="mb-1 font-medium text-sm text-muted-foreground">안전 / 보안</h4>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {ad.safetyInfo}
+              </div>
+            </div>
+          )}
+
+          {/* 복지/혜택 (기존 benefits) */}
+          {ad.benefits && (
+            <div className="border-t pt-3">
+              <h4 className="mb-1 font-medium text-sm text-muted-foreground">복지 / 혜택</h4>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {ad.benefits}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -95,14 +95,22 @@ export function simpleHash(str: string): number {
   return Math.abs(hash);
 }
 
-/** 배너 이미지 URL 생성 (그라데이션 장식 전용, 텍스트 없음) */
+/** 배너 이미지 URL 생성 */
 export function getBannerUrl(
-  ad: { id: string; bannerColor?: number },
+  ad: { id: string; businessName: string; businessType: string; regions: string[]; salaryText: string; bannerColor?: number },
   w: number,
   h: number,
 ) {
-  const c = ad.bannerColor ?? 0;
-  return `/api/ads/${ad.id}/banner?w=${w}&h=${h}&c=${c}`;
+  const params = new URLSearchParams({
+    w: String(w),
+    h: String(h),
+    n: ad.businessName,
+    t: ad.businessType,
+    r: ad.regions.join(","),
+    s: ad.salaryText || "급여 협의",
+    c: String(ad.bannerColor ?? 0),
+  });
+  return `/api/ads/${ad.id}/banner?${params.toString()}`;
 }
 
 /** ad.id + bannerColor로 배너 디자인 결정

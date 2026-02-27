@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CommentForm } from "./CommentForm";
 import { ReplyButton } from "./ReplyButton";
 import { CommentDeleteButton } from "./CommentDeleteButton";
+import { CommentEditButton } from "./CommentEditButton";
 import { ReportButton } from "./ReportButton";
 import { AdminUserMenu } from "./AdminUserMenu";
 import { LikeButton } from "./LikeButton";
@@ -112,7 +113,8 @@ export function CommentSection({
       ) : (
         <div className="space-y-4">
           {sortedComments.map((comment) => {
-            const canDeleteComment = isAdmin || currentUserId === comment.authorId;
+            const canDeleteComment = isAdmin;
+            const canEditComment = isAdmin || currentUserId === comment.authorId;
             return (
               <div key={comment.id} className="space-y-2">
                 {/* Top-level Comment */}
@@ -167,6 +169,9 @@ export function CommentSection({
                         {currentUserId !== comment.authorId && (
                           <ReportButton commentId={comment.id} isLoggedIn={isLoggedIn} />
                         )}
+                        {canEditComment && (
+                          <CommentEditButton postId={postId} commentId={comment.id} initialContent={comment.content} />
+                        )}
                         {canDeleteComment && (
                           <CommentDeleteButton postId={postId} commentId={comment.id} />
                         )}
@@ -179,7 +184,8 @@ export function CommentSection({
                 {comment.replies && comment.replies.length > 0 && (
                   <div className="ml-8 space-y-2 border-l-2 border-primary/20 pl-4">
                     {comment.replies.map((reply) => {
-                      const canDeleteReply = isAdmin || currentUserId === reply.authorId;
+                      const canDeleteReply = isAdmin;
+                      const canEditReply = isAdmin || currentUserId === reply.authorId;
                       const contentParts = reply.content.split(/(@\S+)/g);
                       return (
                         <Card key={reply.id} className="bg-muted/30">
@@ -240,6 +246,9 @@ export function CommentSection({
                               <div className="flex items-center gap-2">
                                 {currentUserId !== reply.authorId && (
                                   <ReportButton commentId={reply.id} isLoggedIn={isLoggedIn} />
+                                )}
+                                {canEditReply && (
+                                  <CommentEditButton postId={postId} commentId={reply.id} initialContent={reply.content} />
                                 )}
                                 {canDeleteReply && (
                                   <CommentDeleteButton postId={postId} commentId={reply.id} />

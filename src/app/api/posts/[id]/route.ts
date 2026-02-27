@@ -52,7 +52,7 @@ export async function GET(
       authorName: post.author.name || "익명",
       viewCount: post.viewCount + 1,
       author: undefined,
-      authorId: undefined,
+      // Keep authorId for permission checks (edit/delete buttons)
     });
   } catch (error) {
     console.error("Post GET error:", error);
@@ -94,7 +94,8 @@ export async function PUT(
       return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    if (post.authorId !== session.user.id) {
+    const isAdmin = session.user.role === "ADMIN";
+    if (post.authorId !== session.user.id && !isAdmin) {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
@@ -144,6 +145,11 @@ export async function DELETE(
     const { id } = await params;
     const isAdmin = session.user.role === "ADMIN";
 
+    // Only admins can delete posts
+    if (!isAdmin) {
+      return NextResponse.json({ error: "게시글은 삭제할 수 없습니다. 수정만 가능합니다." }, { status: 403 });
+    }
+
     const post = await prisma.post.findUnique({
       where: { id },
       select: { authorId: true },
@@ -151,11 +157,6 @@ export async function DELETE(
 
     if (!post) {
       return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    // Allow deletion if user is author or admin
-    if (post.authorId !== session.user.id && !isAdmin) {
-      return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
     await prisma.$transaction(async (tx) => {

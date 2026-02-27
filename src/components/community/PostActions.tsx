@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 
 interface PostActionsProps {
   postId: string;
+  isAdmin: boolean;
 }
 
-export function PostActions({ postId }: PostActionsProps) {
+export function PostActions({ postId, isAdmin }: PostActionsProps) {
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -19,12 +20,15 @@ export function PostActions({ postId }: PostActionsProps) {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Failed to delete post");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete post");
+      }
 
       router.push("/community");
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("게시글 삭제에 실패했습니다.");
+      alert(error instanceof Error ? error.message : "게시글 삭제에 실패했습니다.");
     }
   };
 
@@ -35,9 +39,11 @@ export function PostActions({ postId }: PostActionsProps) {
           수정
         </Button>
       </Link>
-      <Button variant="destructive" size="sm" onClick={handleDelete}>
-        삭제
-      </Button>
+      {isAdmin && (
+        <Button variant="destructive" size="sm" onClick={handleDelete}>
+          삭제
+        </Button>
+      )}
     </div>
   );
 }

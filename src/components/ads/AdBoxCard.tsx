@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface AdBoxCardProps {
@@ -16,6 +17,7 @@ interface AdBoxCardProps {
     viewCount?: number;
     thumbnailUrl?: string | null;
     bannerColor?: number;
+    endDate?: Date | null;
   };
   productId?: string;
 }
@@ -25,6 +27,7 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
     .map((r) => REGIONS[r]?.shortLabel || r)
     .join(", ");
   const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
+  const ddayInfo = productId !== "FREE" ? calculateDday(ad.endDate) : null;
 
   function getProductStyles(productId?: string) {
     switch (productId) {
@@ -49,6 +52,13 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
           )}
           {productId === "PREMIUM" && (
             <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">⭐</span>
+          )}
+          {ddayInfo && (
+            <Badge
+              className={`absolute -top-2 -left-2 px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+            >
+              {ddayInfo.text}
+            </Badge>
           )}
           <div className="flex items-center gap-1">
             <h3 className="truncate text-sm font-medium">{ad.title}</h3>

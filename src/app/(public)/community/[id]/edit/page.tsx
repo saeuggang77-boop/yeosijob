@@ -35,8 +35,9 @@ export default function EditPostPage({ params }: PageProps) {
 
         const data = await res.json();
 
-        // Check if user is the author
-        if (data.authorId !== session.user.id) {
+        // Check if user is the author or admin
+        const isAdmin = session.user.role === "ADMIN";
+        if (data.authorId !== session.user.id && !isAdmin) {
           alert("수정 권한이 없습니다.");
           router.push(`/community/${id}`);
           return;

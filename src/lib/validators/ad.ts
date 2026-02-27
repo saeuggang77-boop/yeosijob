@@ -10,6 +10,9 @@ export const step1Schema = z.object({
   address: z.string().min(1, "주소를 입력해주세요"),
   addressDetail: z.string().optional(),
   bannerColor: z.number().min(0).max(14).default(0),
+  bannerTitle: z.string().max(12, "배너 문구는 12자 이내로 입력해주세요").optional(),
+  bannerSubtitle: z.string().max(40, "서브카피는 40자 이내로 입력해주세요").optional(),
+  bannerTemplate: z.number().min(0).max(29).default(0),
 });
 
 export const step2Schema = z.object({

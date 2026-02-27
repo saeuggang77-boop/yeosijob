@@ -97,6 +97,10 @@ export async function PUT(
       contactKakao,
       address,
       addressDetail,
+      bannerTitle,
+      bannerSubtitle,
+      bannerTemplate,
+      bannerColor,
     } = body;
 
     // Validation
@@ -116,6 +120,10 @@ export async function PUT(
         contactKakao: contactKakao || null,
         address: address || null,
         addressDetail: addressDetail || null,
+        ...(bannerTitle !== undefined && { bannerTitle: bannerTitle || null }),
+        ...(bannerSubtitle !== undefined && { bannerSubtitle: bannerSubtitle || null }),
+        ...(bannerTemplate !== undefined && { bannerTemplate }),
+        ...(bannerColor !== undefined && { bannerColor }),
       },
     });
 

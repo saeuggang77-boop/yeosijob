@@ -94,6 +94,33 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Send notification to all active, non-ghost users
+    try {
+      const activeUsers = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          isGhost: false,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (activeUsers.length > 0) {
+        await prisma.notification.createMany({
+          data: activeUsers.map((user) => ({
+            userId: user.id,
+            title: "새 공지사항",
+            message: `새 공지사항: ${notice.title}`,
+            link: `/notices/${notice.id}`,
+          })),
+        });
+      }
+    } catch (error) {
+      console.error("Failed to create notifications for notice:", error);
+      // Don't fail notice creation if notification fails
+    }
+
     return NextResponse.json(
       {
         ...notice,

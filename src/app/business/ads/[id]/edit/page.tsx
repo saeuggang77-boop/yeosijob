@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { BANNER_COLORS } from "@/lib/constants/banner-themes";
-import { BannerPreview } from "@/components/ads/BannerPreview";
+import { Banner } from "@/components/ads/Banner";
+import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Check } from "lucide-react";
 
 interface AdData {
@@ -24,6 +25,10 @@ interface AdData {
   businessName: string;
   businessType: string;
   bannerColor: number;
+  bannerTitle: string | null;
+  bannerSubtitle: string | null;
+  bannerTemplate: number;
+  productId: string;
 }
 
 export default function EditAdPage() {
@@ -95,6 +100,9 @@ export default function EditAdPage() {
     address: "",
     addressDetail: "",
     bannerColor: 0,
+    bannerTitle: "",
+    bannerSubtitle: "",
+    bannerTemplate: 0,
   });
 
   useEffect(() => {
@@ -114,6 +122,9 @@ export default function EditAdPage() {
           address: data.address || "",
           addressDetail: data.addressDetail || "",
           bannerColor: data.bannerColor ?? 0,
+          bannerTitle: data.bannerTitle || "",
+          bannerSubtitle: data.bannerSubtitle || "",
+          bannerTemplate: data.bannerTemplate ?? 0,
         });
       })
       .catch((err) => setError(err.message))
@@ -305,56 +316,120 @@ export default function EditAdPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">배너 디자인</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>배너 색상</Label>
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {BANNER_COLORS.map((color, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => updateField("bannerColor", index.toString())}
-                      className="relative flex h-12 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
-                      style={{
-                        backgroundColor: color.main,
-                        borderColor: form.bannerColor === index ? color.sub : "transparent",
-                        boxShadow: form.bannerColor === index ? `0 0 0 2px ${color.main}40` : "none",
-                      }}
-                      title={color.name}
-                    >
-                      {form.bannerColor === index && (
-                        <Check className="h-5 w-5 text-white drop-shadow-lg" strokeWidth={3} />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  선택한 색상: {BANNER_COLORS[form.bannerColor].name}
-                </p>
-              </div>
-
-              <div>
-                <Label>배너 미리보기</Label>
-                <div className="mt-2">
-                  <BannerPreview
-                    businessName={ad?.businessName || "업소명"}
-                    businessType={ad?.businessType || "KARAOKE"}
-                    regions={[]}
-                    salaryText={form.salaryText || "급여 정보"}
-                    bannerColor={form.bannerColor}
-                    adId={ad?.id}
+          {/* 배너 디자인 - SPECIAL 이상만 표시 */}
+          {ad && ["SPECIAL", "PREMIUM", "VIP", "BANNER"].includes(ad.productId) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">배너 디자인</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* 캐치프레이즈 입력 */}
+                <div>
+                  <Label htmlFor="bannerTitle">캐치프레이즈 (12자 이내)</Label>
+                  <input
+                    id="bannerTitle"
+                    maxLength={12}
+                    value={form.bannerTitle}
+                    onChange={(e) => setForm((prev) => ({ ...prev, bannerTitle: e.target.value }))}
+                    className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    placeholder="예: 밤의 품격이 다르다"
                   />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {form.bannerTitle.length}/12자 · 미입력 시 업소명이 표시됩니다
+                  </p>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  * 레이아웃과 패턴은 광고 등록 시 자동으로 결정됩니다
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* 서브타이틀 입력 */}
+                <div>
+                  <Label htmlFor="bannerSubtitle">서브카피 (40자 이내)</Label>
+                  <input
+                    id="bannerSubtitle"
+                    maxLength={40}
+                    value={form.bannerSubtitle}
+                    onChange={(e) => setForm((prev) => ({ ...prev, bannerSubtitle: e.target.value }))}
+                    className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    placeholder="예: 고급스러운 분위기에서 함께하실 분"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {form.bannerSubtitle.length}/40자 · 선택사항
+                  </p>
+                </div>
+
+                {/* 색상 선택 */}
+                <div>
+                  <Label>색상</Label>
+                  <div className="mt-2 grid grid-cols-5 gap-2">
+                    {BANNER_COLORS.map((color, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, bannerColor: index }))}
+                        className="relative flex h-10 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
+                        style={{
+                          backgroundColor: color.main,
+                          borderColor: form.bannerColor === index ? color.sub : "transparent",
+                          boxShadow: form.bannerColor === index ? `0 0 0 2px ${color.main}40` : "none",
+                        }}
+                        title={color.name}
+                      >
+                        {form.bannerColor === index && (
+                          <Check className="h-4 w-4 text-white drop-shadow-lg" strokeWidth={3} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    선택한 색상: {BANNER_COLORS[form.bannerColor].name}
+                  </p>
+                </div>
+
+                {/* 템플릿 선택 */}
+                <div>
+                  <Label>템플릿 스타일</Label>
+                  <div className="mt-2 grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
+                    {Array.from({ length: 30 }, (_, i) => {
+                      const bizInfo = BUSINESS_TYPES[(ad.businessType || "KARAOKE") as keyof typeof BUSINESS_TYPES];
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, bannerTemplate: i }))}
+                          className={`relative overflow-hidden rounded-lg border-2 transition-all hover:scale-[1.02] ${
+                            form.bannerTemplate === i
+                              ? "border-primary shadow-lg shadow-primary/20"
+                              : "border-transparent hover:border-muted-foreground/30"
+                          }`}
+                        >
+                          <Banner
+                            title={form.bannerTitle || null}
+                            subtitle={form.bannerSubtitle || null}
+                            businessName={ad.businessName}
+                            businessIcon={bizInfo?.icon}
+                            businessLabel={bizInfo?.shortLabel}
+                            businessType={ad.businessType}
+                            salaryText={form.salaryText || "급여 정보"}
+                            template={i}
+                            colorIndex={form.bannerColor}
+                            size="sm"
+                          />
+                          {form.bannerTemplate === i && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <div className="rounded-full bg-primary p-1">
+                                <Check className="h-5 w-5 text-primary-foreground" strokeWidth={3} />
+                              </div>
+                            </div>
+                          )}
+                          <div className="absolute bottom-1 right-2 text-[10px] text-white/50">
+                            #{i + 1}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex gap-3">
             <Button type="button" variant="outline" className="flex-1" onClick={() => router.push("/business/dashboard")}>

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { timeAgo } from "@/lib/utils/format";
+import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface AdCardProps {
@@ -16,6 +17,7 @@ interface AdCardProps {
     isVerified: boolean;
     viewCount: number;
     lastJumpedAt: Date | string;
+    endDate?: Date | null;
     options?: { optionId: string; value?: string | null }[];
   };
   productId?: string;
@@ -26,6 +28,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   const hasBold = ad.options?.some((o) => o.optionId === "BOLD");
   const highlight = ad.options?.find((o) => o.optionId === "HIGHLIGHT");
   const icon = ad.options?.find((o) => o.optionId === "ICON");
+  const ddayInfo = productId !== "FREE" ? calculateDday(ad.endDate) : null;
 
   const highlightColors: Record<string, string> = {
     yellow: "bg-yellow-50",
@@ -110,6 +113,13 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
                 className="shrink-0 text-[10px] px-1 py-0"
               >
                 인증
+              </Badge>
+            )}
+            {ddayInfo && (
+              <Badge
+                className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+              >
+                {ddayInfo.text}
               </Badge>
             )}
           </div>

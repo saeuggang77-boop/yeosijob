@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       const expiringAds = await prisma.ad.findMany({
         where: {
           status: "ACTIVE",
+          productId: { not: "FREE" }, // FREE tier는 제외
           endDate: {
             gte: startOfDay,
             lte: endOfDay,
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           title: true,
+          businessName: true,
           userId: true,
           user: {
             select: { email: true },
@@ -48,6 +50,23 @@ export async function GET(request: NextRequest) {
       for (const ad of expiringAds) {
         if (!ad.user.email) continue;
 
+        // 중복 알림 방지: 해당 광고에 대해 같은 D-day 알림이 이미 있는지 확인
+        const existingNotification = await prisma.notification.findFirst({
+          where: {
+            userId: ad.userId,
+            title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
+            link: `/business/ads/${ad.id}`,
+            createdAt: {
+              gte: startOfDay,
+            },
+          },
+        });
+
+        if (existingNotification) {
+          console.log(`Notification already sent for ad ${ad.id} (D-${daysLeft})`);
+          continue;
+        }
+
         try {
           await sendAdExpiryNotification(
             ad.user.email,
@@ -57,11 +76,15 @@ export async function GET(request: NextRequest) {
           );
 
           // Create in-app notification
+          const notificationMessage = daysLeft === 3
+            ? `광고 '${ad.businessName}'이 3일 후 만료됩니다. 갱신하시겠습니까?`
+            : `'${ad.title}' 광고가 ${daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`}`;
+
           await prisma.notification.create({
             data: {
               userId: ad.userId,
               title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
-              message: `'${ad.title}' 광고가 ${daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`}`,
+              message: notificationMessage,
               link: `/business/ads/${ad.id}`,
             },
           });

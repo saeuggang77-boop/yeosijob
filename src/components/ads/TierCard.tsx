@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { Banner } from "@/components/ads/Banner";
+import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface TierCardProps {
@@ -17,6 +19,9 @@ interface TierCardProps {
     thumbnailUrl?: string | null;
     description?: string | null;
     bannerColor?: number;
+    bannerTitle?: string | null;
+    bannerTemplate?: number;
+    endDate?: Date | null;
   };
   tier: "VIP" | "PREMIUM" | "SPECIAL";
 }
@@ -46,15 +51,33 @@ export function TierCard({ ad, tier }: TierCardProps) {
   const bizLabel = bizInfo?.shortLabel || ad.businessType;
   const bizIcon = bizInfo?.icon || "📋";
   const oneLiner = ad.description?.split("\n")[0]?.slice(0, 60) || null;
+  const ddayInfo = calculateDday(ad.endDate);
 
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
       <div
         className={`flex gap-3 rounded-lg p-4 transition-all duration-200 ${style.card}`}
       >
-        {/* Industry icon with gradient background */}
-        <div className="flex h-[120px] w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-accent/30">
-          <span className="text-5xl">{bizIcon}</span>
+        {/* Banner or fallback icon */}
+        <div className="h-[120px] w-[200px] shrink-0 overflow-hidden rounded-lg">
+          {ad.bannerTitle || ad.bannerTemplate ? (
+            <Banner
+              title={ad.bannerTitle}
+              businessName={ad.businessName}
+              businessIcon={bizIcon}
+              businessLabel={bizLabel}
+              businessType={ad.businessType}
+              salaryText={ad.salaryText}
+              regionLabel={regionLabels}
+              template={ad.bannerTemplate ?? 0}
+              colorIndex={ad.bannerColor ?? 0}
+              size="sm"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-accent/30">
+              <span className="text-5xl">{bizIcon}</span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -73,6 +96,13 @@ export function TierCard({ ad, tier }: TierCardProps) {
                 className="shrink-0 px-1 py-0 text-[10px]"
               >
                 인증
+              </Badge>
+            )}
+            {ddayInfo && (
+              <Badge
+                className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+              >
+                {ddayInfo.text}
               </Badge>
             )}
           </div>

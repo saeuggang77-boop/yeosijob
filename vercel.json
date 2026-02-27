@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/boost-community-views",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/notify-expiry",
+      "schedule": "0 9 * * *"
     }
   ],
   "redirects": [

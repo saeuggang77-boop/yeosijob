@@ -15,6 +15,11 @@ export async function DELETE(
     const { id, commentId } = await params;
     const isAdmin = session.user.role === "ADMIN";
 
+    // Only admins can delete comments
+    if (!isAdmin) {
+      return NextResponse.json({ error: "댓글은 삭제할 수 없습니다. 수정만 가능합니다." }, { status: 403 });
+    }
+
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
       select: { authorId: true, postId: true },
@@ -22,11 +27,6 @@ export async function DELETE(
 
     if (!comment || comment.postId !== id) {
       return NextResponse.json({ error: "댓글을 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    // Allow deletion if user is author or admin
-    if (comment.authorId !== session.user.id && !isAdmin) {
-      return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
     await prisma.comment.delete({

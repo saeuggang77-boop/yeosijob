@@ -228,7 +228,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                 <span>조회 {post.viewCount.toLocaleString()}</span>
               </div>
             </div>
-            {(isAuthor || isAdmin) && <PostActions postId={post.id} />}
+            {(isAuthor || isAdmin) && <PostActions postId={post.id} isAdmin={isAdmin} />}
           </div>
         </CardHeader>
         <CardContent>

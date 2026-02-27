@@ -117,6 +117,9 @@ export async function POST(request: NextRequest) {
       paymentMethod,
       useCredit,
       bannerColor,
+    bannerTitle,
+    bannerSubtitle,
+    bannerTemplate,
     } = body;
 
     // 검증
@@ -222,6 +225,9 @@ export async function POST(request: NextRequest) {
             maxEdits: product.maxEdits,
             isVerified: user.isVerifiedBiz || false,
             bannerColor: bannerColor ?? 0,
+            bannerTitle: bannerTitle || null,
+            bannerSubtitle: bannerSubtitle || null,
+            bannerTemplate: bannerTemplate ?? 0,
           },
         });
 
@@ -333,6 +339,9 @@ export async function POST(request: NextRequest) {
           manualJumpPerDay: product.manualJumpPerDay,
           maxEdits: product.maxEdits,
           bannerColor: bannerColor ?? 0,
+          bannerTitle: bannerTitle || null,
+          bannerSubtitle: bannerSubtitle || null,
+          bannerTemplate: bannerTemplate ?? 0,
           options: {
             create: (options as string[]).map((optId: string) => ({
               optionId: optId as AdOptionId,

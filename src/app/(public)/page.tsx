@@ -53,6 +53,10 @@ export default async function HomePage({ searchParams }: PageProps) {
     thumbnailUrl: true,
     description: true,
     bannerColor: true,
+    bannerTitle: true,
+    bannerSubtitle: true,
+    bannerTemplate: true,
+    endDate: true,
     options: {
       select: { optionId: true, value: true },
     },

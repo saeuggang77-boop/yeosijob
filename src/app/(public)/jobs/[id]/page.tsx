@@ -14,6 +14,8 @@ import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
 import { KakaoMap } from "@/components/map/KakaoMap";
+import { Banner } from "@/components/ads/Banner";
+import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region } from "@/generated/prisma/client";
 
 interface PageProps {
@@ -158,6 +160,9 @@ export default async function JobDetailPage({ params }: PageProps) {
         ).toFixed(1)
       : null;
 
+  // D-day calculation (only for non-FREE ads)
+  const ddayInfo = ad.productId !== "FREE" ? calculateDday(ad.endDate) : null;
+
   // JSON-LD structured data for SEO
   const jsonLd = {
     "@context": "https://schema.org",
@@ -201,6 +206,25 @@ export default async function JobDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
+      {/* 배너 (유료 광고만) */}
+      {ad.productId !== "FREE" && (
+        <div className="mb-6">
+          <Banner
+            title={ad.bannerTitle}
+            subtitle={ad.bannerSubtitle}
+            businessName={ad.businessName}
+            businessIcon={BUSINESS_TYPES[ad.businessType]?.icon}
+            businessLabel={BUSINESS_TYPES[ad.businessType]?.shortLabel}
+            businessType={ad.businessType}
+            salaryText={ad.salaryText}
+            regionLabel={regionLabels}
+            template={ad.bannerTemplate ?? 0}
+            colorIndex={ad.bannerColor ?? 0}
+            size="lg"
+          />
+        </div>
+      )}
+
       {/* 상단 정보 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -233,6 +257,13 @@ export default async function JobDetailPage({ params }: PageProps) {
             <span className="text-sm text-muted-foreground">
               {"★"} {avgRating} ({ad._count.reviews})
             </span>
+          )}
+          {ddayInfo && (
+            <Badge
+              className={`px-2 py-0.5 text-xs font-bold ${getDdayColorClass(ddayInfo.color)}`}
+            >
+              {ddayInfo.text}
+            </Badge>
           )}
         </div>
 

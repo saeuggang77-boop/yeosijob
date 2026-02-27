@@ -16,7 +16,8 @@ import { BUSINESS_TYPE_LIST } from "@/lib/constants/business-types";
 import { step1Schema } from "@/lib/validators/ad";
 import type { AdFormData } from "@/lib/validators/ad";
 import { BANNER_COLORS } from "@/lib/constants/banner-themes";
-import { BannerPreview } from "@/components/ads/BannerPreview";
+import { Banner } from "@/components/ads/Banner";
+import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Check } from "lucide-react";
 
 interface Props {
@@ -124,7 +125,7 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
         <CardTitle>업소 정보 입력</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} onKeyDown={(e) => { if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") e.preventDefault(); }} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="businessName">
               업소명 <span className="text-destructive">*</span>
@@ -132,7 +133,8 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
             <Input
               id="businessName"
               name="businessName"
-              defaultValue={data.businessName}
+              value={data.businessName || ""}
+              onChange={(e) => onUpdate({ businessName: e.target.value })}
               placeholder="업소 이름"
               required
             />
@@ -236,45 +238,113 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
             />
           </div>
 
-          <div className="space-y-3 pt-4 border-t">
-            <Label>배너 색상</Label>
-            <div className="grid grid-cols-5 gap-2">
-              {BANNER_COLORS.map((color, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => onUpdate({ bannerColor: index })}
-                  className="relative flex h-12 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
-                  style={{
-                    backgroundColor: color.main,
-                    borderColor: (data.bannerColor ?? 0) === index ? color.sub : "transparent",
-                    boxShadow: (data.bannerColor ?? 0) === index ? `0 0 0 2px ${color.main}40` : "none",
-                  }}
-                  title={color.name}
-                >
-                  {(data.bannerColor ?? 0) === index && (
-                    <Check className="h-5 w-5 text-white drop-shadow-lg" strokeWidth={3} />
-                  )}
-                </button>
-              ))}
+          <div className="space-y-4 pt-4 border-t">
+            <div>
+              <Label>배너 디자인 <span className="text-xs text-muted-foreground font-normal">(스페셜 이상 상품에 적용)</span></Label>
             </div>
-            <p className="text-xs text-muted-foreground">
-              선택한 색상: {BANNER_COLORS[data.bannerColor ?? 0].name}
-            </p>
-          </div>
 
-          <div className="space-y-2 pt-2">
-            <Label>배너 미리보기</Label>
-            <BannerPreview
-              businessName={data.businessName || "업소명"}
-              businessType={data.businessType || "KARAOKE"}
-              regions={[]}
-              salaryText="급여 정보"
-              bannerColor={data.bannerColor ?? 0}
-            />
-            <p className="text-xs text-muted-foreground">
-              * 실제 배너는 레이아웃과 패턴이 자동으로 결정됩니다
-            </p>
+            {/* 캐치프레이즈 입력 */}
+            <div className="space-y-2">
+              <Label htmlFor="bannerTitle">캐치프레이즈 (12자 이내)</Label>
+              <Input
+                id="bannerTitle"
+                maxLength={12}
+                value={data.bannerTitle || ""}
+                onChange={(e) => onUpdate({ bannerTitle: e.target.value })}
+                placeholder="예: 밤의 품격이 다르다"
+              />
+              <p className="text-xs text-muted-foreground">
+                {(data.bannerTitle || "").length}/12자 · 미입력 시 업소명이 표시됩니다
+              </p>
+            </div>
+
+            {/* 서브 카피 입력 */}
+            <div className="space-y-2">
+              <Label htmlFor="bannerSubtitle">서브 카피 (20자 이내)</Label>
+              <Input
+                id="bannerSubtitle"
+                maxLength={20}
+                value={data.bannerSubtitle || ""}
+                onChange={(e) => onUpdate({ bannerSubtitle: e.target.value })}
+                placeholder="예: 최고의 대우를 약속합니다"
+              />
+              <p className="text-xs text-muted-foreground">
+                {(data.bannerSubtitle || "").length}/20자
+              </p>
+            </div>
+
+            {/* 색상 선택 */}
+            <div className="space-y-2">
+              <Label>색상</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {BANNER_COLORS.map((color, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => onUpdate({ bannerColor: index })}
+                    className="relative flex h-10 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
+                    style={{
+                      backgroundColor: color.main,
+                      borderColor: (data.bannerColor ?? 0) === index ? color.sub : "transparent",
+                      boxShadow: (data.bannerColor ?? 0) === index ? `0 0 0 2px ${color.main}40` : "none",
+                    }}
+                    title={color.name}
+                  >
+                    {(data.bannerColor ?? 0) === index && (
+                      <Check className="h-4 w-4 text-white drop-shadow-lg" strokeWidth={3} />
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                선택한 색상: {BANNER_COLORS[data.bannerColor ?? 0].name}
+              </p>
+            </div>
+
+            {/* 템플릿 선택 그리드 */}
+            <div className="space-y-2">
+              <Label>템플릿 스타일</Label>
+              <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
+                {Array.from({ length: 30 }, (_, i) => {
+                  const bizInfo = BUSINESS_TYPES[(data.businessType || "KARAOKE") as keyof typeof BUSINESS_TYPES];
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => onUpdate({ bannerTemplate: i })}
+                      className={`relative overflow-hidden rounded-lg border-2 transition-all hover:scale-[1.02] ${
+                        (data.bannerTemplate ?? 0) === i
+                          ? "border-primary shadow-lg shadow-primary/20"
+                          : "border-transparent hover:border-muted-foreground/30"
+                      }`}
+                    >
+                      <Banner
+                        title={data.bannerTitle || null}
+                        subtitle={data.bannerSubtitle || null}
+                        businessName={data.businessName || "업소명"}
+                        businessIcon={bizInfo?.icon}
+                        businessLabel={bizInfo?.shortLabel}
+                        businessType={data.businessType}
+                        salaryText="급여 정보"
+                        template={i}
+                        colorIndex={data.bannerColor ?? 0}
+                        size="sm"
+                      />
+                      {(data.bannerTemplate ?? 0) === i && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <div className="rounded-full bg-primary p-1">
+                            <Check className="h-5 w-5 text-primary-foreground" strokeWidth={3} />
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute bottom-1 right-2 text-[10px] text-white/50">
+                        #{i + 1}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <Button type="submit" className="w-full">

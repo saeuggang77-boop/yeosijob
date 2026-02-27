@@ -144,7 +144,11 @@ export async function GET(
           />
         </div>
       ),
-      { width, height }
+      {
+        width,
+        height,
+        headers: { "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800" },
+      }
     );
   } catch (error) {
     console.error("Banner generation error:", error);

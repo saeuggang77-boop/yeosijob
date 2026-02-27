@@ -18,6 +18,7 @@ import { Banner } from "@/components/ads/Banner";
 import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region } from "@/generated/prisma/client";
+import { FloatingContact } from "@/components/ads/FloatingContact";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -63,7 +64,31 @@ export default async function JobDetailPage({ params }: PageProps) {
 
   const ad = await prisma.ad.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      businessName: true,
+      businessType: true,
+      contactPhone: true,
+      contactKakao: true,
+      contactTelegram: true,
+      salaryText: true,
+      workHours: true,
+      benefits: true,
+      regions: true,
+      address: true,
+      addressDetail: true,
+      productId: true,
+      status: true,
+      viewCount: true,
+      createdAt: true,
+      endDate: true,
+      isVerified: true,
+      bannerTitle: true,
+      bannerSubtitle: true,
+      bannerTemplate: true,
+      bannerColor: true,
       user: {
         select: { isVerifiedBiz: true, totalPaidAdDays: true },
       },
@@ -375,6 +400,19 @@ export default async function JobDetailPage({ params }: PageProps) {
               <span className="font-medium">{ad.contactKakao}</span>
             </div>
           )}
+          {ad.contactTelegram && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">텔레그램</span>
+              <a
+                href={`https://t.me/${ad.contactTelegram.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                {ad.contactTelegram}
+              </a>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -438,20 +476,13 @@ export default async function JobDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* 하단 고정 바 (모바일) */}
-      <div className="fixed bottom-[68px] left-0 right-0 border-t bg-background p-3 md:hidden">
-        {session?.user?.role === "JOBSEEKER" && !hasResume ? (
-          <Link href="/jobseeker/my-resume">
-            <Button variant="outline" className="h-12 w-full text-base">
-              이력서를 먼저 등록해주세요
-            </Button>
-          </Link>
-        ) : (
-          <a href={`tel:${ad.contactPhone}`}>
-            <Button className="h-12 w-full text-base">전화하기</Button>
-          </a>
-        )}
-      </div>
+      {/* 플로팅 연락처 바 */}
+      <FloatingContact
+        contactPhone={ad.contactPhone}
+        contactKakao={ad.contactKakao}
+        contactTelegram={ad.contactTelegram}
+        isJobseekerWithoutResume={session?.user?.role === "JOBSEEKER" && !hasResume}
+      />
 
       {/* 하단 여백 (모바일 고정바) */}
       <div className="h-20 md:hidden" />

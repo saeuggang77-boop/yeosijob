@@ -282,6 +282,7 @@ model Ad {
   businessType BusinessType
   contactPhone String
   contactKakao String?
+  contactTelegram String?
 
   // 채용 조건
   title       String

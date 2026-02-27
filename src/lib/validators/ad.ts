@@ -7,6 +7,7 @@ export const step1Schema = z.object({
     .string()
     .regex(/^01[016789]\d{7,8}$/, "올바른 연락처를 입력해주세요"),
   contactKakao: z.string().optional(),
+  contactTelegram: z.string().optional(),
   address: z.string().min(1, "주소를 입력해주세요"),
   addressDetail: z.string().optional(),
   bannerColor: z.number().min(0).max(14).default(0),

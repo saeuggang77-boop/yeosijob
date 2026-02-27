@@ -25,6 +25,7 @@ const SAMPLE_ADS = [
     description: "강남 최고급 프리미엄 룸싸롱에서 대규모 채용합니다.\n\n업계 최고 대우, 경력 무관.\n숙소 완비, 전국에서 오시는 분 환영!",
     contactPhone: "01011112222",
     contactKakao: "diamond_ceo",
+    contactTelegram: "@diamond_recruit",
     thumbnailUrl: null,
   },
   // 2. VIP 1
@@ -39,6 +40,7 @@ const SAMPLE_ADS = [
     description: "강남 최고급 룸싸롱에서 함께할 분을 모집합니다.\n\n경력 무관, 미경험자도 환영합니다.",
     contactPhone: "01012345678",
     contactKakao: "royalclub_ceo",
+    contactTelegram: "@royalclub_job",
   },
   // 3. VIP 2
   {

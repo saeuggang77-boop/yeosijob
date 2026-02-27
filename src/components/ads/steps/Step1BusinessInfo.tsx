@@ -97,6 +97,7 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
       businessType: data.businessType || "",
       contactPhone: (formData.get("contactPhone") as string).replace(/-/g, ""),
       contactKakao: formData.get("contactKakao") as string,
+      contactTelegram: formData.get("contactTelegram") as string,
       address: formData.get("address") as string,
       addressDetail: formData.get("addressDetail") as string,
     };
@@ -190,6 +191,16 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
               name="contactKakao"
               defaultValue={data.contactKakao}
               placeholder="카카오톡 ID"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="contactTelegram">텔레그램 (선택)</Label>
+            <Input
+              id="contactTelegram"
+              name="contactTelegram"
+              defaultValue={data.contactTelegram}
+              placeholder="@username 또는 전화번호"
             />
           </div>
 

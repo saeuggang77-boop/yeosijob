@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { getBannerUrl } from "@/lib/constants/banner-themes";
 
 interface BannerAd {
   id: string;
@@ -14,6 +15,7 @@ interface BannerAd {
   regions: Region[];
   salaryText: string;
   viewCount: number;
+  bannerColor?: number;
 }
 
 interface Props {
@@ -65,7 +67,7 @@ export function BannerSlider({ ads }: Props) {
               <div className="banner-card relative mx-4 my-4 flex min-h-[150px] items-center overflow-hidden rounded-xl px-6 py-5 transition-all duration-300 group-hover:scale-[1.01] group-hover:shadow-[0_0_40px_rgba(212,168,83,0.3)]">
                 {/* Banner Background Image */}
                 <img
-                  src={`/api/ads/${ad.id}/banner?w=1200&h=300`}
+                  src={getBannerUrl(ad, 1200, 300)}
                   alt={`${ad.businessName} 배너`}
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-cover opacity-60"

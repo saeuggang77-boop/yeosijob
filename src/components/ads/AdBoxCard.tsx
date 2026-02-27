@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { getBannerUrl } from "@/lib/constants/banner-themes";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface AdBoxCardProps {
@@ -15,6 +16,7 @@ interface AdBoxCardProps {
     isVerified: boolean;
     viewCount?: number;
     thumbnailUrl?: string | null;
+    bannerColor?: number;
   };
   productId?: string;
 }
@@ -44,7 +46,7 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
         {/* Banner Image at top */}
         <div className="relative h-20 overflow-hidden rounded-t-lg bg-muted">
           <img
-            src={`/api/ads/${ad.id}/banner?w=400&h=160`}
+            src={getBannerUrl(ad, 400, 160)}
             alt={`${ad.businessName} 배너`}
             loading="lazy"
             className="h-full w-full object-cover"

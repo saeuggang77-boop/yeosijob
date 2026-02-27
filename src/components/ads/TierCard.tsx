@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { getBannerUrl } from "@/lib/constants/banner-themes";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 interface TierCardProps {
@@ -16,6 +17,7 @@ interface TierCardProps {
     viewCount: number;
     thumbnailUrl?: string | null;
     description?: string | null;
+    bannerColor?: number;
   };
   tier: "VIP" | "PREMIUM" | "SPECIAL";
 }
@@ -51,22 +53,14 @@ export function TierCard({ ad, tier }: TierCardProps) {
       <div
         className={`flex gap-3 rounded-lg p-4 transition-all duration-200 ${style.card}`}
       >
-        {/* Banner Image / Fallback Icon */}
-        <div className="flex h-[120px] w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+        {/* Banner Image with CSS-only fallback */}
+        <div className="relative flex h-[120px] w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+          <span className="text-2xl">{bizIcon}</span>
           <img
-            src={`/api/ads/${ad.id}/banner?w=200&h=120`}
+            src={getBannerUrl(ad, 200, 120)}
             alt={`${ad.businessName} 배너`}
             loading="lazy"
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              // Fallback to icon on error
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                parent.innerHTML = `<span class="text-2xl">${bizIcon}</span>`;
-              }
-            }}
+            className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
 

@@ -20,9 +20,10 @@ interface AdBoxCardProps {
     endDate?: Date | null;
   };
   productId?: string;
+  compact?: boolean;
 }
 
-export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
+export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
   const regionLabels = ad.regions
     .map((r) => REGIONS[r]?.shortLabel || r)
     .join(", ");
@@ -41,6 +42,42 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
   }
 
   const productStyles = getProductStyles(productId);
+
+  if (compact) {
+    return (
+      <Link href={`/jobs/${ad.id}`} className="block">
+        <div className={`relative w-full overflow-hidden rounded-lg border transition-all duration-200 hover:bg-muted/50 ${productStyles}`}>
+          <div className="flex items-center justify-between gap-3 py-2 px-3">
+            {/* Left side: title + info */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1">
+                <h3 className="truncate text-sm font-medium">{ad.title}</h3>
+                {ad.isVerified && (
+                  <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
+                    <span className="text-success">✓</span>
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {ad.businessName} · {regionLabels} · {bizLabel}
+              </p>
+            </div>
+            {/* Right side: salary + dday */}
+            <div className="flex shrink-0 items-center gap-2">
+              <p className="text-sm font-medium text-success whitespace-nowrap">{ad.salaryText}</p>
+              {ddayInfo && (
+                <Badge
+                  className={`px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+                >
+                  {ddayInfo.text}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link href={`/jobs/${ad.id}`} className="block">

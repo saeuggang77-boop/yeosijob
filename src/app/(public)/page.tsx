@@ -102,13 +102,13 @@ export default async function HomePage({ searchParams }: PageProps) {
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "URGENT" },
       orderBy: { lastJumpedAt: "desc" },
-      take: 3,
+      take: 6,
       select: adSelect,
     }),
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "RECOMMEND" },
       orderBy: { lastJumpedAt: "desc" },
-      take: 3,
+      take: 6,
       select: adSelect,
     }),
     prisma.ad.findMany({
@@ -303,9 +303,9 @@ export default async function HomePage({ searchParams }: PageProps) {
                   </span>
                   급구 채용정보
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {urgentAds.map((ad) => (
-                    <AdBoxCard key={ad.id} ad={ad} productId="URGENT" />
+                    <AdBoxCard key={ad.id} ad={ad} productId="URGENT" compact />
                   ))}
                 </div>
                 <Link href="/jobs?productId=URGENT" className="mt-2 block text-right text-sm text-urgent hover:underline">더보기 →</Link>
@@ -320,9 +320,9 @@ export default async function HomePage({ searchParams }: PageProps) {
                   </span>
                   추천 채용정보
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {recommendAds.map((ad) => (
-                    <AdBoxCard key={ad.id} ad={ad} productId="RECOMMEND" />
+                    <AdBoxCard key={ad.id} ad={ad} productId="RECOMMEND" compact />
                   ))}
                 </div>
                 <Link href="/jobs?productId=RECOMMEND" className="mt-2 block text-right text-sm text-primary hover:underline">더보기 →</Link>

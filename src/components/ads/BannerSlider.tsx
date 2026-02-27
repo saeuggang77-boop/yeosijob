@@ -6,7 +6,7 @@ import type { Region, BusinessType } from "@/generated/prisma/client";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Banner } from "@/components/ads/Banner";
-import GradeBadge from "@/components/ads/GradeBadge";
+
 
 interface BannerAd {
   id: string;
@@ -82,7 +82,7 @@ export function BannerSlider({ ads }: Props) {
                   size="lg"
                 />
                 <div className="absolute bottom-2 left-2">
-                  <GradeBadge totalPaidAdDays={ad.user?.totalPaidAdDays ?? 0} size="sm" />
+
                 </div>
               </div>
             </Link>

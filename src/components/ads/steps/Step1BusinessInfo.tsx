@@ -15,6 +15,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BUSINESS_TYPE_LIST } from "@/lib/constants/business-types";
 import { step1Schema } from "@/lib/validators/ad";
 import type { AdFormData } from "@/lib/validators/ad";
+import { BANNER_COLORS } from "@/lib/constants/banner-themes";
+import { BannerPreview } from "@/components/ads/BannerPreview";
+import { Check } from "lucide-react";
 
 interface Props {
   data: Partial<AdFormData>;
@@ -231,6 +234,47 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
               defaultValue={data.addressDetail}
               placeholder="상세 주소"
             />
+          </div>
+
+          <div className="space-y-3 pt-4 border-t">
+            <Label>배너 색상</Label>
+            <div className="grid grid-cols-5 gap-2">
+              {BANNER_COLORS.map((color, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => onUpdate({ bannerColor: index })}
+                  className="relative flex h-12 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
+                  style={{
+                    backgroundColor: color.main,
+                    borderColor: (data.bannerColor ?? 0) === index ? color.sub : "transparent",
+                    boxShadow: (data.bannerColor ?? 0) === index ? `0 0 0 2px ${color.main}40` : "none",
+                  }}
+                  title={color.name}
+                >
+                  {(data.bannerColor ?? 0) === index && (
+                    <Check className="h-5 w-5 text-white drop-shadow-lg" strokeWidth={3} />
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              선택한 색상: {BANNER_COLORS[data.bannerColor ?? 0].name}
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Label>배너 미리보기</Label>
+            <BannerPreview
+              businessName={data.businessName || "업소명"}
+              businessType={data.businessType || "KARAOKE"}
+              regions={[]}
+              salaryText="급여 정보"
+              bannerColor={data.bannerColor ?? 0}
+            />
+            <p className="text-xs text-muted-foreground">
+              * 실제 배너는 레이아웃과 패턴이 자동으로 결정됩니다
+            </p>
           </div>
 
           <Button type="submit" className="w-full">

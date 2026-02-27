@@ -40,27 +40,40 @@ export function AdBoxCard({ ad, productId }: AdBoxCardProps) {
 
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
-      <div className={`relative w-full rounded-lg border p-3 transition-all duration-200 hover:-translate-y-1 hover:bg-muted/50 ${productStyles}`}>
-        {productId === "VIP" && (
-          <span className="absolute -top-2 -right-2 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">VIP</span>
-        )}
-        {productId === "PREMIUM" && (
-          <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">⭐</span>
-        )}
-        <div className="flex items-center gap-1">
-          <h3 className="truncate text-sm font-medium">{ad.title}</h3>
-          {ad.isVerified && (
-            <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-              <span className="text-success">✓</span>
-            </Badge>
+      <div className={`relative w-full overflow-hidden rounded-lg border transition-all duration-200 hover:-translate-y-1 hover:bg-muted/50 ${productStyles}`}>
+        {/* Banner Image at top */}
+        <div className="relative h-20 overflow-hidden rounded-t-lg bg-muted">
+          <img
+            src={`/api/ads/${ad.id}/banner?w=400&h=160`}
+            alt={`${ad.businessName} 배너`}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </div>
+
+        {/* Content below image */}
+        <div className="p-3">
+          {productId === "VIP" && (
+            <span className="absolute -top-2 -right-2 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">VIP</span>
+          )}
+          {productId === "PREMIUM" && (
+            <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">⭐</span>
+          )}
+          <div className="flex items-center gap-1">
+            <h3 className="truncate text-sm font-medium">{ad.title}</h3>
+            {ad.isVerified && (
+              <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
+                <span className="text-success">✓</span>
+              </Badge>
+            )}
+          </div>
+          <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
+          <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>
+          {ad.viewCount !== undefined && (
+            <p className="mt-0.5 text-[10px] text-muted-foreground">👁 {ad.viewCount.toLocaleString()}</p>
           )}
         </div>
-        <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
-        <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>
-        {ad.viewCount !== undefined && (
-          <p className="mt-0.5 text-[10px] text-muted-foreground">👁 {ad.viewCount.toLocaleString()}</p>
-        )}
       </div>
     </Link>
   );

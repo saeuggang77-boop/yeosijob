@@ -200,6 +200,19 @@ export default async function JobDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
+
+      {/* Banner Image */}
+      {(ad.productId === "BANNER" || ad.productId === "VIP" || ad.productId === "PREMIUM" || ad.productId === "SPECIAL") && (
+        <div className="mb-6 overflow-hidden rounded-xl">
+          <img
+            src={`/api/ads/${ad.id}/banner?w=1200&h=300`}
+            alt={`${ad.businessName} 배너`}
+            loading="lazy"
+            className="h-auto w-full object-cover"
+          />
+        </div>
+      )}
+
       {/* 상단 정보 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -5,6 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { BANNER_COLORS } from "@/lib/constants/banner-themes";
+import { BannerPreview } from "@/components/ads/BannerPreview";
+import { Check } from "lucide-react";
 
 interface AdData {
   id: string;
@@ -18,6 +21,9 @@ interface AdData {
   address: string | null;
   addressDetail: string | null;
   status: string;
+  businessName: string;
+  businessType: string;
+  bannerColor: number;
 }
 
 export default function EditAdPage() {
@@ -88,6 +94,7 @@ export default function EditAdPage() {
     contactKakao: "",
     address: "",
     addressDetail: "",
+    bannerColor: 0,
   });
 
   useEffect(() => {
@@ -106,6 +113,7 @@ export default function EditAdPage() {
           contactKakao: data.contactKakao || "",
           address: data.address || "",
           addressDetail: data.addressDetail || "",
+          bannerColor: data.bannerColor ?? 0,
         });
       })
       .catch((err) => setError(err.message))
@@ -113,7 +121,10 @@ export default function EditAdPage() {
   }, [id]);
 
   function updateField(field: string, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: field === "bannerColor" ? parseInt(value, 10) : value
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -290,6 +301,57 @@ export default function EditAdPage() {
                   onChange={(e) => updateField("addressDetail", e.target.value)}
                   className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">배너 디자인</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>배너 색상</Label>
+                <div className="mt-2 grid grid-cols-5 gap-2">
+                  {BANNER_COLORS.map((color, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => updateField("bannerColor", index.toString())}
+                      className="relative flex h-12 w-full items-center justify-center rounded-full border-2 transition-all hover:scale-105"
+                      style={{
+                        backgroundColor: color.main,
+                        borderColor: form.bannerColor === index ? color.sub : "transparent",
+                        boxShadow: form.bannerColor === index ? `0 0 0 2px ${color.main}40` : "none",
+                      }}
+                      title={color.name}
+                    >
+                      {form.bannerColor === index && (
+                        <Check className="h-5 w-5 text-white drop-shadow-lg" strokeWidth={3} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  선택한 색상: {BANNER_COLORS[form.bannerColor].name}
+                </p>
+              </div>
+
+              <div>
+                <Label>배너 미리보기</Label>
+                <div className="mt-2">
+                  <BannerPreview
+                    businessName={ad?.businessName || "업소명"}
+                    businessType={ad?.businessType || "KARAOKE"}
+                    regions={[]}
+                    salaryText={form.salaryText || "급여 정보"}
+                    bannerColor={form.bannerColor}
+                    adId={ad?.id}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  * 레이아웃과 패턴은 광고 등록 시 자동으로 결정됩니다
+                </p>
               </div>
             </CardContent>
           </Card>

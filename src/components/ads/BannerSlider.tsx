@@ -62,9 +62,21 @@ export function BannerSlider({ ads }: Props) {
               href={`/jobs/${ad.id}`}
               className="group w-full shrink-0"
             >
-              <div className="banner-card mx-4 my-4 flex min-h-[150px] items-center rounded-xl px-6 py-5 transition-all duration-300 group-hover:scale-[1.01] group-hover:shadow-[0_0_40px_rgba(212,168,83,0.3)]">
+              <div className="banner-card relative mx-4 my-4 flex min-h-[150px] items-center overflow-hidden rounded-xl px-6 py-5 transition-all duration-300 group-hover:scale-[1.01] group-hover:shadow-[0_0_40px_rgba(212,168,83,0.3)]">
+                {/* Banner Background Image */}
+                <img
+                  src={`/api/ads/${ad.id}/banner?w=1200&h=300`}
+                  alt={`${ad.businessName} 배너`}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover opacity-60"
+                  style={{ zIndex: 0 }}
+                />
+
+                {/* Semi-transparent overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-background/60" style={{ zIndex: 1 }} />
+
                 {/* Left side */}
-                <div className="flex-1">
+                <div className="relative z-10 flex-1">
                   <div className="flex items-center gap-3">
                     <span className="banner-badge rounded-md px-3 py-1 text-xs font-black tracking-wider">
                       노블레스
@@ -85,7 +97,7 @@ export function BannerSlider({ ads }: Props) {
                 </div>
 
                 {/* Right side */}
-                <div className="text-right">
+                <div className="relative z-10 text-right">
                   <p className="text-2xl font-bold text-success md:text-3xl">
                     {ad.salaryText}
                   </p>

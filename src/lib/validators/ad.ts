@@ -9,6 +9,7 @@ export const step1Schema = z.object({
   contactKakao: z.string().optional(),
   address: z.string().min(1, "주소를 입력해주세요"),
   addressDetail: z.string().optional(),
+  bannerColor: z.number().min(0).max(14).default(0),
 });
 
 export const step2Schema = z.object({

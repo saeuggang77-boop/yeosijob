@@ -311,9 +311,10 @@ model Ad {
   lastJumpedAt        DateTime @default(now())
   lastManualJumpAt    DateTime?
 
-  // 이미지
+  // 이미지 / 배너
   imageUrl     String?
   thumbnailUrl String?
+  bannerColor  Int      @default(0)
 
   // 통계
   viewCount  Int @default(0)

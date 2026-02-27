@@ -65,6 +65,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
         viewCount: true,
         lastJumpedAt: true,
         productId: true,
+        bannerColor: true,
         options: { select: { optionId: true, value: true } },
       },
     }),

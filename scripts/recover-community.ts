@@ -7,6 +7,7 @@
  */
 import "dotenv/config";
 import { Pool } from "pg";
+import { guardSafeOperation } from "./db-safety";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -119,6 +120,8 @@ function pickRandomCount<T>(array: T[], min: number, max: number): T[] {
 }
 
 async function main() {
+  guardSafeOperation("커뮤니티 콘텐츠 복구", process.env.DATABASE_URL);
+
   const client = await pool.connect();
 
   try {

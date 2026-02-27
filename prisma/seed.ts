@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { hash } from "bcryptjs";
 import { seedGhostUsers } from "./seed-ghosts";
+import { guardDestructiveOperation } from "../scripts/db-safety";
 
 const pool = new Pool({
   connectionString:
@@ -1235,6 +1236,9 @@ const SAMPLE_ADS = [
 
 async function main() {
   console.log("Seeding database...");
+
+  // 프로덕션 DB 보호 - 시드는 전체 데이터를 삭제하는 파괴적 작업
+  await guardDestructiveOperation("데이터베이스 시드 (전체 데이터 삭제 후 재생성)", process.env.DATABASE_URL);
 
   // 기존 데이터 삭제
   await prisma.jumpLog.deleteMany();

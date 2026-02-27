@@ -5,10 +5,13 @@
  */
 import "dotenv/config";
 import pg from "pg";
+import { guardSafeOperation } from "./db-safety";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
+  guardSafeOperation("배너 템플릿/색상 분산 배정", process.env.DATABASE_URL);
+
   const client = await pool.connect();
   try {
     const { rows: ads } = await client.query(

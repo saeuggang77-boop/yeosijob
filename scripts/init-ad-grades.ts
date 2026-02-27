@@ -5,10 +5,13 @@
  */
 import "dotenv/config";
 import pg from "pg";
+import { guardSafeOperation } from "./db-safety";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
+  guardSafeOperation("User.totalPaidAdDays 초기화", process.env.DATABASE_URL);
+
   const client = await pool.connect();
   try {
     // 유료 광고(FREE 제외)의 durationDays를 유저별로 합산

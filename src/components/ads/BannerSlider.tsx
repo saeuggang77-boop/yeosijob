@@ -67,50 +67,18 @@ export function BannerSlider({ ads }: Props) {
               className="group w-full shrink-0"
             >
               <div className="relative mx-4 my-4 overflow-hidden rounded-xl transition-all duration-300 group-hover:scale-[1.01]">
-                {ad.bannerTitle || ad.bannerTemplate ? (
-                  <Banner
-                    title={ad.bannerTitle}
-                    businessName={ad.businessName}
-                    businessIcon={biz?.icon}
-                    businessLabel={biz?.shortLabel}
-                    businessType={ad.businessType}
-                    salaryText={ad.salaryText}
-                    regionLabel={regionLabels}
-                    template={ad.bannerTemplate ?? 0}
-                    colorIndex={ad.bannerColor ?? 0}
-                    size="lg"
-                  />
-                ) : (
-                  <div className="banner-card relative flex min-h-[150px] items-center px-6 py-5">
-                    <div className="relative z-10 flex-1">
-                      <div className="flex items-center gap-3">
-                        <span className="banner-badge rounded-md px-3 py-1 text-xs font-black tracking-wider">
-                          노블레스
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {biz?.icon} {biz?.shortLabel}
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-xl font-bold md:text-2xl">
-                        {ad.businessName}
-                      </h3>
-                      <p className="mt-1.5 text-sm text-muted-foreground">
-                        {ad.title}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground/70">
-                        {regionLabels}
-                      </p>
-                    </div>
-                    <div className="relative z-10 text-right">
-                      <p className="text-2xl font-bold text-success md:text-3xl">
-                        {ad.salaryText}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        조회 {ad.viewCount.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <Banner
+                  title={ad.bannerTitle}
+                  businessName={ad.businessName}
+                  businessIcon={biz?.icon}
+                  businessLabel={biz?.shortLabel}
+                  businessType={ad.businessType}
+                  salaryText={ad.salaryText}
+                  regionLabel={regionLabels}
+                  template={ad.bannerTemplate ?? 0}
+                  colorIndex={ad.bannerColor ?? 0}
+                  size="lg"
+                />
               </div>
             </Link>
           );

@@ -58,26 +58,20 @@ export function TierCard({ ad, tier }: TierCardProps) {
       <div
         className={`flex gap-3 rounded-lg p-4 transition-all duration-200 ${style.card}`}
       >
-        {/* Banner or fallback icon */}
+        {/* Banner */}
         <div className="h-[120px] w-[200px] shrink-0 overflow-hidden rounded-lg">
-          {ad.bannerTitle || ad.bannerTemplate ? (
-            <Banner
-              title={ad.bannerTitle}
-              businessName={ad.businessName}
-              businessIcon={bizIcon}
-              businessLabel={bizLabel}
-              businessType={ad.businessType}
-              salaryText={ad.salaryText}
-              regionLabel={regionLabels}
-              template={ad.bannerTemplate ?? 0}
-              colorIndex={ad.bannerColor ?? 0}
-              size="sm"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-accent/30">
-              <span className="text-5xl">{bizIcon}</span>
-            </div>
-          )}
+          <Banner
+            title={ad.bannerTitle}
+            businessName={ad.businessName}
+            businessIcon={bizIcon}
+            businessLabel={bizLabel}
+            businessType={ad.businessType}
+            salaryText={ad.salaryText}
+            regionLabel={regionLabels}
+            template={ad.bannerTemplate ?? 0}
+            colorIndex={ad.bannerColor ?? 0}
+            size="sm"
+          />
         </div>
 
         {/* Content */}

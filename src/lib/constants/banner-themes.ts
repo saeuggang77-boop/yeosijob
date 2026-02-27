@@ -105,10 +105,17 @@ export function getBannerUrl(
   return `/api/ads/${ad.id}/banner?w=${w}&h=${h}&c=${c}`;
 }
 
-/** ad.id + bannerColor로 배너 디자인 결정 */
+/** ad.id + bannerColor로 배너 디자인 결정
+ *  bannerColor=0 (기본값): ad.id 해시로 색상 자동 배정 (다양성 확보)
+ *  bannerColor=1~14: 업주가 직접 선택한 색상 사용
+ */
 export function getBannerDesign(adId: string, bannerColor: number) {
   const hash = simpleHash(adId);
-  const colorIndex = Math.max(0, Math.min(bannerColor, BANNER_COLORS.length - 1));
+
+  // bannerColor=0이면 해시 기반 자동 색상 (15종 전체 활용)
+  const colorIndex = bannerColor > 0
+    ? Math.min(bannerColor, BANNER_COLORS.length - 1)
+    : hash % BANNER_COLORS.length;
 
   return {
     color: BANNER_COLORS[colorIndex],

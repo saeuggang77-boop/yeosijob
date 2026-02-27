@@ -6,6 +6,17 @@ import { REGIONS, type RegionKey } from "@/lib/constants/regions";
 
 export const runtime = "edge";
 
+// 한글 폰트 캐싱 (Edge 함수 인스턴스 내)
+let fontCache: ArrayBuffer | null = null;
+async function getKoreanFont(): Promise<ArrayBuffer> {
+  if (fontCache) return fontCache;
+  const res = await fetch(
+    "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-700-normal.woff"
+  );
+  fontCache = await res.arrayBuffer();
+  return fontCache;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -13,6 +24,7 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
+    const fontData = await getKoreanFont();
 
     // 너비/높이 파라미터 (기본값 600x200, 최소 100, 최대 1200)
     const width = Math.max(100, Math.min(1200, Number(searchParams.get("w")) || 600));
@@ -69,6 +81,7 @@ export async function GET(
             display: "flex",
             position: "relative",
             overflow: "hidden",
+            fontFamily: "NotoSansKR",
             background: design.color.bg,
             ...patternStyle,
           }}
@@ -79,6 +92,14 @@ export async function GET(
       {
         width,
         height,
+        fonts: [
+          {
+            name: "NotoSansKR",
+            data: fontData,
+            weight: 700,
+            style: "normal",
+          },
+        ],
         headers: {
           "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
         },

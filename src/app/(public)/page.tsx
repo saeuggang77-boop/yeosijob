@@ -178,26 +178,28 @@ export default async function HomePage() {
             method="get"
             className="hero-search mx-auto mt-8 flex max-w-3xl flex-col overflow-hidden bg-card sm:flex-row"
           >
-            <select
-              name="region"
-              defaultValue=""
-              className="h-12 border-b border-border/50 bg-transparent px-4 text-sm text-foreground sm:border-b-0 sm:border-r"
-            >
-              <option value="">지역 전체</option>
-              {Object.entries(REGIONS).map(([key, val]) => (
-                <option key={key} value={key}>{val.label}</option>
-              ))}
-            </select>
-            <select
-              name="businessType"
-              defaultValue=""
-              className="h-12 border-b border-border/50 bg-transparent px-4 text-sm text-foreground sm:border-b-0 sm:border-r"
-            >
-              <option value="">업종 전체</option>
-              {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
-                <option key={key} value={key}>{val.label}</option>
-              ))}
-            </select>
+            <div className="flex border-b border-border/50 sm:contents">
+              <select
+                name="region"
+                defaultValue=""
+                className="h-11 flex-1 border-r border-border/50 bg-transparent px-3 text-sm text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:px-4"
+              >
+                <option value="">지역 전체</option>
+                {Object.entries(REGIONS).map(([key, val]) => (
+                  <option key={key} value={key}>{val.label}</option>
+                ))}
+              </select>
+              <select
+                name="businessType"
+                defaultValue=""
+                className="h-11 flex-1 bg-transparent px-3 text-sm text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:border-r sm:border-border/50 sm:px-4"
+              >
+                <option value="">업종 전체</option>
+                {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
+                  <option key={key} value={key}>{val.label}</option>
+                ))}
+              </select>
+            </div>
             <input
               type="text"
               name="search"
@@ -288,10 +290,10 @@ export default async function HomePage() {
       {/* URGENT + RECOMMEND Section - 2 Column Grid */}
       {(urgentAds.length > 0 || recommendAds.length > 0) && (
         <section className="border-b">
-          <div className="grid gap-4 p-4 md:grid-cols-2">
+          <div className="grid gap-4 p-3 sm:p-4 md:grid-cols-2">
             {/* Urgent Column */}
             {urgentAds.length > 0 && (
-              <div className="rounded-xl bg-urgent/5 p-4">
+              <div className="rounded-xl bg-urgent/5 p-3 sm:p-4">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
                   <span className="animate-pulse-urgent rounded bg-urgent px-2 py-0.5 text-xs font-bold text-white">
                     급구
@@ -308,7 +310,7 @@ export default async function HomePage() {
             )}
             {/* Recommend Column */}
             {recommendAds.length > 0 && (
-              <div className="rounded-xl bg-recommend/5 p-4">
+              <div className="rounded-xl bg-recommend/5 p-3 sm:p-4">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
                   <span className="rounded bg-recommend/20 px-2 py-0.5 text-xs font-bold text-recommend">
                     추천
@@ -363,7 +365,7 @@ export default async function HomePage() {
                             <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
                           )}
                           {isNewPost(post.createdAt) && (
-                            <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
+                            <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white">N</span>
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
@@ -480,6 +482,9 @@ export default async function HomePage() {
         )}
 
       </section>
+
+      {/* Section Divider */}
+      <div className="h-3 bg-muted/30" />
 
       {/* FREE Section - Basic Text List */}
       {freeAds.length > 0 && (

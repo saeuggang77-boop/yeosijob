@@ -49,7 +49,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
     return (
       <Link href={`/jobs/${ad.id}`} className="block">
         <div className={`relative w-full overflow-hidden rounded-lg border transition-all duration-200 hover:bg-muted/50 ${productStyles}`}>
-          <div className="flex items-center justify-between gap-3 py-2 px-3">
+          <div className="flex items-center justify-between gap-2 py-2 px-2 sm:gap-3 sm:px-3">
             {/* Left side: title + info */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
@@ -67,7 +67,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
             </div>
             {/* Right side: salary + dday */}
             <div className="flex shrink-0 items-center gap-2">
-              <p className="text-sm font-medium text-success whitespace-nowrap">{ad.salaryText}</p>
+              <p className="text-sm font-medium text-success truncate max-w-[120px] sm:max-w-none sm:whitespace-nowrap">{ad.salaryText}</p>
               {ddayInfo && (
                 <Badge
                   className={`px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}

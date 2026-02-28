@@ -206,7 +206,7 @@ export function AdminUserMenu({
 
                 {/* 등급변경 서브메뉴 */}
                 {showRoleSubmenu && (
-                  <div className="absolute left-full top-0 ml-1 min-w-[140px] rounded-lg border border-border bg-card shadow-lg">
+                  <div className="absolute left-0 top-full mt-1 min-w-[140px] rounded-lg border border-border bg-card shadow-lg md:left-full md:top-0 md:ml-1 md:mt-0">
                     <button
                       onClick={() => handleChangeRole("JOBSEEKER")}
                       disabled={currentRole === "JOBSEEKER"}

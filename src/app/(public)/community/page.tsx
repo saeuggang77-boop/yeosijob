@@ -177,7 +177,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
                     )}
                     {isNewPost(post.createdAt) && (
-                      <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
+                      <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white">N</span>
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
@@ -244,7 +244,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             </span>
                           )}
                           {isNewPost(post.createdAt) && (
-                            <span className="ml-1.5 inline-block rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
+                            <span className="ml-1.5 inline-block rounded-sm bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white">N</span>
                           )}
                         </Link>
                       </td>

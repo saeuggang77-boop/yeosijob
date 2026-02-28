@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { formatDateSmart } from "@/lib/utils/format";
 import { PostDeleteButton } from "@/components/community/PostDeleteButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
+import { SearchForm } from "@/components/community/SearchForm";
 
 function isNewPost(createdAt: Date): boolean {
   return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
@@ -36,6 +37,7 @@ interface PageProps {
   searchParams: Promise<{
     page?: string;
     category?: string;
+    q?: string;
   }>;
 }
 
@@ -43,6 +45,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
   const category = params.category || "";
+  const query = params.q || "";
   const limit = 20;
 
   const session = await auth();
@@ -51,6 +54,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const where: Record<string, unknown> = { isHidden: false };
   if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
     where.category = category;
+  }
+  if (query.trim()) {
+    where.OR = [
+      { title: { contains: query.trim() } },
+      { content: { contains: query.trim() } },
+    ];
   }
 
   const [posts, total] = await Promise.all([
@@ -97,24 +106,52 @@ export default async function CommunityPage({ searchParams }: PageProps) {
 
       {/* Category Tabs */}
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        {CATEGORIES.map((tab) => (
-          <Link key={tab.key} href={`/community${tab.key ? `?category=${tab.key}` : ""}`}>
-            <Button
-              variant={category === tab.key ? "default" : "outline"}
-              size="sm"
-            >
-              {tab.label}
-            </Button>
-          </Link>
-        ))}
+        {CATEGORIES.map((tab) => {
+          const params = new URLSearchParams();
+          if (tab.key) params.set("category", tab.key);
+          if (query) params.set("q", query);
+          const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
+
+          return (
+            <Link key={tab.key} href={href}>
+              <Button
+                variant={category === tab.key ? "default" : "outline"}
+                size="sm"
+              >
+                {tab.label}
+              </Button>
+            </Link>
+          );
+        })}
       </div>
+
+      {/* Search Form */}
+      <SearchForm />
+
+      {/* Search Results Info */}
+      {query && (
+        <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <span>검색어: <strong className="text-foreground">{query}</strong></span>
+          <span>·</span>
+          <span>검색 결과: <strong className="text-foreground">{total}건</strong></span>
+        </div>
+      )}
 
       {/* Post List */}
       <Card className="overflow-hidden">
         {posts.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">
-            <p className="text-lg">등록된 게시글이 없습니다</p>
-            <p className="mt-1 text-sm">첫 게시글을 작성해보세요!</p>
+            {query ? (
+              <>
+                <p className="text-lg">검색 결과가 없습니다</p>
+                <p className="mt-1 text-sm">다른 검색어로 시도해보세요</p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg">등록된 게시글이 없습니다</p>
+                <p className="mt-1 text-sm">첫 게시글을 작성해보세요!</p>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -265,13 +302,18 @@ export default async function CommunityPage({ searchParams }: PageProps) {
               const prev = arr[idx - 1];
               const showEllipsis = prev !== undefined && p - prev > 1;
 
+              const pageParams = new URLSearchParams();
+              if (category) pageParams.set("category", category);
+              if (query) pageParams.set("q", query);
+              pageParams.set("page", String(p));
+
               return (
                 <span key={p}>
                   {showEllipsis && (
                     <span className="px-2 text-muted-foreground">...</span>
                   )}
                   <a
-                    href={`/community?${category ? `category=${category}&` : ""}page=${p}`}
+                    href={`/community?${pageParams.toString()}`}
                     className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
                       p === page
                         ? "bg-primary text-primary-foreground"

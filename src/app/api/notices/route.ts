@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             title: "새 공지사항",
             message: `새 공지사항: ${notice.title}`,
-            link: `/notices/${notice.id}`,
+            link: `/notice/${notice.id}`,
           })),
         });
       }

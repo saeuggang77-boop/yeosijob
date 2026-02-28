@@ -39,6 +39,8 @@ interface Config {
   commentsPerPostMin: number;
   commentsPerPostMax: number;
   repliesPerComment: number;
+  authorReplyRateMin: number;
+  authorReplyRateMax: number;
   activeStartHour: number;
   activeEndHour: number;
   realPostAutoReply: boolean;
@@ -120,7 +122,9 @@ export function AutoContentManager({
     ...initialConfig,
     seoKeywords: initialConfig.seoKeywords || [],
     commentsPerPostMin: initialConfig.commentsPerPostMin ?? 2,
-    commentsPerPostMax: initialConfig.commentsPerPostMax ?? 8,
+    commentsPerPostMax: initialConfig.commentsPerPostMax ?? 10,
+    authorReplyRateMin: initialConfig.authorReplyRateMin ?? 20,
+    authorReplyRateMax: initialConfig.authorReplyRateMax ?? 60,
     categoryWeights: initialConfig.categoryWeights ?? { CHAT: 30, BEAUTY: 25, QNA: 25, WORK: 20 },
   });
   const [stats, setStats] = useState<Stats>(initialStats);
@@ -645,9 +649,10 @@ export function AutoContentManager({
           </div>
 
           <div className="rounded-md bg-zinc-900 border border-zinc-700 p-3 text-xs text-muted-foreground space-y-1">
-            <p>게시글마다 댓글 수가 최소~최대 범위 내에서 랜덤으로 결정됩니다.</p>
+            <p>게시글마다 총 대화 수(댓글+글쓴이 답글)가 최소~최대 범위 내에서 랜덤 결정됩니다.</p>
+            <p>글쓴이가 설정된 비율만큼 답글에 참여하여 자연스러운 대화를 형성합니다.</p>
             <p>요일별 자동 변동: 금·토 +20~30% | 월·화 -10~20% | 수·목·일 ±10%</p>
-            <p>예시: 게시글 8개 × 댓글 2~8개 = 하루 약 40개 (편중+요일 변동 적용)</p>
+            <p>예시: 게시글 8개 × 대화 2~10개 = 하루 약 48개 (게시글별 편중 적용)</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
@@ -667,7 +672,7 @@ export function AutoContentManager({
               />
             </div>
             <div className="space-y-2">
-              <Label>게시글당 댓글 (최소~최대)</Label>
+              <Label>게시글당 대화 수 (최소~최대)</Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
@@ -701,20 +706,38 @@ export function AutoContentManager({
               </div>
             </div>
             <div className="space-y-2">
-              <Label>댓글당 답글 (기준값)</Label>
-              <Input
-                type="number"
-                min="0"
-                max="5"
-                value={config.repliesPerComment}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    repliesPerComment: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="bg-zinc-900 border-zinc-700"
-              />
+              <Label>글쓴이 답글 비율 (최소~최대 %)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={config.authorReplyRateMin}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      authorReplyRateMin: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="bg-zinc-900 border-zinc-700"
+                  placeholder="최소"
+                />
+                <span className="text-muted-foreground">~</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={config.authorReplyRateMax}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      authorReplyRateMax: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  className="bg-zinc-900 border-zinc-700"
+                  placeholder="최대"
+                />
+              </div>
             </div>
           </div>
 

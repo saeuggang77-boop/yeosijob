@@ -64,6 +64,20 @@ export function getContentTarget(id: string, base: number): number {
 }
 
 /**
+ * 게시글 ID 기반 결정론적 대화 목표 계산
+ * 같은 게시글은 항상 같은 목표값을 반환 (min~max 사이)
+ */
+export function getPostConversationTarget(postId: string, min: number, max: number): number {
+  let hash = 0;
+  for (let i = 0; i < postId.length; i++) {
+    hash = ((hash << 5) - hash) + postId.charCodeAt(i);
+    hash |= 0;
+  }
+  const norm = Math.abs(hash) % (max - min + 1);
+  return min + norm;
+}
+
+/**
  * 활성 시간대의 총 시간 수 계산
  */
 export function getActiveHoursCount(start: number, end: number): number {
@@ -281,7 +295,8 @@ export async function generateContextualReplies(
  */
 export async function generateConversationThread(
   post: { id: string; title: string; content: string; authorId: string },
-  threadSize: number
+  threadSize: number,
+  authorReplyRate: number = 50
 ): Promise<{ commentCount: number; replyCount: number }> {
   try {
     // 1. 글쓴이 정보 조회
@@ -318,7 +333,8 @@ export async function generateConversationThread(
       post.content,
       commenterNames,
       commenterPersonalities,
-      threadSize
+      threadSize,
+      authorReplyRate
     );
 
     const message = await anthropic.messages.create({

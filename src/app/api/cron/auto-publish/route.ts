@@ -7,6 +7,7 @@ import {
   getSlotQuota,
   getDailyTarget,
   getContentTarget,
+  getPostConversationTarget,
   getRandomGhostUsers,
   getUnusedContent,
   getTodayGhostCounts,
@@ -115,13 +116,10 @@ export async function GET(request: NextRequest) {
     }
 
     // === 2. 대화 스레드 발행 (댓글+답글 통합) ===
-    const avgComments = Math.round(((config.commentsPerPostMin ?? 2) + (config.commentsPerPostMax ?? 8)) / 2);
-    const dailyCommentTarget = getDailyTarget(config.postsPerDay * avgComments, 1);
-    const dailyReplyTarget = getDailyTarget(config.postsPerDay * avgComments * config.repliesPerComment, 2);
-    const remainingComments = Math.max(0, dailyCommentTarget - todayCounts.comments);
-    const remainingReplies = Math.max(0, dailyReplyTarget - todayCounts.replies);
-    const totalRemaining = remainingComments + remainingReplies;
-    const threadQuota = getSlotQuota(totalRemaining, totalSlots);
+    const avgConversation = Math.round(((config.commentsPerPostMin ?? 2) + (config.commentsPerPostMax ?? 10)) / 2);
+    const dailyConversationTarget = getDailyTarget(config.postsPerDay * avgConversation, 1);
+    const remainingConversation = Math.max(0, dailyConversationTarget - (todayCounts.comments + todayCounts.replies));
+    const threadQuota = getSlotQuota(remainingConversation, totalSlots);
 
     if (threadQuota > 0) {
       // 최근 7일간 고스트 작성 게시글 중 대화가 부족한 것 선택
@@ -150,12 +148,12 @@ export async function GET(request: NextRequest) {
       });
       const totalCountMap = new Map(allCommentCounts.map(c => [c.postId, c._count]));
 
-      // 댓글이 부족한 게시글 선별
+      // 게시글별 ID 기반 결정론적 목표로 대화가 부족한 게시글 선별
       const needThreads = existingPosts
         .map(post => ({
           ...post,
           current: totalCountMap.get(post.id) || 0,
-          target: avgComments + avgComments * config.repliesPerComment,
+          target: getPostConversationTarget(post.id, config.commentsPerPostMin ?? 2, config.commentsPerPostMax ?? 10),
         }))
         .filter(p => p.current < p.target)
         .sort((a, b) => (b.target - b.current) - (a.target - a.current))
@@ -163,12 +161,12 @@ export async function GET(request: NextRequest) {
 
       for (const post of needThreads) {
         try {
-          // 한 게시글당 랜덤 메시지 생성 (config 범위 기반)
-          const commentsMin = config.commentsPerPostMin ?? 2;
-          const commentsMax = config.commentsPerPostMax ?? 8;
-          const threadSize = commentsMin + Math.floor(Math.random() * (commentsMax - commentsMin + 1));
+          const remaining = post.target - post.current;
+          // 글쓴이 답글 비율: min~max% 사이 랜덤
+          const authorReplyRate = (config.authorReplyRateMin ?? 20) +
+            Math.floor(Math.random() * ((config.authorReplyRateMax ?? 60) - (config.authorReplyRateMin ?? 20) + 1));
 
-          const result = await generateConversationThread(post, threadSize);
+          const result = await generateConversationThread(post, remaining, authorReplyRate);
 
           published.comments += result.commentCount;
           published.replies += result.replyCount;
@@ -432,8 +430,8 @@ export async function GET(request: NextRequest) {
         enabled: config.enabled,
         activeHours: `${config.activeStartHour}:00 ~ ${config.activeEndHour}:00`,
         postsPerDay: config.postsPerDay,
-        commentsPerPost: `${config.commentsPerPostMin ?? 2}~${config.commentsPerPostMax ?? 8}`,
-        repliesPerComment: config.repliesPerComment,
+        conversationPerPost: `${config.commentsPerPostMin ?? 2}~${config.commentsPerPostMax ?? 10}`,
+        authorReplyRate: `${config.authorReplyRateMin ?? 20}~${config.authorReplyRateMax ?? 60}%`,
       },
       todayCounts,
     });

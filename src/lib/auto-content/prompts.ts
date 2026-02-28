@@ -304,7 +304,8 @@ export function getConversationThreadPrompt(
   postContent: string,
   commenterNames: string[],
   commenterPersonalities: GhostPersonality[],
-  threadSize: number
+  threadSize: number,
+  authorReplyRate: number = 50
 ): string {
   const authorPersonalityDesc = PERSONALITY_PROMPTS[authorPersonality]
     .split('\n')[0]
@@ -346,14 +347,14 @@ ${commenterList}
    - 글쓴이가 "오 진짜요?? 저도 그런 적 있는데요" → 댓글자A가 "맞아요 그거 공감"
    - 같은 사람이 연속 2번 답글하는 것도 자연스러움 (추가 반응)
 
-3. 주고받는 대화 패턴 (30~40% 확률로 적용):
+3. 주고받는 대화 패턴 (40~60% 확률로 적용):
    - A가 댓글 → 글쓴이 답글 → A가 다시 댓글(추가 질문/감사) → 글쓴이 다시 답글
    - 이런 주고받기가 실제 커뮤니티에서 가장 자연스러운 패턴
    - 예: A "언니 그거 어디서 샀어요?" → 글쓴이 "올리브영이요~" → A "아 거기!! 감사해요 ㅎㅎ" → 글쓴이 "ㅎㅎ 네~"
    - 핵심: 같은 사람이 글쓴이와 2~3번 주고받는 것이 자연스러움
 
 4. 대화 흐름:
-   - 글쓴이(${authorName})는 댓글의 70~100%에 답글 (적극적으로 소통하는 글쓴이)
+   - 글쓴이(${authorName})는 전체 대화의 약 ${authorReplyRate}%를 차지하도록 답글 (자연스럽게 소통하는 글쓴이)
    - 답글 안 하는 댓글도 있어야 자연스러움 (그냥 넘어가는 것)
    - 댓글자끼리 대화하는 것도 자연스러움 (30~40%)
    - 중간에 화제가 살짝 바뀌어도 OK

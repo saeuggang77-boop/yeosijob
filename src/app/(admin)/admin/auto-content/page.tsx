@@ -108,6 +108,8 @@ export default async function AutoContentPage() {
             commentsPerPostMin: config.commentsPerPostMin,
             commentsPerPostMax: config.commentsPerPostMax,
             repliesPerComment: config.repliesPerComment,
+            authorReplyRateMin: config.authorReplyRateMin,
+            authorReplyRateMax: config.authorReplyRateMax,
             activeStartHour: config.activeStartHour,
             activeEndHour: config.activeEndHour,
             realPostAutoReply: config.realPostAutoReply,

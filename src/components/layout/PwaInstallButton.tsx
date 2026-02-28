@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Smartphone, Share, Plus, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Smartphone, Share, Plus } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -72,10 +73,10 @@ export function PwaInstallButton() {
         <span className="absolute right-1 top-1 size-2 rounded-full bg-primary" />
       </button>
 
-      {/* iOS 설치 가이드 모달 */}
-      {showGuide && (
+      {/* 설치 가이드 모달 - Portal로 body에 렌더링 (헤더 backdrop-blur 스태킹 컨텍스트 회피) */}
+      {showGuide && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setShowGuide(false)}
         >
           <div
@@ -186,7 +187,8 @@ export function PwaInstallButton() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

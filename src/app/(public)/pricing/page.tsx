@@ -111,8 +111,10 @@ export default async function PricingPage() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">이력서 열람</span>
                     <span>
-                      {tier.includeResumeView ? (
-                        <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
+                      {tier.resumeViewLimit >= 9999 ? (
+                        <span className="font-medium text-green-600">무제한</span>
+                      ) : tier.resumeViewLimit > 0 ? (
+                        <span className="font-medium">{tier.resumeViewLimit}건/일</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -127,10 +129,6 @@ export default async function PricingPage() {
                         <span className="text-muted-foreground">-</span>
                       )}
                     </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">디자인 포함</span>
-                    <span>{formatNumber(tier.includeDesignCount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">최대 지역</span>
@@ -159,7 +157,6 @@ export default async function PricingPage() {
                   <th className="text-center p-3 font-bold">이력서 열람</th>
                   <th className="text-center p-3 font-bold">쪽지</th>
                   <th className="text-left p-3 font-bold">노출 위치</th>
-                  <th className="text-center p-3 font-bold">디자인 포함</th>
                   <th className="text-center p-3 font-bold">최대 지역</th>
                 </tr>
               </thead>
@@ -173,8 +170,10 @@ export default async function PricingPage() {
                     <td className="text-center p-3">{formatNumber(tier.autoJumpPerDay)}</td>
                     <td className="text-center p-3">{formatNumber(tier.manualJumpPerDay)}</td>
                     <td className="text-center p-3">
-                      {tier.includeResumeView ? (
-                        <CheckCircle2 className="inline-block h-5 w-5 text-green-600" />
+                      {tier.resumeViewLimit >= 9999 ? (
+                        <span className="font-medium text-green-600">무제한</span>
+                      ) : tier.resumeViewLimit > 0 ? (
+                        <span className="font-medium">{tier.resumeViewLimit}건/일</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -187,7 +186,6 @@ export default async function PricingPage() {
                       )}
                     </td>
                     <td className="p-3 text-sm">{tier.position}</td>
-                    <td className="text-center p-3">{formatNumber(tier.includeDesignCount)}</td>
                     <td className="text-center p-3">{tier.maxRegions === 0 ? "제한없음" : tier.maxRegions}</td>
                   </tr>
                 ))}

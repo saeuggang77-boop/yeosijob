@@ -62,15 +62,28 @@ export default async function MyReviewsPage() {
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <Link
-                          href={`/jobs/${review.ad.id}`}
-                          className="font-semibold hover:underline"
-                        >
-                          {review.ad.businessName}
-                        </Link>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {review.ad.title}
-                        </p>
+                        {review.ad ? (
+                          <>
+                            <Link
+                              href={`/jobs/${review.ad.id}`}
+                              className="font-semibold hover:underline"
+                            >
+                              {review.ad.businessName}
+                            </Link>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {review.ad.title}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold text-muted-foreground">
+                              삭제된 광고
+                            </span>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              광고가 삭제되었습니다
+                            </p>
+                          </>
+                        )}
                       </div>
                       <DeleteReviewButton reviewId={review.id} />
                     </div>

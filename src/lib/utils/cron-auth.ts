@@ -10,9 +10,11 @@ export function verifyCronAuth(request: NextRequest): boolean {
   if (!authHeader) return false;
 
   const token = authHeader.replace("Bearer ", "");
-  const secret = process.env.CRON_SECRET || "";
+  const secret = process.env.CRON_SECRET;
 
-  if (!token || !secret) return false;
+  // CRON_SECRET이 설정되지 않았거나 빈 문자열이면 거부
+  if (!secret || secret.length === 0) return false;
+  if (!token || token.length === 0) return false;
   if (token.length !== secret.length) return false;
 
   try {

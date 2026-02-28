@@ -68,9 +68,9 @@ export default async function AutoContentPage() {
   // poolStats 가공: groupBy 결과 → type별 total/used/remaining
   const contentTypes: ContentType[] = ["POST", "COMMENT", "REPLY"];
   const poolStats = contentTypes.map((type) => {
-    const rows = poolStatsRaw.filter((r) => r.type === type);
-    const total = rows.reduce((sum, r) => sum + r._count, 0);
-    const used = rows.filter((r) => r.isUsed).reduce((sum, r) => sum + r._count, 0);
+    const rows = poolStatsRaw.filter((r: any) => r.type === type);
+    const total = rows.reduce((sum: number, r: any) => sum + r._count, 0);
+    const used = rows.filter((r: any) => r.isUsed).reduce((sum: number, r: any) => sum + r._count, 0);
     return { type, total, used, remaining: total - used };
   });
 

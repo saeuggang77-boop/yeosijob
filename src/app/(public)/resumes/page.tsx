@@ -16,7 +16,7 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "인재정보",
-  description: "유흥업계 구직자 이력서를 확인하세요. 경력, 희망지역, 희망업종별로 검색 가능합니다.",
+  description: "유흥업계 구직자 이력서를 확인하세요. 경력, 희망지역, 희망업종별로 검색 가능합니다. 우수한 인재를 직접 찾아보세요.",
   openGraph: {
     title: "인재정보 | 여시잡",
     description: "유흥업계 구직자 이력서를 확인하세요.",

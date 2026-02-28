@@ -28,13 +28,22 @@ export default function RegisterBusinessPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (password !== confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다");
+      setLoading(false);
+      return;
+    }
+
     const data = {
       type: "BUSINESS",
       name: formData.get("name"),
       email: formData.get("email"),
       phone: formData.get("phone"),
-      password: formData.get("password"),
-      confirmPassword: formData.get("confirmPassword"),
+      password,
+      confirmPassword,
       businessName: formData.get("businessName"),
       businessNumber: formData.get("businessNumber"),
     };

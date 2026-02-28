@@ -269,12 +269,12 @@ export async function POST(req: NextRequest) {
 
       // 6. BUSINESS 역할 유료서비스 체크
       if (sender?.role === "BUSINESS") {
-        const PAID_TIERS: string[] = ["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"];
+        const PAID_TIERS = ["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"] as const;
         const hasQualifyingAd = await prisma.ad.findFirst({
           where: {
             userId,
             status: "ACTIVE",
-            productId: { in: PAID_TIERS as any },
+            productId: { in: [...PAID_TIERS] },
           },
         });
 

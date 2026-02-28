@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { AdProductId, AdOptionId } from "@/generated/prisma/client";
 
 export async function POST(
   _request: NextRequest,
@@ -32,12 +33,11 @@ export async function POST(
 
     const now = new Date();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const snapshot = payment.itemSnapshot as any;
+    const snapshot = payment.itemSnapshot as Record<string, unknown>;
     const isUpgrade = snapshot?.type === "upgrade";
     const isRenew = snapshot?.type === "renew";
     const durationDays = (isUpgrade || isRenew)
-      ? snapshot.duration
+      ? (snapshot.duration as number)
       : (payment.ad?.durationDays || 30);
     const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
@@ -61,13 +61,13 @@ export async function POST(
 
           // 새 옵션 생성
           if (snapshot.options && Array.isArray(snapshot.options)) {
-            for (const opt of snapshot.options) {
+            for (const opt of snapshot.options as Array<{ id: string; value: string }>) {
               await tx.adOption.create({
                 data: {
                   adId: payment.adId,
-                  optionId: opt.id,
+                  optionId: opt.id as AdOptionId,
                   value: opt.value,
-                  durationDays: snapshot.duration,
+                  durationDays: snapshot.duration as number,
                   startDate: now,
                   endDate,
                 },
@@ -76,16 +76,18 @@ export async function POST(
           }
 
           // #7: 광고 업그레이드/연장 (renew 시 totalAmount 교체, editCount 리셋, 점프 횟수 복원)
+          const product = snapshot.product as { id: AdProductId };
+          const newFeatures = snapshot.newFeatures as { autoJumpPerDay: number; manualJumpPerDay: number; maxEdits: number };
           await tx.ad.update({
             where: { id: payment.adId },
             data: {
               status: "ACTIVE",
-              productId: snapshot.product.id,
-              durationDays: snapshot.duration,
+              productId: product.id,
+              durationDays: snapshot.duration as number,
               totalAmount: isRenew ? payment.amount : { increment: payment.amount },
-              autoJumpPerDay: snapshot.newFeatures.autoJumpPerDay,
-              manualJumpPerDay: snapshot.newFeatures.manualJumpPerDay,
-              maxEdits: snapshot.newFeatures.maxEdits,
+              autoJumpPerDay: newFeatures.autoJumpPerDay,
+              manualJumpPerDay: newFeatures.manualJumpPerDay,
+              maxEdits: newFeatures.maxEdits,
               startDate: now,
               endDate,
               lastJumpedAt: now,

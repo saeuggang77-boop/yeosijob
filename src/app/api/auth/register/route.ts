@@ -37,12 +37,16 @@ export async function POST(request: Request) {
       const { name, email, phone, password, businessName, businessNumber } =
         result.data;
 
-      const [existing, nameExists] = await Promise.all([
+      const [existing, nameExists, businessNumberExists] = await Promise.all([
         prisma.user.findFirst({
           where: { OR: [{ email }, { phone }] },
         }),
         prisma.user.findFirst({
           where: { name, isActive: true },
+          select: { id: true },
+        }),
+        prisma.user.findFirst({
+          where: { businessNumber, isActive: true },
           select: { id: true },
         }),
       ]);
@@ -56,6 +60,12 @@ export async function POST(request: Request) {
       if (nameExists) {
         return NextResponse.json(
           { error: "이미 사용 중인 닉네임입니다" },
+          { status: 409 }
+        );
+      }
+      if (businessNumberExists) {
+        return NextResponse.json(
+          { error: "이미 등록된 사업자번호입니다" },
           { status: 409 }
         );
       }

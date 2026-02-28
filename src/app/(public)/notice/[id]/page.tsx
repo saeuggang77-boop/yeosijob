@@ -63,7 +63,8 @@ export default async function NoticeDetailPage({ params }: PageProps) {
     redirect("/notice");
   }
 
-  // Increment view count
+  // Increment view count (저장된 viewCount는 증가 전 값)
+  const currentViewCount = notice.viewCount;
   await prisma.notice.update({
     where: { id },
     data: { viewCount: { increment: 1 } },
@@ -98,7 +99,7 @@ export default async function NoticeDetailPage({ params }: PageProps) {
           </div>
           <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
             <span>작성일: {notice.createdAt.toLocaleDateString("ko-KR")}</span>
-            <span>조회수: {(notice.viewCount + 1).toLocaleString()}</span>
+            <span>조회수: {(currentViewCount + 1).toLocaleString()}</span>
           </div>
         </div>
 

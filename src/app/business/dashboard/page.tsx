@@ -132,10 +132,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {ads.map((ad) => {
-              const statusInfo = STATUS_LABELS[ad.status] || {
-                label: ad.status,
-                variant: "outline" as const,
-              };
+              const statusInfo = STATUS_LABELS[ad.status];
               return (
                 <Card key={ad.id} className="transition-colors hover:bg-muted/50">
                   <CardContent className="py-4">
@@ -144,8 +141,8 @@ export default async function DashboardPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="truncate font-medium">{ad.title}</span>
-                            <Badge variant={statusInfo.variant}>
-                              {statusInfo.label}
+                            <Badge variant={statusInfo?.variant || "outline"}>
+                              {statusInfo?.label || ad.status}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">

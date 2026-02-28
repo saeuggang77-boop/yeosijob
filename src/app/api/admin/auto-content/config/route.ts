@@ -55,7 +55,22 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     // seoKeywords 업데이트 시 usage도 정리
-    const updateData: any = {
+    const updateData: {
+      enabled?: boolean;
+      postsPerDay?: number;
+      commentsPerPost?: number;
+      commentsPerPostMin?: number;
+      commentsPerPostMax?: number;
+      repliesPerComment?: number;
+      authorReplyRateMin?: number;
+      authorReplyRateMax?: number;
+      activeStartHour?: number;
+      activeEndHour?: number;
+      realPostAutoReply?: boolean;
+      categoryWeights?: Record<string, number>;
+      seoKeywords?: string[];
+      seoKeywordUsage?: Record<string, number>;
+    } = {
       ...(typeof enabled === "boolean" && { enabled }),
       ...(typeof postsPerDay === "number" && { postsPerDay }),
       ...(typeof commentsPerPost === "number" && { commentsPerPost }),

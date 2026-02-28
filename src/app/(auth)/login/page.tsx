@@ -77,7 +77,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">비밀번호</Label>
               <Link
-                href="/forgot-password"
+                href="/reset-password"
                 className="text-xs text-muted-foreground hover:underline"
               >
                 비밀번호를 잊으셨나요?

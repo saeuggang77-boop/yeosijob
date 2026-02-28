@@ -30,16 +30,7 @@ export const metadata = {
   },
 };
 
-interface PageProps {
-  searchParams: Promise<{
-    page?: string;
-  }>;
-}
-
-export default async function HomePage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const page = parseInt(params.page || "1", 10);
-  const limit = 10;
+export default async function HomePage() {
 
   const baseWhere = { status: "ACTIVE" as const };
 
@@ -78,7 +69,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     recommendAds,
     lineAds,
     freeAds,
-    total,
+    , // LINE count (unused)
     recentResumes,
     recentPosts,
   ] = await Promise.all([
@@ -121,8 +112,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "LINE" },
       orderBy: { lastJumpedAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: 20,
       select: adSelect,
     }),
     prisma.ad.findMany({
@@ -131,7 +121,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       take: 10,
       select: adSelect,
     }),
-    prisma.ad.count({ where: { ...baseWhere, productId: "LINE" } }),
+    Promise.resolve(0), // placeholder to keep destructuring index
     prisma.resume.findMany({
       where: { isPublic: true },
       orderBy: [
@@ -167,7 +157,6 @@ export default async function HomePage({ searchParams }: PageProps) {
     }),
   ]);
 
-  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="mx-auto max-w-screen-xl">
@@ -491,41 +480,6 @@ export default async function HomePage({ searchParams }: PageProps) {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1 py-6">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(
-                (p) =>
-                  p === 1 ||
-                  p === totalPages ||
-                  (p >= page - 2 && p <= page + 2)
-              )
-              .map((p, idx, arr) => {
-                const prev = arr[idx - 1];
-                const showEllipsis = prev !== undefined && p - prev > 1;
-
-                return (
-                  <span key={p}>
-                    {showEllipsis && (
-                      <span className="px-2 text-muted-foreground">...</span>
-                    )}
-                    <Link
-                      href={`/?page=${p}#line-ads`}
-                      scroll={false}
-                      className={`inline-flex h-8 w-8 items-center justify-center rounded text-xs ${
-                        p === page
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      {p}
-                    </Link>
-                  </span>
-                );
-              })}
-          </div>
-        )}
       </section>
 
       {/* FREE Section - Basic Text List */}

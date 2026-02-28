@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
+import readXlsxFile from "read-excel-file/browser";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -202,18 +202,12 @@ export function KeywordManager({ initialKeywords, initialUsage }: KeywordManager
     const ext = file.name.split(".").pop()?.toLowerCase();
 
     if (ext === "xlsx" || ext === "xls") {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: string[][] = XLSX.utils.sheet_to_json(sheet, {
-          header: 1,
-        });
+      readXlsxFile(file).then((rows) => {
         const texts = rows.flat().map(String);
         extractAndAddKeywords(texts);
-      };
-      reader.readAsArrayBuffer(file);
+      }).catch(() => {
+        toast.error("엑셀 파일 읽기에 실패했습니다");
+      });
     } else {
       const reader = new FileReader();
       reader.onload = (event) => {

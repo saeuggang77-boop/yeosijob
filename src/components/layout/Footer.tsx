@@ -25,6 +25,17 @@ export function Footer() {
           <p>
             고객센터: 1588-7928 | 이메일: samsungcu&#64;naver.com
           </p>
+          <a
+            href="https://pf.kakao.com/_zEqYG/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[#FEE500] px-3 py-1.5 text-xs font-semibold text-[#3C1E1E] transition-opacity hover:opacity-80"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
+              <path d="M12 3C6.48 3 2 6.58 2 10.9c0 2.78 1.86 5.22 4.66 6.6l-.86 3.18c-.05.2.17.36.34.25l3.77-2.5c.67.1 1.36.16 2.09.16 5.52 0 10-3.58 10-7.99S17.52 3 12 3z"/>
+            </svg>
+            고객센터
+          </a>
           <p className="mt-3">&copy; {new Date().getFullYear()} 여시잡. All rights reserved.</p>
         </div>
       </div>

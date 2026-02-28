@@ -6,7 +6,6 @@ import { TierCard } from "@/components/ads/TierCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
 import { AdTierPreview } from "@/components/ads/AdTierPreview";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
-import { FloatingChatButton } from "@/components/layout/FloatingChatButton";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
@@ -547,9 +546,6 @@ export default async function HomePage() {
           </Button>
         </Link>
       </section>
-
-      {/* Floating Chat Button */}
-      <FloatingChatButton />
     </div>
   );
 }

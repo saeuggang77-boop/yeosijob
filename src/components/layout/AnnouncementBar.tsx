@@ -116,7 +116,7 @@ export function AnnouncementBar() {
           <Smartphone className="h-4 w-4 shrink-0" />
           {mode === "install-android" ? (
             <>
-              <span>홈 화면에 추가하면 댓글 알림을 바로 받아요!</span>
+              <span>홈화면에 추가하면 댓글·쪽지·좋아요 알림을 받아요!</span>
               <button
                 onClick={handleInstall}
                 className="rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold transition-colors hover:bg-white/30"
@@ -129,7 +129,7 @@ export function AnnouncementBar() {
               onClick={() => setShowGuide(true)}
               className="flex items-center gap-1"
             >
-              <span>홈 화면에 추가하면 댓글 알림을 바로 받아요!</span>
+              <span>홈화면에 추가하면 댓글·쪽지·좋아요 알림을 받아요!</span>
               <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold">방법 보기</span>
             </button>
           )}
@@ -156,7 +156,12 @@ export function AnnouncementBar() {
             {/* 핸들 */}
             <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-muted-foreground/30" />
 
-            <h3 className="mb-6 text-center text-lg font-bold">홈 화면에 추가하기</h3>
+            <h3 className="mb-3 text-center text-lg font-bold">홈 화면에 추가하기</h3>
+
+            {/* 혜택 안내 - 설치 단계 위에 배치 */}
+            <div className="mb-5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-center text-sm font-medium leading-relaxed text-primary">
+              여시잡을 홈화면에 추가하면 댓글·쪽지·좋아요 알림을 바로 받을 수 있어요!
+            </div>
 
             <div className="flex flex-col gap-5">
               {/* Step 1 */}
@@ -197,10 +202,9 @@ export function AnnouncementBar() {
 
             {/* 하단 */}
             <div className="mt-6 border-t pt-4 text-center">
-              <p className="text-sm font-medium text-primary">앱처럼 바로 접속 + 댓글/쪽지/공지 알림 수신!</p>
               <button
                 onClick={() => setShowGuide(false)}
-                className="mt-4 w-full rounded-xl bg-muted py-3 text-sm font-medium transition-colors hover:bg-muted/80"
+                className="w-full rounded-xl bg-muted py-3 text-sm font-medium transition-colors hover:bg-muted/80"
               >
                 닫기
               </button>

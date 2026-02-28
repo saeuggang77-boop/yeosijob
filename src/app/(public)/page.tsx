@@ -339,47 +339,95 @@ export default async function HomePage({ searchParams }: PageProps) {
         </section>
       )}
 
-      {/* Community Preview */}
-      {recentPosts.length > 0 && (
+      {/* Community + Resume Info - 2 Column Layout */}
+      {(recentPosts.length > 0 || recentResumes.length > 0) && (
         <section className="border-b px-4 py-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">커뮤니티</h2>
-            <div className="flex items-center gap-2">
-              <Link href="/community/new">
-                <Button size="sm" variant="outline">글쓰기</Button>
-              </Link>
-              <Link href="/community" className="text-sm text-primary hover:underline">
-                더보기 →
-              </Link>
-            </div>
-          </div>
-          <div className="divide-y divide-border rounded-lg border">
-            {recentPosts.map((post) => (
-              <Link key={post.id} href={`/community/${post.slug || post.id}`} className="block transition-colors hover:bg-muted/50">
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                      post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
-                      post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
-                      post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
-                      {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
-                    </span>
-                    <span className="truncate text-sm font-medium">{post.title}</span>
-                    {post._count.comments > 0 && (
-                      <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
-                    )}
-                    {isNewPost(post.createdAt) && (
-                      <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                    <span>{post.author.name}</span>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Community */}
+            {recentPosts.length > 0 && (
+              <div className="flex flex-col">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold">커뮤니티</h2>
+                  <div className="flex items-center gap-2">
+                    <Link href="/community/new">
+                      <Button size="sm" variant="outline">글쓰기</Button>
+                    </Link>
+                    <Link href="/community" className="text-sm text-primary hover:underline">
+                      더보기 →
+                    </Link>
                   </div>
                 </div>
-              </Link>
-            ))}
+                <div className="flex-1 divide-y divide-border rounded-lg border">
+                  {recentPosts.map((post) => (
+                    <Link key={post.id} href={`/community/${post.slug || post.id}`} className="block transition-colors hover:bg-muted/50">
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                            post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
+                            post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                            post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
+                            "bg-muted text-muted-foreground"
+                          }`}>
+                            {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
+                          </span>
+                          <span className="truncate text-sm font-medium">{post.title}</span>
+                          {post._count.comments > 0 && (
+                            <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
+                          )}
+                          {isNewPost(post.createdAt) && (
+                            <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">N</span>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                          <span>{post.author.name}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Resume Info */}
+            {recentResumes.length > 0 && (
+              <div className="flex flex-col">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold">인재정보</h2>
+                  <Link href="/resumes">
+                    <Button variant="outline" size="sm">더보기</Button>
+                  </Link>
+                </div>
+                <div className="flex-1 divide-y divide-border rounded-lg border bg-card">
+                  {recentResumes.map((resume) => {
+                    const regionLabel = REGIONS[resume.region]?.shortLabel || resume.region;
+                    const expLabel = EXPERIENCE_LEVELS.find((e) => e.value === resume.experienceLevel)?.label || "";
+                    const jobLabels = (resume.desiredJobs || []).slice(0, 2).map((j) => BUSINESS_TYPES[j]?.shortLabel || j);
+                    return (
+                      <Link key={resume.id} href="/resumes" className="block px-4 py-3 text-sm transition-colors hover:bg-muted/50">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium">{resume.nickname}</span>
+                          {resume.age && <span className="text-muted-foreground">{resume.age}세</span>}
+                          <span className="text-muted-foreground">·</span>
+                          <span className="text-muted-foreground">{regionLabel}</span>
+                          {jobLabels.length > 0 && (
+                            <>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="truncate text-muted-foreground">{jobLabels.join(", ")}</span>
+                            </>
+                          )}
+                          {expLabel && (
+                            <>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="text-muted-foreground">{expLabel}</span>
+                            </>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -511,55 +559,6 @@ export default async function HomePage({ searchParams }: PageProps) {
                     <span>|</span>
                     <span className="min-w-0 flex-1 truncate text-foreground">{ad.title}</span>
                     <span className="w-20 shrink-0 text-right text-xs">{ad.salaryText}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Resume Info Section */}
-      {recentResumes.length > 0 && (
-        <section className="border-b bg-section-warm px-4 py-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">인재정보</h2>
-            <Link href="/resumes">
-              <Button variant="outline" size="sm">더보기</Button>
-            </Link>
-          </div>
-          <div className="mt-3 divide-y divide-border rounded-lg border bg-card">
-            {recentResumes.map((resume) => {
-              const regionLabel = REGIONS[resume.region]?.shortLabel || resume.region;
-              const expLabel = EXPERIENCE_LEVELS.find((e) => e.value === resume.experienceLevel)?.label || "";
-              const jobLabels = (resume.desiredJobs || []).slice(0, 2).map((j) => BUSINESS_TYPES[j]?.shortLabel || j);
-              return (
-                <Link key={resume.id} href="/resumes" className="block px-4 py-2.5 text-sm transition-colors hover:bg-muted/50">
-                  {/* Mobile */}
-                  <div className="flex items-center gap-1.5 md:hidden">
-                    <span className="font-medium">{resume.nickname}</span>
-                    {resume.age && <span className="text-muted-foreground">{resume.age}세</span>}
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground">{regionLabel}</span>
-                    {jobLabels.length > 0 && (
-                      <>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="truncate text-muted-foreground">{jobLabels.join(", ")}</span>
-                      </>
-                    )}
-                  </div>
-                  {/* Desktop */}
-                  <div className="hidden items-center gap-3 text-muted-foreground md:flex">
-                    <span className="w-20 shrink-0 font-medium text-foreground">{resume.nickname}</span>
-                    {resume.age && <span className="w-12 shrink-0">{resume.age}세</span>}
-                    <span className="w-14 shrink-0">{regionLabel}</span>
-                    {jobLabels.length > 0 && (
-                      <span className="w-28 truncate">{jobLabels.join(", ")}</span>
-                    )}
-                    {expLabel && <span className="w-20 shrink-0 text-xs">{expLabel}</span>}
-                    {resume.title && (
-                      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/70">{resume.title}</span>
-                    )}
                   </div>
                 </Link>
               );

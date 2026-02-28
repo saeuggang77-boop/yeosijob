@@ -61,7 +61,7 @@ export function TierCard({ ad, tier }: TierCardProps) {
         className={`flex gap-3 rounded-lg p-4 transition-all duration-200 ${style.card}`}
       >
         {/* Banner */}
-        <div className="h-[120px] w-[200px] shrink-0 overflow-hidden rounded-lg">
+        <div className="h-[100px] w-[140px] shrink-0 overflow-hidden rounded-lg sm:h-[120px] sm:w-[200px]">
           <Banner
             title={ad.bannerTitle}
             businessName={ad.businessName}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendPushNotification } from "@/lib/push-notification";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // GET /api/messages - 대화 목록 (상대방별 최신 메시지 그룹)
 export async function GET(req: NextRequest) {
@@ -106,6 +107,11 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { success } = checkRateLimit(`message:${session.user.id}`, 15, 60_000);
+  if (!success) {
+    return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
   }
 
   const userId = session.user.id;

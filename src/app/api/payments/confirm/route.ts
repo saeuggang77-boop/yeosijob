@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { confirmTossPayment } from "@/lib/toss/confirm";
 import { checkRateLimit } from "@/lib/rate-limit";
+import type { AdOptionId, AdProductId } from "@/generated/prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,14 +108,13 @@ export async function POST(request: NextRequest) {
 
       // Ad 활성화 또는 업그레이드/연장
       if (payment.adId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const snapshot = payment.itemSnapshot as any;
+        const snapshot = payment.itemSnapshot as Record<string, unknown>;
         const isUpgrade = snapshot?.type === "upgrade";
         const isRenew = snapshot?.type === "renew";
 
         // 업그레이드/연장: snapshot.duration 사용, 일반: 기존 ad.durationDays 사용
         const durationDays = (isUpgrade || isRenew)
-          ? snapshot.duration
+          ? (snapshot.duration as number)
           : (payment.ad?.durationDays || 30);
         const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
@@ -126,13 +126,13 @@ export async function POST(request: NextRequest) {
 
           // 새 옵션 생성
           if (snapshot.options && Array.isArray(snapshot.options)) {
-            for (const opt of snapshot.options) {
+            for (const opt of snapshot.options as Array<{ id: string; value: string }>) {
               await tx.adOption.create({
                 data: {
                   adId: payment.adId,
-                  optionId: opt.id,
+                  optionId: opt.id as AdOptionId,
                   value: opt.value,
-                  durationDays: snapshot.duration,
+                  durationDays: snapshot.duration as number,
                   startDate: now,
                   endDate,
                 },
@@ -140,17 +140,20 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          const product = snapshot.product as { id: AdProductId };
+          const newFeatures = snapshot.newFeatures as { autoJumpPerDay: number; manualJumpPerDay: number; maxEdits: number };
+
           // 광고 업그레이드/연장
           await tx.ad.update({
             where: { id: payment.adId },
             data: {
               status: "ACTIVE",
-              productId: snapshot.product.id,
-              durationDays: snapshot.duration,
+              productId: product.id,
+              durationDays: snapshot.duration as number,
               totalAmount: isRenew ? amount : { increment: amount },
-              autoJumpPerDay: snapshot.newFeatures.autoJumpPerDay,
-              manualJumpPerDay: snapshot.newFeatures.manualJumpPerDay,
-              maxEdits: snapshot.newFeatures.maxEdits,
+              autoJumpPerDay: newFeatures.autoJumpPerDay,
+              manualJumpPerDay: newFeatures.manualJumpPerDay,
+              maxEdits: newFeatures.maxEdits,
               startDate: now,
               endDate,
               lastJumpedAt: now,
@@ -188,8 +191,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Payment confirm error:", error);
-    const message =
-      error instanceof Error ? error.message : "결제 승인에 실패했습니다";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "결제 승인에 실패했습니다" }, { status: 500 });
   }
 }

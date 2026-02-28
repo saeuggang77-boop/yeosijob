@@ -187,8 +187,6 @@ export async function POST(
     });
   } catch (error) {
     console.error("Ad upgrade error:", error);
-    const message =
-      error instanceof Error ? error.message : "업그레이드 요청에 실패했습니다";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "업그레이드 요청에 실패했습니다" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // GET /api/messages/block - 내 차단 목록 조회
 export async function GET(req: NextRequest) {
@@ -47,6 +48,11 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { success } = checkRateLimit(`block:${session.user.id}`, 10, 60_000);
+  if (!success) {
+    return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
   }
 
   const userId = session.user.id;

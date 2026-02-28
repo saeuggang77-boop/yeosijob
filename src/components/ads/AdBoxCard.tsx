@@ -91,7 +91,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
             <span className="absolute -top-2 -right-2 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">VIP</span>
           )}
           {productId === "PREMIUM" && (
-            <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">⭐</span>
+            <span className="absolute -top-2 -right-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">P</span>
           )}
           {ddayInfo && (
             <Badge

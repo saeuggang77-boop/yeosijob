@@ -18,6 +18,7 @@ interface BannerAd {
   viewCount: number;
   bannerColor?: number;
   bannerTitle?: string | null;
+  bannerSubtitle?: string | null;
   bannerTemplate?: number;
   user?: { totalPaidAdDays: number };
 }
@@ -68,9 +69,10 @@ export function BannerSlider({ ads }: Props) {
               href={`/jobs/${ad.id}`}
               className="group w-full shrink-0"
             >
-              <div className="relative mx-4 my-4 overflow-hidden rounded-xl transition-all duration-300 group-hover:scale-[1.01]">
+              <div className="relative mx-4 my-4 overflow-hidden rounded-xl border-2 border-primary shadow-[0_0_20px_rgba(212,168,83,0.25),0_0_40px_rgba(212,168,83,0.08)] transition-all duration-300 group-hover:scale-[1.01]">
                 <Banner
                   title={ad.bannerTitle}
+                  subtitle={ad.bannerSubtitle}
                   businessName={ad.businessName}
                   businessIcon={biz?.icon}
                   businessLabel={biz?.shortLabel}

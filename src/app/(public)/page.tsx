@@ -200,18 +200,20 @@ export default async function HomePage() {
                 ))}
               </select>
             </div>
-            <input
-              type="text"
-              name="search"
-              placeholder="업소명 / 제목 검색"
-              className="h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none sm:border-r sm:border-border/50"
-            />
-            <button
-              type="submit"
-              className="mt-2 h-12 rounded-lg bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:mt-0 sm:rounded-none"
-            >
-              검색
-            </button>
+            <div className="flex sm:contents">
+              <input
+                type="text"
+                name="search"
+                placeholder="업소명 / 제목 검색"
+                className="h-[42px] min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none sm:h-12 sm:border-r sm:border-border/50"
+              />
+              <button
+                type="submit"
+                className="h-[42px] shrink-0 rounded-br-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:h-12 sm:rounded-none sm:px-8"
+              >
+                검색
+              </button>
+            </div>
           </form>
         </div>
       </section>
@@ -220,6 +222,13 @@ export default async function HomePage() {
       {/* Banner Slider - Premium Full Width */}
       {bannerAds.length > 0 && (
         <section className="border-b bg-gradient-to-r from-background via-primary/3 to-background">
+          <div className="px-4 pt-4">
+            <h2 className="flex items-center gap-2 text-xl font-bold">
+              <span className="rounded bg-gradient-to-r from-primary to-amber px-3 py-1 text-sm text-primary-foreground">
+                ⭐ 노블레스
+              </span>
+            </h2>
+          </div>
           <BannerSlider ads={bannerAds} />
         </section>
       )}
@@ -251,7 +260,7 @@ export default async function HomePage() {
           <div className="px-4 py-4">
             <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
               <span className="rounded bg-primary/20 px-3 py-1 text-sm text-primary">
-                ⭐ PREMIUM
+                PREMIUM
               </span>
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

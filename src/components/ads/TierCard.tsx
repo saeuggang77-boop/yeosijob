@@ -78,14 +78,13 @@ export function TierCard({ ad, tier }: TierCardProps) {
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <span
               className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold ${style.badge}`}
             >
-              {tier === "PREMIUM" && "⭐ "}
               {style.badgeText}
             </span>
-            <h3 className="truncate text-sm font-bold">{ad.title}</h3>
+            <h3 className="min-w-0 truncate text-sm font-bold">{ad.title}</h3>
             {ad.isVerified && (
               <Badge
                 variant="secondary"
@@ -103,12 +102,12 @@ export function TierCard({ ad, tier }: TierCardProps) {
             )}
           </div>
 
-          <div className="mt-0.5 flex items-center gap-1">
-            <p className="truncate text-xs text-muted-foreground">
+          <div className="mt-0.5 flex items-center gap-1 min-w-0">
+            <p className="min-w-0 truncate text-xs text-muted-foreground">
               {ad.businessName}
             </p>
 
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="min-w-0 truncate text-xs text-muted-foreground">
               · {regionLabels} · {bizLabel}
             </p>
           </div>
@@ -119,9 +118,9 @@ export function TierCard({ ad, tier }: TierCardProps) {
             </p>
           )}
 
-          <div className="mt-1.5 flex items-center justify-between">
-            <p className="text-sm font-bold text-success">{ad.salaryText}</p>
-            <p className="text-[10px] text-muted-foreground">
+          <div className="mt-1.5 flex items-center justify-between gap-2 min-w-0">
+            <p className="min-w-0 truncate text-sm font-bold text-success">{ad.salaryText}</p>
+            <p className="shrink-0 text-[10px] text-muted-foreground">
               조회 {ad.viewCount.toLocaleString()}
             </p>
           </div>

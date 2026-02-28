@@ -169,6 +169,8 @@ export function Banner({
             displayTitle={displayTitle}
             subtitle={subtitle}
             businessName={businessName}
+            businessIcon={businessIcon}
+            businessLabel={businessLabel}
             title={title}
             color={color}
           />
@@ -185,17 +187,27 @@ function SmallContent({
   displayTitle,
   subtitle,
   businessName,
+  businessIcon,
+  businessLabel,
   title,
   color,
 }: {
   displayTitle: string;
   subtitle?: string | null;
   businessName: string;
+  businessIcon?: string;
+  businessLabel?: string;
   title?: string | null;
   color: (typeof BANNER_COLORS)[0];
 }) {
   return (
     <>
+      {businessLabel && (
+        <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
+          {businessIcon && <span style={{ fontSize: 11 }}>{businessIcon}</span>}
+          <span style={{ color: color.sub, fontSize: 9, opacity: 0.7 }} className="truncate">{businessLabel}</span>
+        </div>
+      )}
       <p
         style={{ color: color.main, fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}
         className="truncate"
@@ -244,51 +256,44 @@ function LargeContent({
   color: (typeof BANNER_COLORS)[0];
 }) {
   return (
-    <div className="flex h-full items-center justify-between">
-      <div className="min-w-0 flex-1">
-        {businessLabel && (
-          <div className="flex items-center gap-1.5">
-            {businessIcon && <span className="text-sm">{businessIcon}</span>}
-            <span style={{ color: color.sub, fontSize: 11, opacity: 0.7 }}>{businessLabel}</span>
-          </div>
-        )}
+    <div className="flex h-full flex-col items-center justify-center text-center">
+      {businessLabel && (
+        <div className="flex items-center gap-1.5">
+          {businessIcon && <span className="text-sm">{businessIcon}</span>}
+          <span style={{ color: color.sub, fontSize: 11, opacity: 0.7 }}>{businessLabel}</span>
+        </div>
+      )}
+      <p
+        style={{
+          color: color.main,
+          fontSize: 22,
+          fontWeight: 800,
+          lineHeight: 1.2,
+          marginTop: 4,
+        }}
+      >
+        {displayTitle}
+      </p>
+      {title && (
         <p
-          style={{
-            color: color.main,
-            fontSize: 22,
-            fontWeight: 800,
-            lineHeight: 1.2,
-            marginTop: 4,
-          }}
-          className="truncate"
+          style={{ color: color.sub, fontSize: 13, marginTop: 2, opacity: 0.7 }}
         >
-          {displayTitle}
+          {businessName}
         </p>
-        {title && (
-          <p
-            style={{ color: color.sub, fontSize: 13, marginTop: 2, opacity: 0.7 }}
-            className="truncate"
-          >
-            {businessName}
-          </p>
-        )}
-        {subtitle && (
-          <p
-            style={{ color: color.sub, fontSize: 12, marginTop: 2, opacity: 0.65 }}
-            className="truncate"
-          >
-            {subtitle}
-          </p>
-        )}
-        {regionLabel && (
-          <p style={{ color: `${color.sub}99`, fontSize: 11, marginTop: 4 }} className="truncate">
-            {regionLabel}
-          </p>
-        )}
-      </div>
-      <div className="shrink-0 text-right pl-4">
-        <p style={{ color: color.sub, fontSize: 20, fontWeight: 700 }}>{salaryText}</p>
-      </div>
+      )}
+      {subtitle && (
+        <p
+          style={{ color: color.sub, fontSize: 12, marginTop: 2, opacity: 0.65 }}
+        >
+          {subtitle}
+        </p>
+      )}
+      {regionLabel && (
+        <p style={{ color: `${color.sub}99`, fontSize: 11, marginTop: 4 }}>
+          {regionLabel}
+        </p>
+      )}
+      <p style={{ color: color.sub, fontSize: 18, fontWeight: 700, marginTop: 8 }}>{salaryText}</p>
     </div>
   );
 }

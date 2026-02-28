@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendPushNotification } from "@/lib/push-notification";
 
 export async function GET(request: NextRequest) {
   try {
@@ -115,6 +116,17 @@ export async function POST(request: NextRequest) {
             link: `/notice/${notice.id}`,
           })),
         });
+
+        // 브라우저 푸시 알림 (fire and forget)
+        Promise.allSettled(
+          activeUsers.map((user) =>
+            sendPushNotification(user.id, {
+              title: "새 공지사항",
+              body: notice.title,
+              url: `/notice/${notice.id}`,
+            })
+          )
+        ).catch(() => {});
       }
     } catch (error) {
       console.error("Failed to create notifications for notice:", error);

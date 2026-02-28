@@ -69,7 +69,7 @@ export default function RegisterJobseekerPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">구직자 회원가입</CardTitle>
+        <CardTitle className="text-2xl font-bold"><h1>구직자 회원가입</h1></CardTitle>
         <CardDescription>
           무료로 가입하고 일자리를 찾아보세요<br />
           <span className="text-xs">카카오 로그인으로도 간편하게 가입할 수 있습니다</span>

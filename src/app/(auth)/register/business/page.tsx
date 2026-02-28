@@ -73,7 +73,7 @@ export default function RegisterBusinessPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">업소 회원가입</CardTitle>
+        <CardTitle className="text-2xl font-bold"><h1>업소 회원가입</h1></CardTitle>
         <CardDescription>
           광고를 등록하고 인재를 찾아보세요
         </CardDescription>

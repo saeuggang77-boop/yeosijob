@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/utils/format";
+import { sendPushNotification } from "@/lib/push-notification";
 
 export async function GET(
   request: NextRequest,
@@ -178,6 +179,13 @@ export async function POST(
           link: `/community/${id}`,
         },
       }).catch(() => {}); // Don't fail comment creation if notification fails
+
+      // 브라우저 푸시 알림
+      sendPushNotification(notificationUserId, {
+        title: finalParentId ? "새 답글" : "새 댓글",
+        body: notificationMessage,
+        url: `/community/${id}`,
+      }).catch(() => {});
     }
 
     return NextResponse.json(

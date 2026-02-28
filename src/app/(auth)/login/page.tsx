@@ -53,6 +53,7 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md bg-card">
       <CardHeader className="text-center">
+        <h1 className="sr-only">로그인</h1>
         <CardTitle className="text-2xl font-bold">여시잡</CardTitle>
         <CardDescription>로그인하여 서비스를 이용해보세요</CardDescription>
       </CardHeader>

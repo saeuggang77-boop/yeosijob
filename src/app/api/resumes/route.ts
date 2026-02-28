@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resumeSchema } from "@/lib/validators/resume";
-import { sendPushNotification } from "@/lib/push-notification";
+
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
 
@@ -132,16 +132,7 @@ export async function POST(request: NextRequest) {
           })),
         });
 
-        // 브라우저 푸시 알림 (fire and forget)
-        Promise.allSettled(
-          userIds.map((userId) =>
-            sendPushNotification(userId, {
-              title: "새 이력서 등록",
-              body: message,
-              url: "/business/resumes",
-            })
-          )
-        ).catch(() => {});
+        // 이력서 열람 푸시는 사장님 부담 → 종 알림만 유지
       }
     }
 

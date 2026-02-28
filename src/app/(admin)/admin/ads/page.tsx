@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AdStatus } from "@/generated/prisma/client";
+import { SEED_EMAILS } from "@/lib/constants/seed-emails";
+import { AdDeleteButton } from "@/components/admin/AdDeleteButton";
 
 interface PageProps {
   searchParams: Promise<{
@@ -151,31 +153,43 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
               <th className="pb-3 font-medium">상태</th>
               <th className="pb-3 font-medium">조회</th>
               <th className="pb-3 font-medium">등록일</th>
+              <th className="pb-3 font-medium">관리</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {ads.map((ad) => (
-              <tr key={ad.id} className="hover:bg-muted/50">
-                <td className="py-3">
-                  <Link href={`/admin/ads/${ad.id}`} className="font-medium hover:text-primary">
-                    {ad.title}
-                  </Link>
-                </td>
-                <td className="py-3 text-muted-foreground">{ad.businessName}</td>
-                <td className="py-3">
-                  <Badge variant="outline" className="text-xs">{ad.productId}</Badge>
-                </td>
-                <td className="py-3">
-                  <Badge variant={statusLabels[ad.status]?.variant || "secondary"}>
-                    {statusLabels[ad.status]?.label || ad.status}
-                  </Badge>
-                </td>
-                <td className="py-3 text-muted-foreground">{ad.viewCount}</td>
-                <td className="py-3 text-muted-foreground">
-                  {new Date(ad.createdAt).toLocaleDateString("ko-KR")}
-                </td>
-              </tr>
-            ))}
+            {ads.map((ad) => {
+              const isSeed = ad.user.email ? SEED_EMAILS.includes(ad.user.email) : false;
+              return (
+                <tr key={ad.id} className="hover:bg-muted/50">
+                  <td className="py-3">
+                    <div className="flex items-center gap-2">
+                      <Link href={`/admin/ads/${ad.id}`} className="font-medium hover:text-primary">
+                        {ad.title}
+                      </Link>
+                      {isSeed && (
+                        <Badge variant="destructive" className="text-[10px]">테스트</Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 text-muted-foreground">{ad.businessName}</td>
+                  <td className="py-3">
+                    <Badge variant="outline" className="text-xs">{ad.productId}</Badge>
+                  </td>
+                  <td className="py-3">
+                    <Badge variant={statusLabels[ad.status]?.variant || "secondary"}>
+                      {statusLabels[ad.status]?.label || ad.status}
+                    </Badge>
+                  </td>
+                  <td className="py-3 text-muted-foreground">{ad.viewCount}</td>
+                  <td className="py-3 text-muted-foreground">
+                    {new Date(ad.createdAt).toLocaleDateString("ko-KR")}
+                  </td>
+                  <td className="py-3">
+                    <AdDeleteButton adId={ad.id} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

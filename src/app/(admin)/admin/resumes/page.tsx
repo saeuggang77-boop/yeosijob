@@ -6,6 +6,7 @@ import type { Region, BusinessType } from "@/generated/prisma/client";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { ResumeActions } from "@/components/admin/ResumeActions";
+import { SEED_EMAILS } from "@/lib/constants/seed-emails";
 
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
@@ -21,6 +22,9 @@ export default async function AdminResumesPage({ searchParams }: PageProps) {
       orderBy: { updatedAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        user: { select: { email: true } },
+      },
     }),
     prisma.resume.count(),
     prisma.resume.count({ where: { isPublic: true } }),
@@ -51,6 +55,7 @@ export default async function AdminResumesPage({ searchParams }: PageProps) {
             const businessTypeLabels = resume.desiredJobs.map(
               (bt: BusinessType) => BUSINESS_TYPES[bt]?.shortLabel || bt
             );
+            const isSeed = resume.user.email ? SEED_EMAILS.includes(resume.user.email) : false;
 
             return (
               <Card key={resume.id}>
@@ -67,6 +72,9 @@ export default async function AdminResumesPage({ searchParams }: PageProps) {
                         <Badge variant={resume.isPublic ? "default" : "destructive"}>
                           {resume.isPublic ? "공개" : "비공개"}
                         </Badge>
+                        {isSeed && (
+                          <Badge variant="destructive" className="text-[10px]">테스트</Badge>
+                        )}
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {resume.age}세 · {regionLabel} · {businessTypeLabels.join(", ")}

@@ -10,6 +10,7 @@ import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 import { LikeButton } from "@/components/community/LikeButton";
 import { CommentSection } from "@/components/community/CommentSection";
 import { formatDateSmart } from "@/lib/utils/format";
+import { getCommunityAccess } from "@/lib/utils/community-access";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -69,9 +70,12 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   const session = await auth();
 
+  // Check community access level
+  const { level: accessLevel, reason: blurReason } = await getCommunityAccess(session);
+
   const postId = lookup.id;
 
-  // Increment view count
+  // Increment view count (even for blurred content - for SEO)
   await prisma.post.update({
     where: { id: postId },
     data: { viewCount: { increment: 1 } },
@@ -198,6 +202,9 @@ export default async function PostDetailPage({ params }: PageProps) {
     url: `https://yeosijob.com/community/${lookup.slug || postId}`,
   };
 
+  // Determine if user can write (full access only)
+  const canWrite = accessLevel === "full";
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
       <script
@@ -205,7 +212,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       {/* Post */}
-      <Card>
+      <Card className="relative">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -231,7 +238,7 @@ export default async function PostDetailPage({ params }: PageProps) {
             {(isAuthor || isAdmin) && <PostActions postId={post.id} isAdmin={isAdmin} />}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
             {post.content}
           </div>
@@ -247,10 +254,32 @@ export default async function PostDetailPage({ params }: PageProps) {
             />
           </div>
         </CardContent>
+
+        {/* Blur overlay */}
+        {accessLevel === "blur" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <Card className="mx-4 max-w-md">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="mb-4 text-lg font-semibold">
+                    {blurReason === "not_logged_in"
+                      ? "회원가입 후 커뮤니티를 이용하세요"
+                      : "추천 이상 광고를 등록하면 커뮤니티를 열람할 수 있습니다"}
+                  </p>
+                  <Link href={blurReason === "not_logged_in" ? "/register" : "/pricing"}>
+                    <Button size="lg">
+                      {blurReason === "not_logged_in" ? "회원가입" : "광고 상품 보기"}
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </Card>
 
       {/* Actions Bar */}
-      <div className="mt-4 flex items-center justify-between">
+      <div className={`mt-4 flex items-center justify-between ${accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}`}>
         <div>
           {!isAuthor && (
             <ReportButton postId={post.id} isLoggedIn={!!session} />
@@ -262,15 +291,18 @@ export default async function PostDetailPage({ params }: PageProps) {
       </div>
 
       {/* Comments Section */}
-      <CommentSection
-        comments={commentsData}
-        postId={post.id}
-        postAuthorId={post.authorId}
-        commentCount={commentCount}
-        currentUserId={session?.user?.id}
-        isAdmin={isAdmin}
-        isLoggedIn={!!session}
-      />
+      <div className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
+        <CommentSection
+          comments={commentsData}
+          postId={post.id}
+          postAuthorId={post.authorId}
+          commentCount={commentCount}
+          currentUserId={session?.user?.id}
+          isAdmin={isAdmin}
+          isLoggedIn={!!session}
+          canWrite={canWrite}
+        />
+      </div>
     </div>
   );
 }

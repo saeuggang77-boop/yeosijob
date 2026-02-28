@@ -10,9 +10,10 @@ interface CommentFormProps {
   parentId?: string;
   replyToName?: string;
   onCancel?: () => void;
+  canWrite?: boolean;
 }
 
-export function CommentForm({ postId, parentId, replyToName, onCancel }: CommentFormProps) {
+export function CommentForm({ postId, parentId, replyToName, onCancel, canWrite = true }: CommentFormProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [content, setContent] = useState("");
@@ -29,6 +30,14 @@ export function CommentForm({ postId, parentId, replyToName, onCancel }: Comment
     return (
       <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
         로그인 후 댓글을 작성할 수 있습니다
+      </div>
+    );
+  }
+
+  if (session && canWrite === false) {
+    return (
+      <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        구직자 회원만 댓글을 작성할 수 있습니다
       </div>
     );
   }

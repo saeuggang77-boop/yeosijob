@@ -47,6 +47,7 @@ interface CommentSectionProps {
   currentUserId?: string;
   isAdmin: boolean;
   isLoggedIn: boolean;
+  canWrite?: boolean;
 }
 
 export function CommentSection({
@@ -57,6 +58,7 @@ export function CommentSection({
   currentUserId,
   isAdmin,
   isLoggedIn,
+  canWrite = true,
 }: CommentSectionProps) {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -102,7 +104,7 @@ export function CommentSection({
 
       {/* Comment Form */}
       <div className="mb-6">
-        <CommentForm postId={postId} />
+        <CommentForm postId={postId} canWrite={canWrite} />
       </div>
 
       {/* Comments List */}
@@ -158,11 +160,13 @@ export function CommentSection({
                             initialCount={comment.likeCount}
                             isLoggedIn={isLoggedIn}
                           />
-                          <ReplyButton
-                            postId={postId}
-                            parentId={comment.id}
-                            replyToName={comment.author.name || "익명"}
-                          />
+                          {canWrite && (
+                            <ReplyButton
+                              postId={postId}
+                              parentId={comment.id}
+                              replyToName={comment.author.name || "익명"}
+                            />
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -236,11 +240,13 @@ export function CommentSection({
                                     initialCount={reply.likeCount}
                                     isLoggedIn={isLoggedIn}
                                   />
-                                  <ReplyButton
-                                    postId={postId}
-                                    parentId={comment.id}
-                                    replyToName={reply.author.name || "익명"}
-                                  />
+                                  {canWrite && (
+                                    <ReplyButton
+                                      postId={postId}
+                                      parentId={comment.id}
+                                      replyToName={reply.author.name || "익명"}
+                                    />
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">

@@ -28,6 +28,22 @@ export default function NewPostPage() {
     return null;
   }
 
+  // Role check: only JOBSEEKER and ADMIN can create posts
+  if (session.user.role !== "JOBSEEKER" && session.user.role !== "ADMIN") {
+    return (
+      <div className="mx-auto max-w-screen-xl px-4 py-8">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="mb-4 text-lg font-semibold">구직자 회원만 글을 작성할 수 있습니다</p>
+            <Link href="/community">
+              <Button>목록으로</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);

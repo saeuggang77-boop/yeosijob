@@ -64,6 +64,14 @@ export async function POST(
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
     }
 
+    // Role check: only JOBSEEKER and ADMIN can write comments
+    if (session.user.role !== "JOBSEEKER" && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "구직자 회원만 댓글을 작성할 수 있습니다" },
+        { status: 403 }
+      );
+    }
+
     // 활동정지 체크
     const currentUser = await prisma.user.findUnique({
       where: { id: session.user.id },

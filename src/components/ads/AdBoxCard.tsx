@@ -66,8 +66,8 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
               </p>
             </div>
             {/* Right side: salary + dday */}
-            <div className="flex shrink-0 items-center gap-2">
-              <p className="text-sm font-medium text-success truncate max-w-[120px] sm:max-w-none sm:whitespace-nowrap">{ad.salaryText}</p>
+            <div className="flex items-center gap-1.5 sm:shrink-0 sm:gap-2">
+              <p className="text-xs font-medium text-success truncate sm:text-sm sm:whitespace-nowrap">{ad.salaryText}</p>
               {ddayInfo && (
                 <Badge
                   className={`px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}

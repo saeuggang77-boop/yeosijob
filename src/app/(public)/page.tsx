@@ -182,7 +182,7 @@ export default async function HomePage() {
               <select
                 name="region"
                 defaultValue=""
-                className="h-11 flex-1 border-r border-border/50 bg-transparent px-3 text-sm text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:px-4"
+                className="h-9 flex-1 border-r border-border/50 bg-transparent px-3 text-xs text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:px-4 sm:text-sm"
               >
                 <option value="">지역 전체</option>
                 {Object.entries(REGIONS).map(([key, val]) => (
@@ -192,7 +192,7 @@ export default async function HomePage() {
               <select
                 name="businessType"
                 defaultValue=""
-                className="h-11 flex-1 bg-transparent px-3 text-sm text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:border-r sm:border-border/50 sm:px-4"
+                className="h-9 flex-1 bg-transparent px-3 text-xs text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:border-r sm:border-border/50 sm:px-4 sm:text-sm"
               >
                 <option value="">업종 전체</option>
                 {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
@@ -290,7 +290,7 @@ export default async function HomePage() {
       {/* URGENT + RECOMMEND Section - 2 Column Grid */}
       {(urgentAds.length > 0 || recommendAds.length > 0) && (
         <section className="border-b">
-          <div className="grid gap-4 p-3 sm:p-4 md:grid-cols-2">
+          <div className="grid gap-4 px-1 py-3 sm:p-4 md:grid-cols-2">
             {/* Urgent Column */}
             {urgentAds.length > 0 && (
               <div className="rounded-xl bg-urgent/5 p-3 sm:p-4">

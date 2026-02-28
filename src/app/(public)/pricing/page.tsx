@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { AD_PRODUCTS, AD_OPTIONS } from "@/lib/constants/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -138,6 +138,13 @@ export default async function PricingPage() {
                     <span className="text-muted-foreground">노출 위치</span>
                     <p className="mt-1">{tier.position}</p>
                   </div>
+                  <div className="pt-3">
+                    <Link href={`/business/ads/new?product=${tier.id}`} className="block">
+                      <Button size="sm" variant={tier.id === "FREE" ? "outline" : "default"} className="w-full gap-1">
+                        {tier.id === "FREE" ? "무료 등록" : "선택"} <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
@@ -158,6 +165,7 @@ export default async function PricingPage() {
                   <th className="text-center p-3 font-bold">쪽지</th>
                   <th className="text-left p-3 font-bold">노출 위치</th>
                   <th className="text-center p-3 font-bold">최대 지역</th>
+                  <th className="text-center p-3 font-bold"></th>
                 </tr>
               </thead>
               <tbody>
@@ -187,6 +195,13 @@ export default async function PricingPage() {
                     </td>
                     <td className="p-3 text-sm">{tier.position}</td>
                     <td className="text-center p-3">{tier.maxRegions === 0 ? "제한없음" : tier.maxRegions}</td>
+                    <td className="text-center p-3">
+                      <Link href={`/business/ads/new?product=${tier.id}`}>
+                        <Button size="sm" variant={tier.id === "FREE" ? "outline" : "default"} className="gap-1">
+                          {tier.id === "FREE" ? "무료 등록" : "선택"} <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

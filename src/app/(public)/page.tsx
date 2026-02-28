@@ -433,11 +433,12 @@ export default async function HomePage({ searchParams }: PageProps) {
       )}
 
       {/* LINE Section - Compact List */}
-      <section className="border-b">
-        <div className="px-4 py-3">
+      <section id="line-ads" className="border-b scroll-mt-16">
+        <div className="flex items-center justify-between px-4 py-3">
           <h2 className="border-l-4 border-primary pl-3 text-xl font-bold">
             줄광고
           </h2>
+          <Link href="/jobs?productId=LINE" className="text-sm text-primary hover:underline">더보기 →</Link>
         </div>
 
         {lineAds.length === 0 ? (
@@ -509,8 +510,9 @@ export default async function HomePage({ searchParams }: PageProps) {
                     {showEllipsis && (
                       <span className="px-2 text-muted-foreground">...</span>
                     )}
-                    <a
-                      href={`/?page=${p}`}
+                    <Link
+                      href={`/?page=${p}#line-ads`}
+                      scroll={false}
                       className={`inline-flex h-8 w-8 items-center justify-center rounded text-xs ${
                         p === page
                           ? "bg-primary text-primary-foreground"
@@ -518,7 +520,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                       }`}
                     >
                       {p}
-                    </a>
+                    </Link>
                   </span>
                 );
               })}
@@ -529,10 +531,11 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* FREE Section - Basic Text List */}
       {freeAds.length > 0 && (
         <section className="border-b">
-          <div className="px-4 py-3">
+          <div className="flex items-center justify-between px-4 py-3">
             <h2 className="border-l-4 border-muted-foreground/30 pl-3 text-lg font-bold text-muted-foreground">
               무료 채용정보
             </h2>
+            <Link href="/jobs?productId=FREE" className="text-sm text-muted-foreground hover:underline">더보기 →</Link>
           </div>
           <div className="divide-y divide-border">
             {freeAds.map((ad) => {

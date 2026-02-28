@@ -22,3 +22,12 @@ export const GENDER_OPTIONS = [
   { value: "남성", label: "남성" },
 ] as const;
 
+export const BODY_TYPES = [
+  { value: "SLIM", label: "슬림" },
+  { value: "NORMAL", label: "보통" },
+  { value: "GLAMOUR", label: "글래머" },
+  { value: "HEALTHY", label: "건강미" },
+] as const;
+
+export type BodyTypeValue = (typeof BODY_TYPES)[number]["value"];
+

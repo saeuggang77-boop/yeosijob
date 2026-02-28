@@ -312,8 +312,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                   {showEllipsis && (
                     <span className="px-2 text-muted-foreground">...</span>
                   )}
-                  <a
+                  <Link
                     href={`/community?${pageParams.toString()}`}
+                    scroll={false}
                     className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
                       p === page
                         ? "bg-primary text-primary-foreground"
@@ -321,7 +322,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     }`}
                   >
                     {p}
-                  </a>
+                  </Link>
                 </span>
               );
             })}

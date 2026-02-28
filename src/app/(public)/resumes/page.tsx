@@ -194,14 +194,11 @@ export default async function PublicResumesPage({ searchParams }: PageProps) {
               }
             }
 
-            const physicalInfo =
-              resume.height && resume.weight
-                ? `${resume.height}cm/${resume.weight}kg`
-                : resume.height
-                ? `${resume.height}cm`
-                : resume.weight
-                ? `${resume.weight}kg`
-                : "";
+            const bodyTypeLabel =
+              resume.bodyType === "SLIM" ? "슬림" :
+              resume.bodyType === "NORMAL" ? "보통" :
+              resume.bodyType === "GLAMOUR" ? "글래머" :
+              resume.bodyType === "HEALTHY" ? "건강미" : "";
 
             // For non-logged-in users, show limited info
             const isRestricted = !session;
@@ -227,8 +224,8 @@ export default async function PublicResumesPage({ searchParams }: PageProps) {
                     <div className="flex items-center gap-2 text-sm">
                       <span className="font-medium">{resume.nickname}</span>
                       <span className="text-muted-foreground">{resume.age}세</span>
-                      {physicalInfo && (
-                        <span className="text-muted-foreground">{physicalInfo}</span>
+                      {bodyTypeLabel && (
+                        <span className="text-muted-foreground">{bodyTypeLabel}</span>
                       )}
                     </div>
 
@@ -287,21 +284,21 @@ export default async function PublicResumesPage({ searchParams }: PageProps) {
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">
           {page > 1 && (
-            <a href={buildUrl(page - 1)}>
+            <Link href={buildUrl(page - 1)} scroll={false}>
               <Button variant="outline" size="sm">
                 이전
               </Button>
-            </a>
+            </Link>
           )}
           <span className="flex items-center px-4 text-sm text-muted-foreground">
             {page} / {totalPages}
           </span>
           {page < totalPages && (
-            <a href={buildUrl(page + 1)}>
+            <Link href={buildUrl(page + 1)} scroll={false}>
               <Button variant="outline" size="sm">
                 다음
               </Button>
-            </a>
+            </Link>
           )}
         </div>
       )}

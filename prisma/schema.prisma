@@ -445,8 +445,7 @@ model Resume {
   nickname String
   gender   String @default("여성")
   age      Int
-  height   Int?
-  weight   Int?
+  bodyType String?
 
   // 희망 근무지역
   region    Region

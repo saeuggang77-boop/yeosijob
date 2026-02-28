@@ -21,8 +21,7 @@ interface ResumeData {
   nickname: string;
   gender: string;
   age: number;
-  height?: number;
-  weight?: number;
+  bodyType?: string;
   region: string;
   districts: string[];
   desiredJobs: string[];
@@ -63,8 +62,7 @@ export default function MyResumePage() {
     nickname: "",
     gender: "여성",
     age: "",
-    height: "",
-    weight: "",
+    bodyType: "",
     region: "",
     districts: [] as string[],
     desiredJobs: [] as string[],
@@ -232,8 +230,7 @@ export default function MyResumePage() {
       nickname: form.nickname,
       gender: form.gender,
       age: parseInt(form.age) || 0,
-      height: form.height ? parseInt(form.height) : undefined,
-      weight: form.weight ? parseInt(form.weight) : undefined,
+      bodyType: form.bodyType || undefined,
       region: form.region,
       districts: form.districts,
       desiredJobs: form.desiredJobs,
@@ -290,8 +287,7 @@ export default function MyResumePage() {
         nickname: "",
         gender: "여성",
         age: "",
-        height: "",
-        weight: "",
+        bodyType: "",
         region: "",
         districts: [],
         desiredJobs: [],
@@ -358,8 +354,7 @@ export default function MyResumePage() {
       nickname: resumeData.nickname || "",
       gender: resumeData.gender || "여성",
       age: resumeData.age?.toString() || "",
-      height: resumeData.height?.toString() || "",
-      weight: resumeData.weight?.toString() || "",
+      bodyType: resumeData.bodyType || "",
       region: resumeData.region || "",
       districts: resumeData.districts || [],
       desiredJobs: resumeData.desiredJobs || [],
@@ -474,7 +469,7 @@ export default function MyResumePage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm">
-              키: {resumeData.height ? `${resumeData.height}cm` : "-"} / 몸무게: {resumeData.weight ? `${resumeData.weight}kg` : "-"}
+              체형: {resumeData.bodyType === "SLIM" ? "슬림" : resumeData.bodyType === "NORMAL" ? "보통" : resumeData.bodyType === "GLAMOUR" ? "글래머" : resumeData.bodyType === "HEALTHY" ? "건강미" : "-"}
             </p>
           </CardContent>
         </Card>
@@ -692,27 +687,20 @@ export default function MyResumePage() {
               />
               <FieldError field="age" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="height">키 (cm)</Label>
-                <input
-                  id="height"
-                  type="number"
-                  value={form.height}
-                  onChange={(e) => updateField("height", e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <Label htmlFor="weight">몸무게 (kg)</Label>
-                <input
-                  id="weight"
-                  type="number"
-                  value={form.weight}
-                  onChange={(e) => updateField("weight", e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
+            <div>
+              <Label htmlFor="bodyType">체형</Label>
+              <select
+                id="bodyType"
+                value={form.bodyType}
+                onChange={(e) => updateField("bodyType", e.target.value)}
+                className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">선택안함</option>
+                <option value="SLIM">슬림</option>
+                <option value="NORMAL">보통</option>
+                <option value="GLAMOUR">글래머</option>
+                <option value="HEALTHY">건강미</option>
+              </select>
             </div>
           </CardContent>
         </Card>

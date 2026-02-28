@@ -110,20 +110,12 @@ export default async function AdminResumeDetailPage({ params }: PageProps) {
               </span>
               <span>{resume.age}세</span>
             </div>
-            {resume.height && (
+            {resume.bodyType && (
               <div className="flex items-center gap-3">
                 <span className="w-24 text-sm font-medium text-muted-foreground">
-                  신장
+                  체형
                 </span>
-                <span>{resume.height}cm</span>
-              </div>
-            )}
-            {resume.weight && (
-              <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-muted-foreground">
-                  체중
-                </span>
-                <span>{resume.weight}kg</span>
+                <span>{resume.bodyType === "SLIM" ? "슬림" : resume.bodyType === "NORMAL" ? "보통" : resume.bodyType === "GLAMOUR" ? "글래머" : resume.bodyType === "HEALTHY" ? "건강미" : resume.bodyType}</span>
               </div>
             )}
           </CardContent>

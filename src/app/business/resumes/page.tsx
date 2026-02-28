@@ -177,14 +177,11 @@ export default async function ResumesPage({ searchParams }: PageProps) {
               }
             }
 
-            const physicalInfo =
-              resume.height && resume.weight
-                ? `${resume.height}cm/${resume.weight}kg`
-                : resume.height
-                ? `${resume.height}cm`
-                : resume.weight
-                ? `${resume.weight}kg`
-                : "";
+            const bodyTypeLabel =
+              resume.bodyType === "SLIM" ? "슬림" :
+              resume.bodyType === "NORMAL" ? "보통" :
+              resume.bodyType === "GLAMOUR" ? "글래머" :
+              resume.bodyType === "HEALTHY" ? "건강미" : "";
 
             return (
               <Link key={resume.id} href={`/business/resumes/${resume.id}`}>
@@ -203,8 +200,8 @@ export default async function ResumesPage({ searchParams }: PageProps) {
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">{resume.nickname}</span>
                         <span className="text-muted-foreground">{resume.age}세</span>
-                        {physicalInfo && (
-                          <span className="text-muted-foreground">{physicalInfo}</span>
+                        {bodyTypeLabel && (
+                          <span className="text-muted-foreground">{bodyTypeLabel}</span>
                         )}
                       </div>
 

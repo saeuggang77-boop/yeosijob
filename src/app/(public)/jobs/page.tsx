@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AdCard } from "@/components/ads/AdCard";
 import { REGIONS } from "@/lib/constants/regions";
@@ -26,6 +27,7 @@ interface PageProps {
     productId?: string;
     search?: string;
     page?: string;
+    sort?: string;
   }>;
 }
 
@@ -35,6 +37,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
   const businessType = params.businessType as BusinessType | undefined;
   const productId = params.productId;
   const search = params.search;
+  const sort = params.sort || "jump";
   const page = parseInt(params.page || "1", 10);
   const limit = 30;
 
@@ -52,7 +55,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
   const [ads, total] = await Promise.all([
     prisma.ad.findMany({
       where,
-      orderBy: { lastJumpedAt: "desc" },
+      orderBy: sort === "views" ? { viewCount: "desc" } : { lastJumpedAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
       select: {
@@ -87,6 +90,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
     if (businessType) params.set("businessType", businessType);
     if (productId) params.set("productId", productId);
     if (search) params.set("search", search);
+    if (sort && sort !== "jump") params.set("sort", sort);
     params.set("page", String(p));
     return `/jobs?${params.toString()}`;
   }
@@ -125,6 +129,10 @@ export default async function JobsPage({ searchParams }: PageProps) {
           </select>
           {productId && <input type="hidden" name="productId" value={productId} />}
           <input type="text" name="search" defaultValue={search} placeholder="업소명 / 제목 검색" className="h-10 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm placeholder:text-muted-foreground" />
+          <select name="sort" defaultValue={sort} className="h-10 rounded-md border bg-background px-3 text-sm">
+            <option value="jump">기본순</option>
+            <option value="views">조회순</option>
+          </select>
           <button type="submit" className="h-10 rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90">검색</button>
         </form>
       </div>
@@ -147,9 +155,9 @@ export default async function JobsPage({ searchParams }: PageProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1 py-6">
           {page > 1 && (
-            <a href={buildUrl(page - 1)} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">
+            <Link href={buildUrl(page - 1)} scroll={false} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">
               ←
-            </a>
+            </Link>
           )}
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter(p => p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2))
@@ -159,21 +167,22 @@ export default async function JobsPage({ searchParams }: PageProps) {
               return (
                 <span key={p}>
                   {showEllipsis && <span className="px-2 text-muted-foreground">...</span>}
-                  <a
+                  <Link
                     href={buildUrl(p)}
+                    scroll={false}
                     className={`inline-flex h-10 w-10 items-center justify-center rounded text-sm ${
                       p === page ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                     }`}
                   >
                     {p}
-                  </a>
+                  </Link>
                 </span>
               );
             })}
           {page < totalPages && (
-            <a href={buildUrl(page + 1)} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">
+            <Link href={buildUrl(page + 1)} scroll={false} className="inline-flex h-10 w-10 items-center justify-center rounded text-sm hover:bg-muted">
               →
-            </a>
+            </Link>
           )}
         </div>
       )}

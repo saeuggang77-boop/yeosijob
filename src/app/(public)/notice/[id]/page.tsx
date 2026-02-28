@@ -69,6 +69,20 @@ export default async function NoticeDetailPage({ params }: PageProps) {
     data: { viewCount: { increment: 1 } },
   });
 
+  // Get previous and next notices
+  const [prevNotice, nextNotice] = await Promise.all([
+    prisma.notice.findFirst({
+      where: { createdAt: { lt: notice.createdAt } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true },
+    }),
+    prisma.notice.findFirst({
+      where: { createdAt: { gt: notice.createdAt } },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, title: true },
+    }),
+  ]);
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
       <Card className="p-6">
@@ -95,6 +109,20 @@ export default async function NoticeDetailPage({ params }: PageProps) {
 
         {/* Footer */}
         <div className="border-t pt-4">
+          {/* Previous/Next Navigation */}
+          <div className="mb-4 flex items-center justify-between border-b pb-4">
+            {prevNotice ? (
+              <Link href={`/notice/${prevNotice.id}`} className="max-w-[45%] text-sm text-muted-foreground hover:text-foreground">
+                <div className="truncate">← {prevNotice.title}</div>
+              </Link>
+            ) : <span />}
+            {nextNotice ? (
+              <Link href={`/notice/${nextNotice.id}`} className="max-w-[45%] text-right text-sm text-muted-foreground hover:text-foreground">
+                <div className="truncate">{nextNotice.title} →</div>
+              </Link>
+            ) : <span />}
+          </div>
+
           <Link href="/notice">
             <Button variant="outline">목록으로</Button>
           </Link>

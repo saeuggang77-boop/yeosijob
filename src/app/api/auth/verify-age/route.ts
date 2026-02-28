@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
       response.cookies.set("age_token", existing.token, {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: true,
+        sameSite: "strict",
         path: "/",
       });
       return response;
@@ -142,8 +142,8 @@ export async function POST(request: NextRequest) {
     response.cookies.set("age_token", token, {
       maxAge: COOKIE_MAX_AGE,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "strict",
       path: "/",
     });
 

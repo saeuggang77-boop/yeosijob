@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const page = parseInt(searchParams.get("page") || "1", 10);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
     const limit = 20;
 
     const [notices, total] = await Promise.all([

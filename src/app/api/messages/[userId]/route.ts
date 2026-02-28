@@ -18,8 +18,8 @@ export async function GET(
   try {
     // 페이지네이션
     const searchParams = req.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(Number(searchParams.get("limit")) || 50, 100);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
     const skip = (page - 1) * limit;
 
     // 해당 상대와의 메시지 전체 조회

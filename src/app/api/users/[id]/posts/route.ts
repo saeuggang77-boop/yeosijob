@@ -12,8 +12,8 @@ export async function GET(
     const isAdmin = session?.user?.role === "ADMIN";
 
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get("page") || "1", 10);
-    const limit = parseInt(url.searchParams.get("limit") || "10", 10);
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "10", 10) || 10));
 
     // Build where clause
     const where: Record<string, unknown> = { authorId: userId };

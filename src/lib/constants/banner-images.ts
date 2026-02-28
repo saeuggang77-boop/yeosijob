@@ -1,17 +1,17 @@
 // 업종별 배경 이미지 그룹 매핑
 export const BANNER_IMAGE_GROUPS: Record<string, { group: string; count: number }> = {
-  ROOM_SALON: { group: "room", count: 70 },
-  TEN_CAFE: { group: "room", count: 70 },
-  SHIRT_ROOM: { group: "room", count: 70 },
-  LEGGINGS_ROOM: { group: "room", count: 70 },
-  HYPER_PUBLIC: { group: "room", count: 70 },
+  ROOM_SALON: { group: "room", count: 77 },
+  TEN_CAFE: { group: "room", count: 77 },
+  SHIRT_ROOM: { group: "room", count: 77 },
+  LEGGINGS_ROOM: { group: "room", count: 77 },
+  HYPER_PUBLIC: { group: "room", count: 77 },
   BAR_LOUNGE: { group: "bar", count: 70 },
   PUBLIC_BAR: { group: "bar", count: 70 },
   CLUB: { group: "club", count: 70 },
   KARAOKE: { group: "karaoke", count: 70 },
   MASSAGE: { group: "spa", count: 70 },
   GUANRI: { group: "spa", count: 70 },
-  OTHER: { group: "room", count: 70 },
+  OTHER: { group: "room", count: 77 },
 };
 
 export function getBannerImageUrl(businessType: string, template: number): string {

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/utils/format";
 import { sendPushNotification } from "@/lib/push-notification";
+import { getUserNotifPrefs, isInQuietHours } from "@/lib/notification-helpers";
 
 export async function GET(
   request: NextRequest,
@@ -164,28 +165,32 @@ export async function POST(
 
     // Send notification (skip if commenting on own post/comment)
     if (notificationUserId !== session.user.id) {
-      const titlePreview = post.title && post.title.length > 20
-        ? post.title.slice(0, 20) + "..."
-        : post.title || "게시글";
-      const notificationMessage = finalParentId
-        ? `내 댓글에 답글이 달렸습니다. (${titlePreview})`
-        : `내 글 '${titlePreview}'에 댓글이 달렸습니다.`;
+      const prefs = await getUserNotifPrefs(notificationUserId);
+      if (prefs.notifyComment) {
+        const titlePreview = post.title && post.title.length > 20
+          ? post.title.slice(0, 20) + "..."
+          : post.title || "게시글";
+        const notificationMessage = finalParentId
+          ? `내 댓글에 답글이 달렸습니다. (${titlePreview})`
+          : `내 글 '${titlePreview}'에 댓글이 달렸습니다.`;
 
-      await prisma.notification.create({
-        data: {
-          userId: notificationUserId,
-          title: finalParentId ? "새 답글" : "새 댓글",
-          message: notificationMessage,
-          link: `/community/${id}`,
-        },
-      }).catch(() => {}); // Don't fail comment creation if notification fails
+        await prisma.notification.create({
+          data: {
+            userId: notificationUserId,
+            title: finalParentId ? "새 답글" : "새 댓글",
+            message: notificationMessage,
+            link: `/community/${id}`,
+          },
+        }).catch(() => {});
 
-      // 브라우저 푸시 알림
-      sendPushNotification(notificationUserId, {
-        title: finalParentId ? "새 답글" : "새 댓글",
-        body: notificationMessage,
-        url: `/community/${id}`,
-      }).catch(() => {});
+        if (!isInQuietHours(prefs.quietHoursStart, prefs.quietHoursEnd)) {
+          sendPushNotification(notificationUserId, {
+            title: finalParentId ? "새 답글" : "새 댓글",
+            body: notificationMessage,
+            url: `/community/${id}`,
+          }).catch(() => {});
+        }
+      }
     }
 
     return NextResponse.json(

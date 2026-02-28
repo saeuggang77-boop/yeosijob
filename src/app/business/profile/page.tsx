@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, BarChart3 } from "lucide-react";
+import { ChevronRight, BarChart3, Bell } from "lucide-react";
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
@@ -72,6 +72,21 @@ export default async function BusinessProfilePage() {
                 <div className="flex items-center gap-3">
                   <BarChart3 className="size-5 text-muted-foreground" />
                   <span className="font-medium">광고 관리</span>
+                </div>
+                <ChevronRight className="size-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* 알림 설정 */}
+        <Link href="/settings/notifications" className="block">
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="size-5 text-muted-foreground" />
+                  <span className="font-medium">알림 설정</span>
                 </div>
                 <ChevronRight className="size-5 text-muted-foreground" />
               </div>

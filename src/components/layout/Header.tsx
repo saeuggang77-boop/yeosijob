@@ -13,6 +13,7 @@ import {
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { NotificationBell } from "@/components/notification/NotificationBell";
 import { MessageBell } from "@/components/message/MessageBell";
+import { PwaInstallButton } from "@/components/layout/PwaInstallButton";
 import { Menu } from "lucide-react";
 
 export function Header() {
@@ -170,6 +171,7 @@ export function Header() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
+          <PwaInstallButton />
           <ThemeToggle />
           {session ? (
             <>

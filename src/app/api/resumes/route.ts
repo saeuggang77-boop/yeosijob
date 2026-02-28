@@ -120,19 +120,25 @@ export async function POST(request: NextRequest) {
       ])];
 
       if (userIds.length > 0) {
-        const message = `새로운 구직자(${data.nickname})가 이력서를 등록했습니다. ${data.region} 지역, ${data.desiredJobs.join(", ")} 희망`;
-
-        // 앱 내 알림 생성
-        await prisma.notification.createMany({
-          data: userIds.map((userId) => ({
-            userId,
-            title: "새 이력서 등록",
-            message,
-            link: "/business/resumes",
-          })),
+        // 이력서 알림을 받겠다고 설정한 사장님만 대상
+        const notifyTargets = await prisma.user.findMany({
+          where: { id: { in: userIds }, notifyResume: true },
+          select: { id: true },
         });
+        const targetIds = notifyTargets.map((u) => u.id);
 
-        // 이력서 열람 푸시는 사장님 부담 → 종 알림만 유지
+        if (targetIds.length > 0) {
+          const message = `새로운 구직자(${data.nickname})가 이력서를 등록했습니다. ${data.region} 지역, ${data.desiredJobs.join(", ")} 희망`;
+
+          await prisma.notification.createMany({
+            data: targetIds.map((userId) => ({
+              userId,
+              title: "새 이력서 등록",
+              message,
+              link: "/business/resumes",
+            })),
+          });
+        }
       }
     }
 

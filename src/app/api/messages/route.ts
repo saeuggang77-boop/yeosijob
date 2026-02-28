@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendPushNotification } from "@/lib/push-notification";
+import { getUserNotifPrefs, isInQuietHours } from "@/lib/notification-helpers";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // GET /api/messages - 대화 목록 (상대방별 최신 메시지 그룹)
@@ -302,22 +303,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notification 생성
-    await prisma.notification.create({
-      data: {
-        userId: receiverId,
-        title: "새 쪽지",
-        message: `${sender?.name || "사용자"}님이 쪽지를 보냈습니다`,
-        link: `/messages/${userId}`,
-      },
-    });
+    // 알림 설정 체크 후 발송
+    const prefs = await getUserNotifPrefs(receiverId);
+    if (prefs.notifyMessage) {
+      await prisma.notification.create({
+        data: {
+          userId: receiverId,
+          title: "새 쪽지",
+          message: `${sender?.name || "사용자"}님이 쪽지를 보냈습니다`,
+          link: `/messages/${userId}`,
+        },
+      });
 
-    // Push 알림 발송 (fire-and-forget)
-    sendPushNotification(receiverId, {
-      title: '새 쪽지',
-      body: `${sender?.name || "사용자"}님이 쪽지를 보냈습니다`,
-      url: `/messages/${userId}`,
-    }).catch(() => {}); // 실패해도 메인 흐름에 영향 없음
+      if (!isInQuietHours(prefs.quietHoursStart, prefs.quietHoursEnd)) {
+        sendPushNotification(receiverId, {
+          title: '새 쪽지',
+          body: `${sender?.name || "사용자"}님이 쪽지를 보냈습니다`,
+          url: `/messages/${userId}`,
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({ message });
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendPushNotification } from "@/lib/push-notification";
+import { isInQuietHours } from "@/lib/notification-helpers";
 
 export async function GET(request: NextRequest) {
   try {
@@ -97,19 +98,23 @@ export async function POST(request: NextRequest) {
 
     // Send notification to all active, non-ghost users
     try {
-      const activeUsers = await prisma.user.findMany({
+      // 공지 알림을 받겠다고 설정한 사용자만 대상
+      const notifyUsers = await prisma.user.findMany({
         where: {
           isActive: true,
           isGhost: false,
+          notifyNotice: true,
         },
         select: {
           id: true,
+          quietHoursStart: true,
+          quietHoursEnd: true,
         },
       });
 
-      if (activeUsers.length > 0) {
+      if (notifyUsers.length > 0) {
         await prisma.notification.createMany({
-          data: activeUsers.map((user) => ({
+          data: notifyUsers.map((user) => ({
             userId: user.id,
             title: "새 공지사항",
             message: `새 공지사항: ${notice.title}`,
@@ -117,9 +122,12 @@ export async function POST(request: NextRequest) {
           })),
         });
 
-        // 브라우저 푸시 알림 (fire and forget)
+        // 방해금지 시간이 아닌 사용자에게만 푸시
+        const pushTargets = notifyUsers.filter(
+          (user) => !isInQuietHours(user.quietHoursStart, user.quietHoursEnd)
+        );
         Promise.allSettled(
-          activeUsers.map((user) =>
+          pushTargets.map((user) =>
             sendPushNotification(user.id, {
               title: "새 공지사항",
               body: notice.title,

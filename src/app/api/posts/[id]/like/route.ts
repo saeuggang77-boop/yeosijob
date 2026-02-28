@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getUserNotifPrefs } from "@/lib/notification-helpers";
 
 export async function POST(
   _request: NextRequest,
@@ -48,14 +49,17 @@ export async function POST(
         select: { authorId: true, title: true },
       });
       if (post && post.authorId !== session.user.id) {
-        await prisma.notification.create({
-          data: {
-            userId: post.authorId,
-            title: "좋아요",
-            message: `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 좋아요를 눌렀습니다`,
-            link: `/community/${id}`,
-          },
-        }).catch(() => {}); // 알림 실패해도 좋아요는 정상 처리
+        const prefs = await getUserNotifPrefs(post.authorId);
+        if (prefs.notifyLike) {
+          await prisma.notification.create({
+            data: {
+              userId: post.authorId,
+              title: "좋아요",
+              message: `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 좋아요를 눌렀습니다`,
+              link: `/community/${id}`,
+            },
+          }).catch(() => {});
+        }
       }
     }
 

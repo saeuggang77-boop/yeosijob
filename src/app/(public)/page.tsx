@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { AdBoxCard } from "@/components/ads/AdBoxCard";
 import { TierCard } from "@/components/ads/TierCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
-import { AdTierPreview } from "@/components/ads/AdTierPreview";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
@@ -537,26 +536,54 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Ad Tier Preview Section */}
+      {/* 서비스 특징 */}
       <section className="border-b px-4 py-6">
-        <h2 className="mb-4 text-xl font-bold">광고 등급별 미리보기</h2>
-        <AdTierPreview />
+        <h2 className="mb-4 text-lg font-bold">왜 여시잡인가요?</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: "🛡", label: "검증된 업소", desc: "국세청 API로 사업자 인증" },
+            { icon: "⚡", label: "빠른 채용", desc: "이력서 한 번으로 간편 지원" },
+            { icon: "📍", label: "전국 커버", desc: "서울~제주 전국 채용정보" },
+            { icon: "💬", label: "커뮤니티", desc: "현직자 정보 공유 · 후기" },
+          ].map((f) => (
+            <div key={f.label} className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl">{f.icon}</p>
+              <p className="mt-1.5 text-sm font-bold">{f.label}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{f.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* CTA Section - Dark + Gold Gradient */}
-      <section className="mt-8 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 text-center">
-        <h2 className="text-gradient-gold text-2xl font-bold md:text-3xl">
-          지금 광고를 등록하세요
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          여시잡에서 최고의 인재를 만나보세요
-        </p>
+      {/* 미니 이용 가이드 */}
+      <section className="border-b px-4 py-5 text-center">
+        <p className="text-sm font-bold">처음이신가요? 3단계로 시작</p>
+        <div className="mt-3 flex items-center justify-center gap-1.5">
+          {[
+            { icon: "📝", text: "회원가입" },
+            { icon: "📄", text: "이력서 등록" },
+            { icon: "🎯", text: "지원하기" },
+          ].map((s, i) => (
+            <div key={s.text} className="flex items-center gap-1.5">
+              {i > 0 && <span className="text-xs text-muted-foreground">→</span>}
+              <div className="rounded-lg border bg-card px-3 py-2 text-center">
+                <p className="text-lg">{s.icon}</p>
+                <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{s.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 슬림 CTA */}
+      <section className="flex items-center justify-between bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 px-4 py-3">
+        <div>
+          <p className="text-sm font-semibold text-primary">사장님이신가요?</p>
+          <p className="text-[11px] text-muted-foreground">광고 등록은 무료부터 시작</p>
+        </div>
         <Link href="/business/ads/new">
-          <Button
-            size="lg"
-            className="mt-6 bg-gradient-to-r from-primary to-amber shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40"
-          >
-            광고 등록하기
+          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+            광고 등록
           </Button>
         </Link>
       </section>

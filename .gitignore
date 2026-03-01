@@ -55,3 +55,9 @@ public/uploads/
 # 참고 자료
 밤여시카페 게시글/
 .env*.local
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/.auth/

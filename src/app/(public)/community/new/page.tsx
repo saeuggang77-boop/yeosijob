@@ -23,6 +23,7 @@ export default function NewPostPage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("CHAT");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [anonymousCooldownUntil, setAnonymousCooldownUntil] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<ImageData[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -42,6 +43,19 @@ export default function NewPostPage() {
 
     return () => clearTimeout(timer);
   }, [title, content, category, isAnonymous]);
+
+  // Check anonymous cooldown
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetch("/api/posts/anonymous-status")
+        .then((res) => res.json())
+        .then((data) => {
+          setAnonymousCooldownUntil(data.cooldownUntil || null);
+          if (data.cooldownUntil) setIsAnonymous(false);
+        })
+        .catch(() => {});
+    }
+  }, [status]);
 
   // Load draft on mount
   useEffect(() => {
@@ -223,15 +237,21 @@ export default function NewPostPage() {
                 </select>
               </div>
               <div className="flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                    className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary"
-                  />
-                  <span className="text-sm font-medium">익명으로 작성</span>
-                </label>
+                {(() => {
+                  const isOnAnonCooldown = !!(anonymousCooldownUntil && new Date(anonymousCooldownUntil) > new Date());
+                  return (
+                    <label className={`flex items-center gap-2 ${isOnAnonCooldown ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
+                      <input
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
+                        disabled={isOnAnonCooldown}
+                        className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium">익명으로 작성</span>
+                    </label>
+                  );
+                })()}
               </div>
             </div>
 
@@ -324,6 +344,14 @@ export default function NewPostPage() {
                 <p className="text-xs text-primary mt-2">이미지 업로드 중...</p>
               )}
             </div>
+
+            {!!(anonymousCooldownUntil && new Date(anonymousCooldownUntil) > new Date()) && (
+              <div className="rounded-md border border-red-500/20 bg-red-500/[0.08] px-3 py-2.5 text-xs text-red-400">
+                {new Date(anonymousCooldownUntil).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}까지 익명 작성이 불가합니다.
+                <br />
+                <span className="text-muted-foreground">최근 익명 글을 작성하여 30일 쿨다운이 적용 중입니다.</span>
+              </div>
+            )}
 
             <div className="flex gap-2 justify-end">
               <Link href="/community">

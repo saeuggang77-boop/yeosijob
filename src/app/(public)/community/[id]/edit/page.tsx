@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,8 +32,9 @@ interface PostData {
   cooldownUntil?: string | null;
 }
 
-export default function EditPostPage({ params }: { params: { id: string } }) {
+export default function EditPostPage() {
   const router = useRouter();
+  const { id: postId } = useParams<{ id: string }>();
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<PostData | null>(null);
@@ -54,7 +55,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`/api/posts/${params.id}`);
+        const res = await fetch(`/api/posts/${postId}`);
         if (!res.ok) {
           throw new Error("Failed to fetch post");
         }
@@ -79,7 +80,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     if (status !== "loading") {
       fetchPost();
     }
-  }, [params.id, status, router]);
+  }, [postId, status, router]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="mb-4 text-lg font-semibold">수정 권한이 없습니다</p>
-            <Link href={`/community/${params.id}`}>
+            <Link href={`/community/${postId}`}>
               <Button>돌아가기</Button>
             </Link>
           </CardContent>
@@ -220,7 +221,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
         (id) => !currentImageIds.includes(id)
       );
 
-      const res = await fetch(`/api/posts/${params.id}`, {
+      const res = await fetch(`/api/posts/${postId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -277,16 +278,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                   <option value="WORK">가게이야기</option>
                 </select>
               </div>
-              <div className="flex items-end gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                    className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary"
-                  />
-                  <span className="text-sm font-medium">익명으로 작성</span>
-                </label>
+              <div className="flex items-end">
                 <label className={`flex items-center gap-2 ${isOnCooldown && !isCurrentlyHidden ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
                   <input
                     type="checkbox"
@@ -295,7 +287,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
                     disabled={isOnCooldown && !isCurrentlyHidden}
                     className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary"
                   />
-                  <span className="text-sm font-medium">🔒 비공개</span>
+                  <span className="text-sm font-medium">{isCurrentlyHidden ? '🔓 공개 전환' : '🔒 비공개 전환'}</span>
                 </label>
               </div>
             </div>
@@ -429,7 +421,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
             )}
 
             <div className="flex gap-2 justify-end">
-              <Link href={`/community/${params.id}`}>
+              <Link href={`/community/${postId}`}>
                 <Button type="button" variant="outline" disabled={isSubmitting}>
                   취소
                 </Button>

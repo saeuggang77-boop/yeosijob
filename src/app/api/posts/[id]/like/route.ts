@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getUserNotifPrefs } from "@/lib/notification-helpers";
 
-const VALID_REACTIONS = ["LIKE", "FUNNY", "EMPATHY", "SURPRISE", "CHEER"] as const;
+const VALID_REACTIONS = ["LIKE", "FUNNY", "EMPATHY", "SURPRISE", "ANGRY", "CHEER"] as const;
 type ReactionType = typeof VALID_REACTIONS[number];
 
 export async function GET(

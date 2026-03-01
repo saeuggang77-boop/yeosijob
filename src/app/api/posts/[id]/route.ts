@@ -166,9 +166,7 @@ export async function PUT(
       updateData.category = category;
     }
 
-    if (typeof isAnonymous === "boolean") {
-      updateData.isAnonymous = isAnonymous;
-    }
+    // isAnonymous 변경 불가 (작성 시에만 설정, 수정에서 변경 방지)
 
     // isHidden handling with cooldown check (before transaction)
     if (typeof isHidden === "boolean") {

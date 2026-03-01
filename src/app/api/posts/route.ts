@@ -124,6 +124,31 @@ export async function POST(request: NextRequest) {
     const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
     const postCategory = validCategories.includes(category) ? category : "CHAT";
 
+    // Anonymous cooldown check (30 days)
+    if (isAnonymous) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const recentAnonymous = await prisma.post.findFirst({
+        where: {
+          authorId: session.user.id,
+          isAnonymous: true,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+        select: { createdAt: true },
+      });
+
+      if (recentAnonymous) {
+        const cooldownEnd = new Date(recentAnonymous.createdAt);
+        cooldownEnd.setDate(cooldownEnd.getDate() + 30);
+        const formatted = `${cooldownEnd.getFullYear()}년 ${cooldownEnd.getMonth() + 1}월 ${cooldownEnd.getDate()}일`;
+        return NextResponse.json(
+          { error: `${formatted}까지 익명 작성이 불가합니다. (30일 쿨다운)` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate images
     if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 5) {
       return NextResponse.json({ error: "이미지는 최대 5장까지 첨부할 수 있습니다" }, { status: 400 });

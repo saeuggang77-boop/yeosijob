@@ -246,7 +246,7 @@ export default async function HomePage() {
                 <TierCard key={ad.id} ad={ad} tier="VIP" />
               ))}
             </div>
-            <div className="px-4 pb-3 pt-2 text-right">
+            <div className="pb-3 pt-2 text-right">
               <Link href="/jobs?productId=VIP" className="text-sm text-primary hover:underline">더보기 →</Link>
             </div>
           </div>
@@ -267,7 +267,7 @@ export default async function HomePage() {
                 <TierCard key={ad.id} ad={ad} tier="PREMIUM" />
               ))}
             </div>
-            <div className="px-4 pb-3 pt-2 text-right">
+            <div className="pb-3 pt-2 text-right">
               <Link href="/jobs?productId=PREMIUM" className="text-sm text-primary hover:underline">더보기 →</Link>
             </div>
           </div>
@@ -288,7 +288,7 @@ export default async function HomePage() {
                 <TierCard key={ad.id} ad={ad} tier="SPECIAL" />
               ))}
             </div>
-            <div className="px-4 pb-3 pt-2 text-right">
+            <div className="pb-3 pt-2 text-right">
               <Link href="/jobs?productId=SPECIAL" className="text-sm text-special hover:underline">더보기 →</Link>
             </div>
           </div>
@@ -446,7 +446,7 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {lineAds.map((ad) => {
+            {lineAds.map((ad, idx) => {
               const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
               const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
               return (
@@ -466,7 +466,7 @@ export default async function HomePage() {
                     </div>
                   </div>
                   {/* Desktop: horizontal row */}
-                  <div className="hidden items-center gap-3 px-4 py-3 text-sm md:flex">
+                  <div className={`hidden items-center gap-3 px-4 py-3 text-sm md:flex ${idx % 2 === 1 ? "bg-muted/5" : ""}`}>
                     <span className="w-32 truncate font-medium">{ad.businessName}</span>
                     <span className="text-muted-foreground">|</span>
                     <span className="w-20 shrink-0 text-xs text-muted-foreground">{regionLabels}</span>
@@ -539,7 +539,7 @@ export default async function HomePage() {
       {/* 서비스 특징 */}
       <section className="border-b px-4 py-6">
         <h2 className="mb-4 text-lg font-bold">왜 여시잡인가요?</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
             { icon: "🛡", label: "검증된 업소", desc: "국세청 API로 사업자 인증" },
             { icon: "⚡", label: "빠른 채용", desc: "이력서 한 번으로 간편 지원" },
@@ -555,37 +555,79 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 미니 이용 가이드 */}
-      <section className="border-b px-4 py-5 text-center">
-        <p className="text-sm font-bold">처음이신가요? 3단계로 시작</p>
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {[
-            { icon: "📝", text: "회원가입" },
-            { icon: "📄", text: "이력서 등록" },
-            { icon: "🎯", text: "지원하기" },
-          ].map((s, i) => (
-            <div key={s.text} className="flex items-center gap-1.5">
-              {i > 0 && <span className="text-xs text-muted-foreground">→</span>}
-              <div className="rounded-lg border bg-card px-3 py-2 text-center">
-                <p className="text-lg">{s.icon}</p>
-                <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{s.text}</p>
-              </div>
+      {/* 이용 가이드 + CTA */}
+      <section className="bg-gradient-to-r from-transparent via-primary/5 to-transparent">
+        {/* 모바일: 기존 세로 레이아웃 */}
+        <div className="md:hidden">
+          {/* 미니 가이드 */}
+          <div className="border-b px-4 py-5 text-center">
+            <p className="text-sm font-bold">처음이신가요? 3단계로 시작</p>
+            <div className="mt-3 flex items-center justify-center gap-1.5">
+              {[
+                { icon: "📝", text: "회원가입" },
+                { icon: "📄", text: "이력서 등록" },
+                { icon: "🎯", text: "지원하기" },
+              ].map((s, i) => (
+                <div key={s.text} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-xs text-muted-foreground">→</span>}
+                  <div className="rounded-lg border bg-card px-3 py-2 text-center">
+                    <p className="text-lg">{s.icon}</p>
+                    <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{s.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+          {/* 슬림 CTA */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-primary">사장님이신가요?</p>
+              <p className="text-[11px] text-muted-foreground">광고 등록은 무료부터 시작</p>
+            </div>
+            <Link href="/business/ads/new">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                광고 등록
+              </Button>
+            </Link>
+          </div>
         </div>
-      </section>
 
-      {/* 슬림 CTA */}
-      <section className="flex items-center justify-between bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-primary">사장님이신가요?</p>
-          <p className="text-[11px] text-muted-foreground">광고 등록은 무료부터 시작</p>
+        {/* PC: 좌우 배치 */}
+        <div className="hidden md:flex items-center gap-6 px-4 py-5">
+          {/* 왼쪽: 가이드 */}
+          <div className="flex-1">
+            <p className="text-sm font-bold">처음이신가요? 3단계로 시작</p>
+            <div className="mt-3 flex items-center gap-1.5">
+              {[
+                { icon: "📝", text: "회원가입" },
+                { icon: "📄", text: "이력서 등록" },
+                { icon: "🎯", text: "지원하기" },
+              ].map((s, i) => (
+                <div key={s.text} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-xs text-muted-foreground">→</span>}
+                  <div className="rounded-lg border bg-card px-3 py-2 text-center">
+                    <p className="text-lg">{s.icon}</p>
+                    <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{s.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* 구분선 */}
+          <div className="h-12 w-px bg-border" />
+          {/* 오른쪽: CTA */}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm font-semibold text-primary">사장님이신가요?</p>
+              <p className="text-[11px] text-muted-foreground">광고 등록은 무료부터 시작</p>
+            </div>
+            <Link href="/business/ads/new">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                광고 등록
+              </Button>
+            </Link>
+          </div>
         </div>
-        <Link href="/business/ads/new">
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            광고 등록
-          </Button>
-        </Link>
       </section>
     </div>
   );

@@ -17,16 +17,19 @@ export function CommentEditButton({ postId, commentId, initialContent }: Comment
   const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const autoResize = useCallback(() => {
-    const ta = textareaRef.current;
+  const autoResize = useCallback((el?: HTMLTextAreaElement | null) => {
+    const ta = el || textareaRef.current;
     if (!ta) return;
     ta.style.height = "auto";
     ta.style.height = Math.min(ta.scrollHeight, 300) + "px";
   }, []);
 
-  useEffect(() => {
-    if (isEditing) autoResize();
-  }, [isEditing, autoResize]);
+  const textareaCallbackRef = useCallback((el: HTMLTextAreaElement | null) => {
+    textareaRef.current = el;
+    if (el) {
+      requestAnimationFrame(() => autoResize(el));
+    }
+  }, [autoResize]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -75,7 +78,7 @@ export function CommentEditButton({ postId, commentId, initialContent }: Comment
   return (
     <div className="mt-2 w-full space-y-2">
       <textarea
-        ref={textareaRef}
+        ref={textareaCallbackRef}
         value={content}
         onChange={(e) => { setContent(e.target.value); autoResize(); }}
         maxLength={500}

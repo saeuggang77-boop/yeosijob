@@ -42,15 +42,15 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Compress and convert to WebP using sharp
+    // Compress and convert to WebP using sharp (with fallback)
     let processedBuffer: Buffer;
-    const contentType = "image/webp";
+    let contentType: string;
+    let ext: string;
 
     try {
       const image = sharp(buffer);
       const metadata = await image.metadata();
 
-      // Resize if width exceeds MAX_WIDTH
       if (metadata.width && metadata.width > MAX_WIDTH) {
         processedBuffer = await image
           .resize(MAX_WIDTH, null, { withoutEnlargement: true })
@@ -59,17 +59,18 @@ export async function POST(request: NextRequest) {
       } else {
         processedBuffer = await image.webp({ quality: QUALITY }).toBuffer();
       }
+      contentType = "image/webp";
+      ext = "webp";
     } catch (error) {
-      console.error("Image processing error:", error);
-      return NextResponse.json(
-        { error: "이미지 처리 중 오류가 발생했습니다" },
-        { status: 500 }
-      );
+      console.error("Sharp processing failed, uploading original:", error);
+      processedBuffer = buffer;
+      contentType = file.type;
+      ext = file.name.split(".").pop() || "jpg";
     }
 
     // Generate blob path
     const timestamp = Date.now();
-    const blobPath = `posts/${session.user.id}/${timestamp}.webp`;
+    const blobPath = `posts/${session.user.id}/${timestamp}.${ext}`;
 
     // Upload to Vercel Blob
     const blob = await put(blobPath, processedBuffer, {

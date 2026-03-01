@@ -388,17 +388,53 @@ export async function generateConversationThread(
       }
 
       // replyTo 인덱스 갱신
-      parsed = parsed.map(msg => {
+      parsed = parsed.map((msg, idx) => {
         if (msg.replyTo !== null && msg.replyTo !== undefined) {
           const newReplyTo = oldToNew.get(msg.replyTo);
           if (newReplyTo === undefined) {
-            // 참조 대상이 제거된 경우 → 최상위 댓글로 전환
-            return { ...msg, replyTo: null };
+            // 참조 대상이 제거된 경우 → 가장 가까운 이전 최상위 댓글에 답글로 연결
+            let fallbackIdx: number | null = null;
+            for (let k = idx - 1; k >= 0; k--) {
+              if (parsed[k].replyTo === null || parsed[k].replyTo === undefined) {
+                fallbackIdx = k;
+                break;
+              }
+            }
+            if (fallbackIdx !== null) {
+              return { ...msg, replyTo: fallbackIdx };
+            }
+            // 이전 최상위 댓글이 없으면 첫 번째 메시지에 연결
+            return { ...msg, replyTo: 0 };
           }
           return { ...msg, replyTo: newReplyTo };
         }
         return msg;
       });
+
+      // 3.6 2차 안전장치: 인덱스 재조정으로 작성자 최상위 댓글이 새로 생긴 경우 처리
+      parsed = parsed.map((msg, idx) => {
+        if (msg.name === authorNameStr && (msg.replyTo === null || msg.replyTo === undefined)) {
+          // 가장 가까운 이전 비작성자 최상위 댓글에 답글로 연결
+          for (let k = idx - 1; k >= 0; k--) {
+            if (parsed[k].name !== authorNameStr && (parsed[k].replyTo === null || parsed[k].replyTo === undefined)) {
+              return { ...msg, replyTo: k };
+            }
+          }
+          // 이전에 없으면 가장 가까운 이후 비작성자 최상위 댓글에 연결
+          for (let k = idx + 1; k < parsed.length; k++) {
+            if (parsed[k].name !== authorNameStr && (parsed[k].replyTo === null || parsed[k].replyTo === undefined)) {
+              return { ...msg, replyTo: k };
+            }
+          }
+          // 비작성자 최상위 댓글이 없으면 첫 번째 메시지에 연결 (자신이 아닌 경우)
+          if (idx !== 0) return { ...msg, replyTo: 0 };
+          // 전부 작성자뿐이면 제거 대상 마킹
+          return { ...msg, replyTo: -999 };
+        }
+        return msg;
+      });
+      // -999로 마킹된 항목 제거
+      parsed = parsed.filter(msg => msg.replyTo !== -999);
     }
 
     // 4. name → userId 매핑

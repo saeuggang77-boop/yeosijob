@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// POST: Admin approves business verification
+// POST: Admin manages business verification (approve / revoke)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,10 +14,9 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { action } = await request.json(); // "approve" or "reject"
+    const { action } = await request.json(); // "approve" or "revoke"
 
     if (action === "approve") {
-      // Update user verification
       await prisma.user.update({
         where: { id },
         data: { isVerifiedBiz: true },
@@ -30,12 +29,21 @@ export async function POST(
       });
 
       return NextResponse.json({ message: "인증 승인 완료" });
-    } else {
+    } else if (action === "revoke") {
       await prisma.user.update({
         where: { id },
-        data: { isVerifiedBiz: false, businessNumber: null },
+        data: { isVerifiedBiz: false },
       });
-      return NextResponse.json({ message: "인증 반려 완료" });
+
+      // Remove verified badge from all ads
+      await prisma.ad.updateMany({
+        where: { userId: id },
+        data: { isVerified: false },
+      });
+
+      return NextResponse.json({ message: "인증 취소 완료" });
+    } else {
+      return NextResponse.json({ error: "잘못된 액션" }, { status: 400 });
     }
   } catch (error) {
     console.error("Admin verification error:", error);

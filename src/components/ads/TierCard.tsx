@@ -54,6 +54,7 @@ export function TierCard({ ad, tier }: TierCardProps) {
   const bizIcon = bizInfo?.icon || "📋";
   const oneLiner = ad.description?.split("\n")[0]?.slice(0, 60) || null;
   const ddayInfo = calculateDday(ad.endDate);
+  const isLarge = tier !== "SPECIAL";
 
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
@@ -84,7 +85,7 @@ export function TierCard({ ad, tier }: TierCardProps) {
             >
               {style.badgeText}
             </span>
-            <h3 className="min-w-0 truncate text-sm font-bold">{ad.title}</h3>
+            <h3 className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold`}>{ad.title}</h3>
             {ad.isVerified && (
               <Badge
                 variant="secondary"
@@ -102,25 +103,24 @@ export function TierCard({ ad, tier }: TierCardProps) {
             )}
           </div>
 
-          <div className="mt-0.5 flex items-center gap-1 min-w-0">
-            <p className="min-w-0 truncate text-xs text-muted-foreground">
+          <div className={`${isLarge ? "mt-1" : "mt-0.5"} flex items-center gap-1 min-w-0`}>
+            <p className={`min-w-0 truncate ${isLarge ? "text-[13px]" : "text-xs"} text-muted-foreground`}>
               {ad.businessName}
             </p>
-
-            <p className="min-w-0 truncate text-xs text-muted-foreground">
+            <p className={`min-w-0 truncate ${isLarge ? "text-[13px]" : "text-xs"} text-muted-foreground`}>
               · {regionLabels} · {bizLabel}
             </p>
           </div>
 
           {oneLiner && (
-            <p className="mt-1 truncate text-xs text-muted-foreground/80">
+            <p className={`${isLarge ? "mt-1.5 text-[13px]" : "mt-1 text-xs"} truncate text-muted-foreground/80`}>
               {oneLiner}
             </p>
           )}
 
-          <div className="mt-1.5 flex items-center justify-between gap-2 min-w-0">
-            <p className="min-w-0 truncate text-sm font-bold text-success">{ad.salaryText}</p>
-            <p className="shrink-0 text-[10px] text-muted-foreground">
+          <div className={isLarge ? "mt-2" : "mt-1.5"}>
+            <p className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold text-success`}>{ad.salaryText}</p>
+            <p className={`${isLarge ? "mt-1" : "mt-0.5"} text-[10px] text-muted-foreground text-right`}>
               조회 {ad.viewCount.toLocaleString()}
             </p>
           </div>

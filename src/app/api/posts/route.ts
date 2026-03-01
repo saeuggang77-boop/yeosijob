@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "JOBSEEKER") {
+    if (!session || (session.user.role !== "JOBSEEKER" && session.user.role !== "ADMIN")) {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title: rawTitle, content: rawContent, category } = body;
+    const { title: rawTitle, content: rawContent, category, isAnonymous, imageUrls } = body;
     const title = stripHtml(rawTitle || "");
     const content = stripHtml(rawContent || "");
 
@@ -124,6 +124,11 @@ export async function POST(request: NextRequest) {
     const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
     const postCategory = validCategories.includes(category) ? category : "CHAT";
 
+    // Validate images
+    if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 5) {
+      return NextResponse.json({ error: "이미지는 최대 5장까지 첨부할 수 있습니다" }, { status: 400 });
+    }
+
     const slug = await createUniqueSlug(title.trim());
 
     const post = await prisma.post.create({
@@ -133,6 +138,17 @@ export async function POST(request: NextRequest) {
         content: content.trim(),
         category: postCategory,
         authorId: session.user.id,
+        isAnonymous: !!isAnonymous,
+        images: imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0
+          ? {
+              create: imageUrls.map((img: { url: string; blobPath: string; size: number }, idx: number) => ({
+                url: img.url,
+                blobPath: img.blobPath,
+                size: img.size,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
       },
       select: {
         id: true,
@@ -142,6 +158,7 @@ export async function POST(request: NextRequest) {
         category: true,
         viewCount: true,
         isHidden: true,
+        isAnonymous: true,
         createdAt: true,
         updatedAt: true,
         author: {

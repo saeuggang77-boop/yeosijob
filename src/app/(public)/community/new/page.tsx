@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+const STORAGE_KEY = "community-post-draft";
+const MAX_IMAGES = 5;
+
+interface ImageData {
+  url: string;
+  blobPath: string;
+  size: number;
+}
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -13,7 +22,119 @@ export default function NewPostPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("CHAT");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [images, setImages] = useState<ImageData[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-save to localStorage (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (title || content || category !== "CHAT") {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ title, content, category, isAnonymous })
+        );
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [title, content, category, isAnonymous]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = localStorage.getItem(STORAGE_KEY);
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        if (confirm("임시저장된 글이 있습니다. 불러올까요?")) {
+          setTitle(parsed.title || "");
+          setContent(parsed.content || "");
+          setCategory(parsed.category || "CHAT");
+          setIsAnonymous(parsed.isAnonymous || false);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const newHeight = Math.min(
+        Math.max(textareaRef.current.scrollHeight, 200),
+        500
+      );
+      textareaRef.current.style.height = `${newHeight}px`;
+    }
+  }, [content]);
+
+  const handleImageClick = () => {
+    if (images.length >= MAX_IMAGES) {
+      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = MAX_IMAGES - images.length;
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    if (filesToUpload.length < files.length) {
+      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || "업로드 실패");
+        }
+
+        const data = await res.json();
+        return {
+          url: data.url,
+          blobPath: data.url,
+          size: file.size,
+        };
+      });
+
+      const uploadedImages = await Promise.all(uploadPromises);
+      setImages((prev) => [...prev, ...uploadedImages]);
+    } catch (error) {
+      console.error("Image upload error:", error);
+      alert(error instanceof Error ? error.message : "이미지 업로드에 실패했습니다.");
+    } finally {
+      setUploadingImages(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   if (status === "loading") {
     return (
@@ -52,12 +173,22 @@ export default function NewPostPage() {
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, category }),
+        body: JSON.stringify({
+          title,
+          content,
+          category,
+          isAnonymous,
+          imageUrls: images,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to create post");
 
       const data = await res.json();
+
+      // Clear draft on successful submission
+      localStorage.removeItem(STORAGE_KEY);
+
       router.push(`/community/${data.slug || data.id}`);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -74,21 +205,34 @@ export default function NewPostPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium mb-2">
-                카테고리
-              </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="CHAT">수다방</option>
-                <option value="BEAUTY">뷰티톡</option>
-                <option value="QNA">질문방</option>
-                <option value="WORK">가게이야기</option>
-              </select>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label htmlFor="category" className="block text-sm font-medium mb-2">
+                  카테고리
+                </label>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="CHAT">수다방</option>
+                  <option value="BEAUTY">뷰티톡</option>
+                  <option value="QNA">질문방</option>
+                  <option value="WORK">가게이야기</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary"
+                  />
+                  <span className="text-sm font-medium">익명으로 작성</span>
+                </label>
+              </div>
             </div>
 
             <div>
@@ -114,19 +258,71 @@ export default function NewPostPage() {
               <label htmlFor="content" className="block text-sm font-medium mb-2">
                 내용
               </label>
+
               <textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                maxLength={2000}
-                required
-                rows={12}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                placeholder="내용을 입력하세요 (최대 2000자)"
-              />
-              <div className="mt-1 text-right text-xs text-muted-foreground">
-                {content.length}/2000
+                    ref={textareaRef}
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    maxLength={2000}
+                    required
+                    style={{ minHeight: "200px", maxHeight: "500px" }}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none overflow-y-auto"
+                    placeholder="내용을 입력하세요 (최대 2000자)"
+                  />
+              <div className="mt-1 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleImageClick}
+                  disabled={uploadingImages || images.length >= MAX_IMAGES}
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-border hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`이미지 첨부 (${images.length}/${MAX_IMAGES})`}
+                >
+                  📷 이미지 첨부 ({images.length}/{MAX_IMAGES})
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {content.length}/2000
+                </span>
               </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="hidden"
+              />
+
+              {images.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    첨부된 이미지 ({images.length}/{MAX_IMAGES})
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={img.url}
+                          alt={`첨부 이미지 ${idx + 1}`}
+                          className="w-20 h-20 object-cover rounded border border-border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {uploadingImages && (
+                <p className="text-xs text-primary mt-2">이미지 업로드 중...</p>
+              )}
             </div>
 
             <div className="flex gap-2 justify-end">
@@ -135,7 +331,7 @@ export default function NewPostPage() {
                   취소
                 </Button>
               </Link>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || uploadingImages}>
                 {isSubmitting ? "작성 중..." : "작성완료"}
               </Button>
             </div>

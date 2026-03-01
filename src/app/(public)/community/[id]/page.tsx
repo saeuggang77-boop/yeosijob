@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { PostActions } from "@/components/community/PostActions";
 import { ReportButton } from "@/components/community/ReportButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
-import { LikeButton } from "@/components/community/LikeButton";
+import { ReactionButton } from "@/components/community/ReactionButton";
+import { ImageGallery } from "@/components/community/ImageGallery";
+import { CopyLinkButton } from "@/components/community/CopyLinkButton";
 import { CommentSection } from "@/components/community/CommentSection";
 import { formatDateSmart } from "@/lib/utils/format";
 import { getCommunityAccess } from "@/lib/utils/community-access";
+import { renderMarkdown } from "@/lib/utils/markdown";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -90,8 +93,13 @@ export default async function PostDetailPage({ params }: PageProps) {
       createdAt: true,
       viewCount: true,
       authorId: true,
+      isAnonymous: true,
       author: {
         select: { id: true, name: true, role: true, isActive: true },
+      },
+      images: {
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, url: true },
       },
       _count: { select: { likes: true } },
       comments: {
@@ -131,25 +139,33 @@ export default async function PostDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // 현재 유저의 좋아요 여부 조회 (로그인 시)
-  let postLiked = false;
+  // 현재 유저의 반응 및 전체 반응 통계 조회
+  const allPostLikes = await prisma.postLike.findMany({
+    where: { postId },
+    select: { userId: true, reactionType: true },
+  });
+
+  const postReactions: Record<string, number> = {};
+  let userReaction: string | null = null;
+
+  allPostLikes.forEach((like) => {
+    const type = like.reactionType || "LIKE";
+    postReactions[type] = (postReactions[type] || 0) + 1;
+    if (session?.user?.id && like.userId === session.user.id) {
+      userReaction = like.reactionType;
+    }
+  });
+
+  // 댓글 좋아요 조회
   let likedCommentIds: Set<string> = new Set();
-
   if (session?.user?.id) {
-    const [postLikeResult, commentLikeResults] = await Promise.all([
-      prisma.postLike.findUnique({
-        where: { userId_postId: { userId: session.user.id, postId } },
-      }),
-      prisma.commentLike.findMany({
-        where: {
-          userId: session.user.id,
-          comment: { postId },
-        },
-        select: { commentId: true },
-      }),
-    ]);
-
-    postLiked = !!postLikeResult;
+    const commentLikeResults = await prisma.commentLike.findMany({
+      where: {
+        userId: session.user.id,
+        comment: { postId },
+      },
+      select: { commentId: true },
+    });
     likedCommentIds = new Set(commentLikeResults.map((l) => l.commentId));
   }
 
@@ -221,13 +237,25 @@ export default async function PostDetailPage({ params }: PageProps) {
                 {session?.user?.id && session.user.id !== post.author.id ? (
                   <AdminUserMenu
                     userId={post.author.id}
-                    userName={post.author.name || "익명"}
+                    userName={
+                      post.isAnonymous
+                        ? isAdmin
+                          ? `익명 (${post.author.name})`
+                          : "익명"
+                        : post.author.name || "익명"
+                    }
                     currentRole={post.author.role}
                     isAdmin={isAdmin}
                     isUserActive={post.author.isActive}
                   />
                 ) : (
-                  <span>{post.author.name}</span>
+                  <span>
+                    {post.isAnonymous
+                      ? isAdmin
+                        ? `익명 (${post.author.name})`
+                        : "익명"
+                      : post.author.name}
+                  </span>
                 )}
                 <span>|</span>
                 <span>{formatDateSmart(post.createdAt)}</span>
@@ -239,19 +267,26 @@ export default async function PostDetailPage({ params }: PageProps) {
           </div>
         </CardHeader>
         <CardContent className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {post.content}
-          </div>
-          {/* 게시글 좋아요 */}
-          <div className="mt-4 border-t border-border pt-4">
-            <LikeButton
-              type="post"
-              targetId={post.id}
+          {/* 마크다운 렌더링 */}
+          <div
+            className="prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+          />
+
+          {/* 이미지 갤러리 */}
+          {post.images.length > 0 && (
+            <ImageGallery images={post.images} />
+          )}
+
+          {/* 게시글 반응 및 링크 복사 */}
+          <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+            <ReactionButton
               postId={post.id}
-              initialLiked={postLiked}
-              initialCount={post._count.likes}
+              initialReactions={postReactions}
+              initialUserReaction={userReaction}
               isLoggedIn={!!session}
             />
+            <CopyLinkButton />
           </div>
         </CardContent>
 

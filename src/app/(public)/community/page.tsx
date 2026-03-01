@@ -38,6 +38,7 @@ interface PageProps {
     page?: string;
     category?: string;
     q?: string;
+    sort?: string;
   }>;
 }
 
@@ -46,6 +47,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const page = parseInt(params.page || "1", 10);
   const category = params.category || "";
   const query = params.q || "";
+  const sort = params.sort || "latest";
   const limit = 20;
 
   const session = await auth();
@@ -62,10 +64,24 @@ export default async function CommunityPage({ searchParams }: PageProps) {
     ];
   }
 
+  // Popular posts: last 7 days only
+  if (sort === "popular") {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    where.createdAt = { gte: sevenDaysAgo };
+  }
+
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: sort === "popular"
+        ? [
+            // No direct score calculation, so we approximate with likes desc, then comments, then views
+            { likes: { _count: "desc" } },
+            { comments: { _count: "desc" } },
+            { viewCount: "desc" },
+          ]
+        : { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
       select: {
@@ -76,11 +92,12 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         createdAt: true,
         viewCount: true,
         authorId: true,
+        isAnonymous: true,
         author: {
           select: { id: true, name: true, role: true, isActive: true },
         },
         _count: {
-          select: { comments: true, likes: true },
+          select: { comments: true, likes: true, images: true },
         },
       },
     }),
@@ -104,12 +121,38 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         )}
       </div>
 
+      {/* Sort Tabs */}
+      <div className="mb-4 flex gap-2">
+        {[
+          { key: "latest", label: "최신" },
+          { key: "popular", label: "인기" },
+        ].map((tab) => {
+          const params = new URLSearchParams();
+          if (category) params.set("category", category);
+          if (query) params.set("q", query);
+          params.set("sort", tab.key);
+          const href = `/community?${params.toString()}`;
+
+          return (
+            <Link key={tab.key} href={href}>
+              <Button
+                variant={sort === tab.key ? "default" : "outline"}
+                size="sm"
+              >
+                {tab.label}
+              </Button>
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Category Tabs */}
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {CATEGORIES.map((tab) => {
           const params = new URLSearchParams();
           if (tab.key) params.set("category", tab.key);
           if (query) params.set("q", query);
+          if (sort) params.set("sort", sort);
           const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
 
           return (
@@ -173,6 +216,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                     </span>
                     <span className="min-w-0 truncate text-sm font-medium">{post.title}</span>
+                    {post._count.images > 0 && (
+                      <span className="shrink-0 text-xs" title="이미지 첨부">📷</span>
+                    )}
                     {post._count.comments > 0 && (
                       <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
                     )}
@@ -184,13 +230,25 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {session?.user?.id && session.user.id !== post.authorId ? (
                       <AdminUserMenu
                         userId={post.author.id}
-                        userName={post.author.name || "익명"}
+                        userName={
+                          post.isAnonymous
+                            ? isAdmin
+                              ? `익명 (${post.author.name})`
+                              : "익명"
+                            : post.author.name || "익명"
+                        }
                         currentRole={post.author.role}
                         isAdmin={isAdmin}
                         isUserActive={post.author.isActive}
                       />
                     ) : (
-                      <span>{post.author.name}</span>
+                      <span>
+                        {post.isAnonymous
+                          ? isAdmin
+                            ? `익명 (${post.author.name})`
+                            : "익명"
+                          : post.author.name}
+                      </span>
                     )}
                     <span>·</span>
                     <span>{formatDateSmart(post.createdAt)}</span>
@@ -238,6 +296,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                           </span>
                           <span className="text-sm font-medium">{post.title}</span>
+                          {post._count.images > 0 && (
+                            <span className="ml-1.5 text-xs" title="이미지 첨부">📷</span>
+                          )}
                           {post._count.comments > 0 && (
                             <span className="ml-1.5 text-xs text-primary">
                               [{post._count.comments}]
@@ -252,13 +313,23 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         {session?.user?.id && session.user.id !== post.authorId ? (
                           <AdminUserMenu
                             userId={post.author.id}
-                            userName={post.author.name || "익명"}
+                            userName={
+                              post.isAnonymous
+                                ? isAdmin
+                                  ? `익명 (${post.author.name})`
+                                  : "익명"
+                                : post.author.name || "익명"
+                            }
                             currentRole={post.author.role}
                             isAdmin={isAdmin}
                             isUserActive={post.author.isActive}
                           />
                         ) : (
-                          post.author.name
+                          post.isAnonymous
+                            ? isAdmin
+                              ? `익명 (${post.author.name})`
+                              : "익명"
+                            : post.author.name
                         )}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-muted-foreground">
@@ -305,6 +376,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
               const pageParams = new URLSearchParams();
               if (category) pageParams.set("category", category);
               if (query) pageParams.set("q", query);
+              if (sort) pageParams.set("sort", sort);
               pageParams.set("page", String(p));
 
               return (

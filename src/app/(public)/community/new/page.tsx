@@ -101,7 +101,7 @@ export default function NewPostPage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch("/api/upload", {
+        const res = await fetch("/api/posts/upload-image", {
           method: "POST",
           body: formData,
         });

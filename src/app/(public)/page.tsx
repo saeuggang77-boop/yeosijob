@@ -140,7 +140,7 @@ export default async function HomePage() {
       },
     }),
     prisma.post.findMany({
-      where: { isHidden: false },
+      where: { isHidden: false, deletedAt: null },
       orderBy: { createdAt: "desc" },
       take: 5,
       select: {

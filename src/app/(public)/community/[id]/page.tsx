@@ -23,14 +23,14 @@ interface PageProps {
 async function findPostByIdOrSlug(idOrSlug: string) {
   // 먼저 slug로 검색 (findFirst: PrismaPg 어댑터 호환)
   const bySlug = await prisma.post.findFirst({
-    where: { slug: idOrSlug },
+    where: { slug: idOrSlug, deletedAt: null },
     select: { id: true, slug: true, title: true, content: true },
   });
   if (bySlug) return bySlug;
 
   // slug로 못 찾으면 cuid로 검색
   const byId = await prisma.post.findFirst({
-    where: { id: idOrSlug },
+    where: { id: idOrSlug, deletedAt: null },
     select: { id: true, slug: true, title: true, content: true },
   });
   return byId;
@@ -104,7 +104,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       },
       _count: { select: { likes: true } },
       comments: {
-        where: { parentId: null },
+        where: { parentId: null, deletedAt: null },
         orderBy: { createdAt: "asc" },
         select: {
           id: true,
@@ -116,6 +116,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           },
           _count: { select: { likes: true } },
           replies: {
+            where: { deletedAt: null },
             orderBy: { createdAt: "asc" },
             select: {
               id: true,

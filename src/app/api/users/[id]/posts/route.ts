@@ -18,6 +18,9 @@ export async function GET(
     // Build where clause
     const where: Record<string, unknown> = { authorId: userId };
 
+    // Exclude deleted posts
+    where.deletedAt = null;
+
     // Non-admin users can only see non-hidden posts
     if (!isAdmin) {
       where.isHidden = false;

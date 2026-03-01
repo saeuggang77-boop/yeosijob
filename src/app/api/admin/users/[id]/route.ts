@@ -139,7 +139,7 @@ export async function PATCH(
 
 // DELETE: 강퇴 (계정 삭제)
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -161,7 +161,7 @@ export async function DELETE(
     // 유저 정보 조회
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { name: true, email: true },
+      select: { name: true, email: true, phone: true },
     });
 
     if (!user) {
@@ -170,6 +170,21 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    // 강퇴 사유 받기
+    const body = await request.json().catch(() => ({}));
+    const reason = body.reason || "운영 원칙 위배";
+
+    // BannedUser 기록 생성 (트랜잭션 밖에서 먼저 생성)
+    await prisma.bannedUser.create({
+      data: {
+        email: user.email || "",
+        phone: user.phone,
+        name: user.name || "알 수 없음",
+        reason,
+        bannedBy: session.user.id,
+      },
+    });
 
     // 트랜잭션으로 관련 데이터 삭제 (자기 계정 삭제 로직 참고)
     await prisma.$transaction(async (tx) => {

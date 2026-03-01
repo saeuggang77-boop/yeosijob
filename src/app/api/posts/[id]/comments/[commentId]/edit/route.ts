@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripHtml } from "@/lib/utils/format";
+import { checkSpamWords } from "@/lib/spam-filter";
 
 export async function PUT(
   request: NextRequest,
@@ -20,6 +21,15 @@ export async function PUT(
     // Validation
     if (!content || content.length < 1 || content.length > 500) {
       return NextResponse.json({ error: "댓글은 1-500자로 입력해주세요" }, { status: 400 });
+    }
+
+    // Spam check
+    const spamCheck = await checkSpamWords(content);
+    if (spamCheck.isSpam) {
+      return NextResponse.json(
+        { error: `금지된 단어가 포함되어 있습니다: ${spamCheck.matchedWord}` },
+        { status: 400 }
+      );
     }
 
     const comment = await prisma.comment.findUnique({

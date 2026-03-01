@@ -29,8 +29,13 @@ export async function DELETE(
       return NextResponse.json({ error: "댓글을 찾을 수 없습니다" }, { status: 404 });
     }
 
-    await prisma.comment.delete({
+    // Soft delete: update deletedAt and deletedBy
+    await prisma.comment.update({
       where: { id: commentId },
+      data: {
+        deletedAt: new Date(),
+        deletedBy: session.user.id,
+      },
     });
 
     return NextResponse.json({ success: true });

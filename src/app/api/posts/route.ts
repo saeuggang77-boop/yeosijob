@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/utils/format";
 import { createUniqueSlug } from "@/lib/utils/slug";
+import { checkSpamWords } from "@/lib/spam-filter";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +18,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category") || "";
 
     const where: Record<string, unknown> = {};
+
+    // Exclude deleted posts
+    where.deletedAt = null;
 
     // Hide isHidden posts unless admin
     if (!isAdmin) {
@@ -152,6 +156,15 @@ export async function POST(request: NextRequest) {
     // Validate images
     if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 5) {
       return NextResponse.json({ error: "이미지는 최대 5장까지 첨부할 수 있습니다" }, { status: 400 });
+    }
+
+    // Spam check
+    const spamCheck = await checkSpamWords(`${title} ${content}`);
+    if (spamCheck.isSpam) {
+      return NextResponse.json(
+        { error: `금지된 단어가 포함되어 있습니다: ${spamCheck.matchedWord}` },
+        { status: 400 }
+      );
     }
 
     const slug = await createUniqueSlug(title.trim());

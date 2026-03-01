@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       const { name, email, phone, password, businessName, businessNumber } =
         result.data;
 
-      const [existing, nameExists, businessNumberExists] = await Promise.all([
+      const [existing, nameExists, businessNumberExists, banned] = await Promise.all([
         prisma.user.findFirst({
           where: { OR: [{ email }, { phone }] },
         }),
@@ -49,12 +49,26 @@ export async function POST(request: Request) {
           where: { businessNumber, isActive: true },
           select: { id: true },
         }),
+        prisma.bannedUser.findFirst({
+          where: {
+            OR: [
+              { email },
+              { phone },
+            ],
+          },
+        }),
       ]);
       if (existing) {
         const field = existing.email === email ? "이메일" : "휴대폰 번호";
         return NextResponse.json(
           { error: `이미 사용 중인 ${field}입니다` },
           { status: 409 }
+        );
+      }
+      if (banned) {
+        return NextResponse.json(
+          { error: "강퇴된 계정입니다. 재가입이 제한됩니다." },
+          { status: 403 }
         );
       }
       if (nameExists) {
@@ -107,7 +121,7 @@ export async function POST(request: Request) {
 
       const { name, email, phone, password } = result.data;
 
-      const [existing, nameExists] = await Promise.all([
+      const [existing, nameExists, banned] = await Promise.all([
         prisma.user.findFirst({
           where: { OR: [{ email }, { phone }] },
         }),
@@ -115,12 +129,26 @@ export async function POST(request: Request) {
           where: { name, isActive: true },
           select: { id: true },
         }),
+        prisma.bannedUser.findFirst({
+          where: {
+            OR: [
+              { email },
+              { phone },
+            ],
+          },
+        }),
       ]);
       if (existing) {
         const field = existing.email === email ? "이메일" : "휴대폰 번호";
         return NextResponse.json(
           { error: `이미 사용 중인 ${field}입니다` },
           { status: 409 }
+        );
+      }
+      if (banned) {
+        return NextResponse.json(
+          { error: "강퇴된 계정입니다. 재가입이 제한됩니다." },
+          { status: 403 }
         );
       }
       if (nameExists) {

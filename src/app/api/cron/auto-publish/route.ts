@@ -130,6 +130,7 @@ export async function GET(request: NextRequest) {
         where: {
           createdAt: { gte: sevenDaysAgo },
           isHidden: false,
+          deletedAt: null,
           author: { isGhost: true }, // 고스트 작성 게시글만 (글쓴이가 답글해야 하므로)
         },
         select: { id: true, title: true, content: true, authorId: true },
@@ -197,11 +198,13 @@ export async function GET(request: NextRequest) {
       const realUserComments = await prisma.comment.findMany({
         where: {
           createdAt: { gte: threeHoursAgo },
+          deletedAt: null,
           author: { isGhost: false },
           parentId: null,
           post: {
             author: { isGhost: true },
             isHidden: false,
+            deletedAt: null,
           },
         },
         select: {
@@ -286,6 +289,7 @@ export async function GET(request: NextRequest) {
           createdAt: { gte: sixtyMinutesAgo },
           author: { isGhost: false },
           isHidden: false,
+          deletedAt: null,
         },
         select: { id: true, title: true, content: true },
         take: 10,
@@ -356,6 +360,7 @@ export async function GET(request: NextRequest) {
         where: {
           createdAt: { gte: sevenDaysAgo },
           isHidden: false,
+          deletedAt: null,
           author: { isGhost: true },
         },
         select: {

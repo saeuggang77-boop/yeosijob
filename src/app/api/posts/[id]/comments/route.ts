@@ -5,6 +5,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/utils/format";
 import { sendPushNotification } from "@/lib/push-notification";
 import { getUserNotifPrefs, isInQuietHours } from "@/lib/notification-helpers";
+import { checkSpamWords } from "@/lib/spam-filter";
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +15,7 @@ export async function GET(
     const { id } = await params;
 
     const comments = await prisma.comment.findMany({
-      where: { postId: id, parentId: null },
+      where: { postId: id, parentId: null, deletedAt: null },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -27,6 +28,7 @@ export async function GET(
           },
         },
         replies: {
+          where: { deletedAt: null },
           orderBy: { createdAt: "asc" },
           select: {
             id: true,
@@ -100,6 +102,15 @@ export async function POST(
     // Validation
     if (!content || content.length < 1 || content.length > 500) {
       return NextResponse.json({ error: "댓글은 1-500자로 입력해주세요" }, { status: 400 });
+    }
+
+    // Spam check
+    const spamCheck = await checkSpamWords(content);
+    if (spamCheck.isSpam) {
+      return NextResponse.json(
+        { error: `금지된 단어가 포함되어 있습니다: ${spamCheck.matchedWord}` },
+        { status: 400 }
+      );
     }
 
     // Check if post exists and get author for notification

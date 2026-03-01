@@ -244,6 +244,8 @@ model User {
   blockedByUsers     MessageBlock[]     @relation("blockedMessages")
   postLikes          PostLike[]
   commentLikes       CommentLike[]
+  banActions         BannedUser[]   @relation("banActions")
+  spamWordActions    SpamWord[]     @relation("spamWordActions")
 
   // 알림 설정
   notifyMessage   Boolean @default(true)
@@ -586,6 +588,8 @@ model Post {
   isHidden    Boolean  @default(false)
   hiddenAt    DateTime?
   isAnonymous Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -608,6 +612,8 @@ model Comment {
   authorId  String
   postId    String
   parentId  String?
+  deletedAt DateTime?
+  deletedBy String?
   createdAt DateTime @default(now())
 
   author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -837,4 +843,35 @@ model MessageBlock {
   @@unique([blockerId, blockedId])
   @@index([blockedId])
   @@map("message_blocks")
+}
+
+// ── BANNED USER (강퇴 회원) ──
+
+model BannedUser {
+  id       String   @id @default(cuid())
+  email    String
+  phone    String?
+  name     String
+  reason   String
+  bannedBy String
+  bannedAt DateTime @default(now())
+
+  admin User @relation("banActions", fields: [bannedBy], references: [id])
+
+  @@index([email])
+  @@index([phone])
+  @@map("banned_users")
+}
+
+// ── SPAM WORD (스팸 단어) ──
+
+model SpamWord {
+  id        String   @id @default(cuid())
+  word      String   @unique
+  createdAt DateTime @default(now())
+  createdBy String
+
+  admin User @relation("spamWordActions", fields: [createdBy], references: [id])
+
+  @@map("spam_words")
 }

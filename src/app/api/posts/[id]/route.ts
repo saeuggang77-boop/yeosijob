@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripHtml } from "@/lib/utils/format";
 import { del } from "@vercel/blob";
+import { checkSpamWords } from "@/lib/spam-filter";
 
 export async function GET(
   request: NextRequest,
@@ -27,6 +28,7 @@ export async function GET(
         createdAt: true,
         updatedAt: true,
         authorId: true,
+        deletedAt: true,
         author: {
           select: {
             name: true,
@@ -40,6 +42,11 @@ export async function GET(
     });
 
     if (!post) {
+      return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    // Check if post is deleted
+    if (post.deletedAt) {
       return NextResponse.json({ error: "게시글을 찾을 수 없습니다" }, { status: 404 });
     }
 
@@ -129,6 +136,15 @@ export async function PUT(
     const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
     if (category && !validCategories.includes(category)) {
       return NextResponse.json({ error: "유효하지 않은 카테고리입니다" }, { status: 400 });
+    }
+
+    // Spam check
+    const spamCheck = await checkSpamWords(`${title} ${content}`);
+    if (spamCheck.isSpam) {
+      return NextResponse.json(
+        { error: `금지된 단어가 포함되어 있습니다: ${spamCheck.matchedWord}` },
+        { status: 400 }
+      );
     }
 
     const post = await prisma.post.findUnique({
@@ -307,8 +323,13 @@ export async function DELETE(
         data: { isUsed: false, publishedPostId: null },
       });
 
-      await tx.post.delete({
+      // Soft delete: update deletedAt and deletedBy
+      await tx.post.update({
         where: { id },
+        data: {
+          deletedAt: new Date(),
+          deletedBy: session.user.id,
+        },
       });
     });
 

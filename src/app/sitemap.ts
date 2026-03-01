@@ -81,6 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const communityPosts = await prisma.post.findMany({
     where: {
       isHidden: false,
+      deletedAt: null,
       createdAt: { gte: ninetyDaysAgo },
     },
     select: { id: true, slug: true, updatedAt: true },

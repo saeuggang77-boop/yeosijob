@@ -55,6 +55,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         isHidden: true,
         viewCount: true,
         createdAt: true,
+        deletedAt: true,
         author: { select: { name: true, email: true, isGhost: true } },
         _count: { select: { comments: true } },
       },
@@ -118,15 +119,20 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
             {posts.map((post) => (
               <tr
                 key={post.id}
-                className={`hover:bg-muted/50 ${post.isHidden ? "text-muted-foreground" : ""}`}
+                className={`hover:bg-muted/50 ${post.isHidden || post.deletedAt ? "text-muted-foreground" : ""}`}
               >
                 <td className="py-3 font-mono text-xs">
                   {post.id.slice(0, 8)}...
                 </td>
                 <td className="py-3">
-                  <Link href={`/community/${post.id}`} className="font-medium hover:text-primary">
+                  <Link href={`/community/${post.id}`} className={`font-medium hover:text-primary ${post.deletedAt ? "line-through" : ""}`}>
                     {post.title}
                   </Link>
+                  {post.deletedAt && (
+                    <Badge variant="destructive" className="ml-2 text-xs">
+                      삭제됨
+                    </Badge>
+                  )}
                   {post.isHidden && (
                     <Badge variant="outline" className="ml-2 text-xs">
                       숨김

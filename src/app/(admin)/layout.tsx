@@ -10,11 +10,14 @@ const NAV_ITEMS = [
   { href: "/admin/resumes", label: "이력서", icon: "📄" },
   { href: "/admin/reviews", label: "후기 관리", icon: "⭐" },
   { href: "/admin/posts", label: "게시판 관리", icon: "💬" },
+  { href: "/admin/trash", label: "휴지통", icon: "🗑️" },
   { href: "/admin/reports", label: "신고 관리", icon: "🚨" },
+  { href: "/admin/banned", label: "제재 관리", icon: "🚫" },
   { href: "/admin/notices", label: "공지사항 관리", icon: "📣" },
   { href: "/admin/auto-content", label: "자동 콘텐츠", icon: "🤖" },
   { href: "/admin/verification", label: "업소 인증", icon: "✅" },
   { href: "/admin/cafe-sync", label: "카페 연동", icon: "🔗" },
+  { href: "/admin/spam", label: "스팸 필터", icon: "🛡️" },
   { href: "/admin/settings", label: "설정", icon: "⚙️" },
 ];
 

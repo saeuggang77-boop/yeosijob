@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       where: {
         createdAt: { gte: sevenDaysAgo },
         isHidden: false,
+        deletedAt: null,
       },
       select: {
         id: true,

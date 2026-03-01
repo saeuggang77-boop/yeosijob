@@ -8,6 +8,7 @@ import { ChevronRight, BarChart3, Bell } from "lucide-react";
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
+import { VerificationStatus } from "@/components/business/VerificationStatus";
 
 async function LogoutButton() {
   return (
@@ -38,9 +39,10 @@ export default async function BusinessProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { hashedPassword: true, name: true, phone: true, businessName: true },
+    select: { hashedPassword: true, name: true, phone: true, businessName: true, isVerifiedBiz: true },
   });
   const hasPassword = !!user?.hashedPassword;
+  const isVerified = !!user?.isVerifiedBiz;
 
   return (
     <div className="mx-auto max-w-screen-lg px-4 py-6">
@@ -56,6 +58,9 @@ export default async function BusinessProfilePage() {
       </div>
 
       <div className="space-y-4">
+        {/* 사업자 인증 상태 */}
+        <VerificationStatus isVerified={isVerified} />
+
         {/* 프로필 수정 */}
         <EditProfileSection
           currentName={user?.name || ""}

@@ -37,16 +37,13 @@ export async function POST(request: Request) {
       const { name, email, phone, password, businessName, businessNumber } =
         result.data;
 
-      const [existing, nameExists, businessNumberExists, banned] = await Promise.all([
+      // businessNumber 중복 체크는 값이 있을 때만 실행
+      const checksToRun = [
         prisma.user.findFirst({
           where: { OR: [{ email }, { phone }] },
         }),
         prisma.user.findFirst({
           where: { name, isActive: true },
-          select: { id: true },
-        }),
-        prisma.user.findFirst({
-          where: { businessNumber, isActive: true },
           select: { id: true },
         }),
         prisma.bannedUser.findFirst({
@@ -57,9 +54,25 @@ export async function POST(request: Request) {
             ],
           },
         }),
-      ]);
+      ];
+
+      if (businessNumber) {
+        checksToRun.push(
+          prisma.user.findFirst({
+            where: { businessNumber, isActive: true },
+            select: { id: true },
+          })
+        );
+      }
+
+      const results = await Promise.all(checksToRun);
+      const existing = results[0];
+      const nameExists = results[1];
+      const banned = results[2];
+      const businessNumberExists = businessNumber ? results[3] : null;
+
       if (existing) {
-        const field = existing.email === email ? "이메일" : "휴대폰 번호";
+        const field = 'email' in existing && existing.email === email ? "이메일" : "휴대폰 번호";
         return NextResponse.json(
           { error: `이미 사용 중인 ${field}입니다` },
           { status: 409 }
@@ -93,7 +106,7 @@ export async function POST(request: Request) {
           hashedPassword,
           role: "BUSINESS",
           businessName,
-          businessNumber,
+          ...(businessNumber && { businessNumber }),
         },
       });
 

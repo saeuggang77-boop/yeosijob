@@ -11,6 +11,7 @@ import { Step4Payment } from "@/components/ads/steps/Step4Payment";
 import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BizVerifyModal } from "@/components/business/BizVerifyModal";
 import type { AdFormData } from "@/lib/validators/ad";
 
 export default function NewAdPage() {
@@ -40,6 +41,7 @@ export default function NewAdPage() {
     orderName: string;
     method: "CARD" | "KAKAO_PAY";
   } | null>(null);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   useEffect(() => {
     fetch("/api/verification")
@@ -54,25 +56,41 @@ export default function NewAdPage() {
   // 비인증 업소 차단
   if (isVerified === false) {
     return (
-      <div className="mx-auto max-w-screen-md px-4 py-6">
-        <h1 className="text-2xl font-bold">광고 등록</h1>
-        <Card className="mt-6 border-destructive/30">
-          <CardHeader>
-            <CardTitle className="text-destructive">사업자 인증 필요</CardTitle>
-            <CardDescription>
-              광고를 등록하려면 사업자 인증이 완료되어야 합니다.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              프로필에서 사업자등록번호를 제출하고 관리자 승인을 받은 후 광고를 등록할 수 있습니다.
-            </p>
-            <Link href="/business/profile">
-              <Button>프로필로 이동</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        <div className="mx-auto max-w-screen-md px-4 py-6">
+          <h1 className="text-2xl font-bold">광고 등록</h1>
+          <Card className="mt-6 border-destructive/30">
+            <CardHeader>
+              <CardTitle className="text-destructive">사업자 인증 필요</CardTitle>
+              <CardDescription>
+                광고를 등록하려면 사업자 인증이 완료되어야 합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                사업자등록번호를 인증하면 바로 광고를 등록할 수 있습니다.
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowVerifyModal(true)} className="flex-1">
+                  사업자 인증하기
+                </Button>
+                <Link href="/business/profile" className="flex-1">
+                  <Button variant="outline" className="w-full">프로필로 이동</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <BizVerifyModal
+          isOpen={showVerifyModal}
+          onClose={() => setShowVerifyModal(false)}
+          onVerified={() => {
+            setShowVerifyModal(false);
+            window.location.reload();
+          }}
+        />
+      </>
     );
   }
 

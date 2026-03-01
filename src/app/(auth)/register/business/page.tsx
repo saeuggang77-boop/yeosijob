@@ -20,7 +20,6 @@ export default function RegisterBusinessPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [bizNum, setBizNum] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,7 +44,6 @@ export default function RegisterBusinessPage() {
       password,
       confirmPassword,
       businessName: formData.get("businessName"),
-      businessNumber: formData.get("businessNumber"),
     };
 
     try {
@@ -149,38 +147,6 @@ export default function RegisterBusinessPage() {
               placeholder="업소 이름"
               required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="businessNumber">사업자등록번호</Label>
-            <Input
-              id="businessNumber"
-              name="businessNumber"
-              placeholder="1234567890 (10자리)"
-              required
-              pattern="\d{10}"
-              maxLength={10}
-              onInput={(e) => {
-                const input = e.currentTarget;
-                input.value = input.value.replace(/\D/g, "");
-                setBizNum(input.value);
-              }}
-            />
-            {bizNum.length > 0 && bizNum.length < 10 && (
-              <p className="text-xs text-muted-foreground">
-                10자리를 입력해주세요 ({bizNum.length}/10)
-              </p>
-            )}
-            {bizNum.length === 10 && (
-              <p className="flex items-center gap-1 text-xs text-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                형식 확인
-              </p>
-            )}
-            {bizNum.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                사업자등록번호 인증은 법적 필수사항입니다
-              </p>
-            )}
           </div>
 
           <div className="space-y-3 rounded-md border p-3">

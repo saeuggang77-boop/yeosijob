@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,18 @@ export function CommentEditButton({ postId, commentId, initialContent }: Comment
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 300) + "px";
+  }, []);
+
+  useEffect(() => {
+    if (isEditing) autoResize();
+  }, [isEditing, autoResize]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -63,11 +75,13 @@ export function CommentEditButton({ postId, commentId, initialContent }: Comment
   return (
     <div className="mt-2 w-full space-y-2">
       <textarea
+        ref={textareaRef}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => { setContent(e.target.value); autoResize(); }}
         maxLength={500}
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         rows={3}
+        style={{ minHeight: "4.5rem", maxHeight: "300px", overflow: "auto" }}
         disabled={isSubmitting}
       />
       <div className="flex items-center justify-between">

@@ -53,7 +53,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";
 
-  const where: Record<string, unknown> = { isHidden: false };
+  const where: Record<string, unknown> = {};
   if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
     where.category = category;
   }
@@ -93,6 +93,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         viewCount: true,
         authorId: true,
         isAnonymous: true,
+        isHidden: true,
         author: {
           select: { id: true, name: true, role: true, isActive: true },
         },
@@ -216,6 +217,11 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                     </span>
                     <span className="min-w-0 truncate text-sm font-medium">{post.title}</span>
+                    {post.isHidden && (
+                      <span className="ml-1.5 inline-flex items-center gap-0.5 rounded bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        🔒 비공개
+                      </span>
+                    )}
                     {post._count.images > 0 && (
                       <span className="shrink-0 text-xs" title="이미지 첨부">📷</span>
                     )}
@@ -296,6 +302,11 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
                           </span>
                           <span className="text-sm font-medium">{post.title}</span>
+                          {post.isHidden && (
+                            <span className="ml-1.5 inline-flex items-center gap-0.5 rounded bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              🔒 비공개
+                            </span>
+                          )}
                           {post._count.images > 0 && (
                             <span className="ml-1.5 text-xs" title="이미지 첨부">📷</span>
                           )}

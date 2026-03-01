@@ -94,6 +94,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       viewCount: true,
       authorId: true,
       isAnonymous: true,
+      isHidden: true,
       author: {
         select: { id: true, name: true, role: true, isActive: true },
       },
@@ -232,7 +233,14 @@ export default async function PostDetailPage({ params }: PageProps) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">{post.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold">{post.title}</h1>
+                {post.isHidden && (
+                  <span className="shrink-0 inline-flex items-center gap-0.5 rounded bg-white/[0.08] px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                    🔒 비공개
+                  </span>
+                )}
+              </div>
               <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
                 {session?.user?.id && session.user.id !== post.author.id ? (
                   <AdminUserMenu
@@ -267,27 +275,44 @@ export default async function PostDetailPage({ params }: PageProps) {
           </div>
         </CardHeader>
         <CardContent className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
-          {/* 마크다운 렌더링 */}
-          <div
-            className="prose prose-sm max-w-none dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-          />
+          {post.isHidden && !isAuthor && !isAdmin ? (
+            <div className="py-10 text-center">
+              <div className="text-3xl mb-3">🔒</div>
+              <p className="text-muted-foreground text-[15px]">비공개 글입니다</p>
+              <p className="text-muted-foreground/60 text-[13px] mt-1.5">작성자만 볼 수 있는 글입니다</p>
+            </div>
+          ) : (
+            <>
+              {/* 마크다운 렌더링 */}
+              <div
+                className="prose prose-sm max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+              />
 
-          {/* 이미지 갤러리 */}
-          {post.images.length > 0 && (
-            <ImageGallery images={post.images} />
+              {/* 이미지 갤러리 */}
+              {post.images.length > 0 && (
+                <ImageGallery images={post.images} />
+              )}
+
+              {/* 비공개 안내 (작성자/관리자용) */}
+              {post.isHidden && (isAuthor || isAdmin) && (
+                <div className="mt-4 rounded-md border border-[#D4A853]/20 bg-[#D4A853]/[0.08] px-3 py-2.5 text-xs text-[#D4A853]">
+                  이 글은 비공개 상태입니다. 나와 관리자만 볼 수 있습니다.
+                </div>
+              )}
+
+              {/* 게시글 반응 및 링크 복사 */}
+              <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+                <ReactionButton
+                  postId={post.id}
+                  initialReactions={postReactions}
+                  initialUserReaction={userReaction}
+                  isLoggedIn={!!session}
+                />
+                <CopyLinkButton />
+              </div>
+            </>
           )}
-
-          {/* 게시글 반응 및 링크 복사 */}
-          <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-            <ReactionButton
-              postId={post.id}
-              initialReactions={postReactions}
-              initialUserReaction={userReaction}
-              isLoggedIn={!!session}
-            />
-            <CopyLinkButton />
-          </div>
         </CardContent>
 
         {/* Blur overlay */}
@@ -314,30 +339,35 @@ export default async function PostDetailPage({ params }: PageProps) {
       </Card>
 
       {/* Actions Bar */}
-      <div className={`mt-4 flex items-center justify-between ${accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}`}>
-        <div>
-          {!isAuthor && (
-            <ReportButton postId={post.id} isLoggedIn={!!session} />
-          )}
+      {!(post.isHidden && !isAuthor && !isAdmin) && (
+        <div className={`mt-4 flex items-center justify-between ${accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}`}>
+          <div>
+            {!isAuthor && (
+              <ReportButton postId={post.id} isLoggedIn={!!session} />
+            )}
+          </div>
+          <Link href="/community">
+            <Button variant="outline">목록으로</Button>
+          </Link>
         </div>
-        <Link href="/community">
-          <Button variant="outline">목록으로</Button>
-        </Link>
-      </div>
+      )}
 
       {/* Comments Section */}
-      <div className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
-        <CommentSection
-          comments={commentsData}
-          postId={post.id}
-          postAuthorId={post.authorId}
-          commentCount={commentCount}
-          currentUserId={session?.user?.id}
-          isAdmin={isAdmin}
-          isLoggedIn={!!session}
-          canWrite={canWrite}
-        />
-      </div>
+      {!(post.isHidden && !isAuthor && !isAdmin) && (
+        <div className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
+          <CommentSection
+            comments={commentsData}
+            postId={post.id}
+            postAuthorId={post.authorId}
+            commentCount={commentCount}
+            currentUserId={session?.user?.id}
+            isAdmin={isAdmin}
+            isLoggedIn={!!session}
+            canWrite={canWrite}
+            isAnonymousPost={post.isAnonymous}
+          />
+        </div>
+      )}
     </div>
   );
 }

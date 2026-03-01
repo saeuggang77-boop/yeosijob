@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripHtml } from "@/lib/utils/format";
+import { del } from "@vercel/blob";
 
 export async function GET(
   request: NextRequest,
@@ -18,8 +19,11 @@ export async function GET(
         id: true,
         title: true,
         content: true,
+        category: true,
+        isAnonymous: true,
         viewCount: true,
         isHidden: true,
+        hiddenAt: true,
         createdAt: true,
         updatedAt: true,
         authorId: true,
@@ -27,6 +31,10 @@ export async function GET(
           select: {
             name: true,
           },
+        },
+        images: {
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, url: true },
         },
       },
     });
@@ -47,11 +55,35 @@ export async function GET(
       data: { viewCount: { increment: 1 } },
     });
 
+    // Calculate cooldown for author/admin
+    let cooldownUntil: string | null = null;
+
+    if (session?.user?.id === post.authorId || isAdmin) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const recentHidden = await prisma.post.findFirst({
+        where: {
+          authorId: post.authorId,
+          hiddenAt: { gte: thirtyDaysAgo },
+          id: { not: id },
+        },
+        select: { hiddenAt: true },
+      });
+
+      if (recentHidden && recentHidden.hiddenAt) {
+        const end = new Date(recentHidden.hiddenAt);
+        end.setDate(end.getDate() + 30);
+        cooldownUntil = end.toISOString();
+      }
+    }
+
     return NextResponse.json({
       ...post,
       authorName: post.author.name || "익명",
       viewCount: post.viewCount + 1,
       author: undefined,
+      cooldownUntil,
       // Keep authorId for permission checks (edit/delete buttons)
     });
   } catch (error) {
@@ -72,7 +104,15 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { title: rawTitle, content: rawContent } = body;
+    const {
+      title: rawTitle,
+      content: rawContent,
+      category,
+      isAnonymous,
+      isHidden,
+      deleteImageIds = [],
+      newImages = []
+    } = body;
     const title = stripHtml(rawTitle || "");
     const content = stripHtml(rawContent || "");
 
@@ -85,9 +125,21 @@ export async function PUT(
       return NextResponse.json({ error: "내용은 1-2000자로 입력해주세요" }, { status: 400 });
     }
 
+    // Validate category
+    const validCategories = ["CHAT", "BEAUTY", "QNA", "WORK"];
+    if (category && !validCategories.includes(category)) {
+      return NextResponse.json({ error: "유효하지 않은 카테고리입니다" }, { status: 400 });
+    }
+
     const post = await prisma.post.findUnique({
       where: { id },
-      select: { authorId: true },
+      select: {
+        authorId: true,
+        isHidden: true,
+        images: {
+          select: { id: true, blobPath: true }
+        }
+      },
     });
 
     if (!post) {
@@ -99,27 +151,118 @@ export async function PUT(
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
-    const updatedPost = await prisma.post.update({
-      where: { id },
-      data: {
-        title: title.trim(),
-        content: content.trim(),
-      },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        viewCount: true,
-        isHidden: true,
-        createdAt: true,
-        updatedAt: true,
-        author: {
-          select: {
-            name: true,
+    // Get blobPaths for images to delete
+    const imagesToDelete = post.images.filter((img) =>
+      deleteImageIds.includes(img.id)
+    );
+
+    // Build update data
+    const updateData: any = {
+      title: title.trim(),
+      content: content.trim(),
+    };
+
+    if (category) {
+      updateData.category = category;
+    }
+
+    if (typeof isAnonymous === "boolean") {
+      updateData.isAnonymous = isAnonymous;
+    }
+
+    // isHidden handling with cooldown check (before transaction)
+    if (typeof isHidden === "boolean") {
+      if (isHidden && !post.isHidden) {
+        // New hide transition → check cooldown
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const recentHidden = await prisma.post.findFirst({
+          where: {
+            authorId: session.user.id,
+            hiddenAt: { gte: thirtyDaysAgo },
+            id: { not: id },
+          },
+          select: { hiddenAt: true },
+        });
+
+        if (recentHidden && recentHidden.hiddenAt) {
+          const cooldownEnd = new Date(recentHidden.hiddenAt);
+          cooldownEnd.setDate(cooldownEnd.getDate() + 30);
+          const formatted = `${cooldownEnd.getFullYear()}년 ${cooldownEnd.getMonth() + 1}월 ${cooldownEnd.getDate()}일`;
+          return NextResponse.json(
+            { error: `${formatted}까지 비공개 전환이 불가합니다. (30일 쿨다운)` },
+            { status: 400 }
+          );
+        }
+
+        updateData.isHidden = true;
+        updateData.hiddenAt = new Date();
+      } else if (!isHidden) {
+        // Public transition → no cooldown check
+        updateData.isHidden = false;
+      }
+    }
+
+    // Update post in transaction
+    const updatedPost = await prisma.$transaction(async (tx) => {
+      // Delete images from database
+      if (deleteImageIds.length > 0) {
+        await tx.postImage.deleteMany({
+          where: {
+            id: { in: deleteImageIds },
+            postId: id,
+          },
+        });
+      }
+
+      // Create new images
+      if (newImages.length > 0) {
+        const existingImageCount = post.images.length - deleteImageIds.length;
+        await tx.postImage.createMany({
+          data: newImages.map((img: any, idx: number) => ({
+            postId: id,
+            url: img.url,
+            blobPath: img.blobPath,
+            size: img.size,
+            sortOrder: existingImageCount + idx,
+          })),
+        });
+      }
+
+      return await tx.post.update({
+        where: { id },
+        data: updateData,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          content: true,
+          category: true,
+          isAnonymous: true,
+          viewCount: true,
+          isHidden: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: {
+              name: true,
+            },
           },
         },
-      },
+      });
     });
+
+    // Delete images from Vercel Blob (outside transaction)
+    if (imagesToDelete.length > 0) {
+      await Promise.allSettled(
+        imagesToDelete.map((img) =>
+          del(img.blobPath).catch((err) => {
+            console.error(`Failed to delete blob ${img.blobPath}:`, err);
+          })
+        )
+      );
+    }
 
     return NextResponse.json({
       ...updatedPost,

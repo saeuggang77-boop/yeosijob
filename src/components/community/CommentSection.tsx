@@ -48,6 +48,7 @@ interface CommentSectionProps {
   isAdmin: boolean;
   isLoggedIn: boolean;
   canWrite?: boolean;
+  isAnonymousPost?: boolean;
 }
 
 export function CommentSection({
@@ -59,7 +60,21 @@ export function CommentSection({
   isAdmin,
   isLoggedIn,
   canWrite = true,
+  isAnonymousPost = false,
 }: CommentSectionProps) {
+  // 익명 게시글에서 글쓴이의 표시 이름 결정
+  const getDisplayName = (authorId: string, authorName: string | null) => {
+    if (isAnonymousPost && authorId === postAuthorId) {
+      return isAdmin ? `글쓴이 (${authorName})` : "글쓴이";
+    }
+    return authorName || "익명";
+  };
+
+  // 익명 게시글에서 작성자 배지 표시 여부
+  const showAuthorBadge = (authorId: string) => {
+    if (isAnonymousPost) return false; // 익명글에서는 작성자 배지 숨김
+    return authorId === postAuthorId;
+  };
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const sortedComments = useMemo(() => {
@@ -128,16 +143,16 @@ export function CommentSection({
                           {currentUserId && currentUserId !== comment.author.id ? (
                             <AdminUserMenu
                               userId={comment.author.id}
-                              userName={comment.author.name || "익명"}
+                              userName={getDisplayName(comment.authorId, comment.author.name)}
                               currentRole={comment.author.role}
-                              isPostAuthor={comment.authorId === postAuthorId}
+                              isPostAuthor={showAuthorBadge(comment.authorId)}
                               isAdmin={isAdmin}
                               isUserActive={comment.author.isActive}
                             />
                           ) : (
                             <>
-                              <span className="max-w-[120px] truncate font-medium sm:max-w-none">{comment.author.name}</span>
-                              {comment.authorId === postAuthorId && (
+                              <span className="max-w-[120px] truncate font-medium sm:max-w-none">{getDisplayName(comment.authorId, comment.author.name)}</span>
+                              {showAuthorBadge(comment.authorId) && (
                                 <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
                                   작성자
                                 </span>
@@ -164,7 +179,7 @@ export function CommentSection({
                             <ReplyButton
                               postId={postId}
                               parentId={comment.id}
-                              replyToName={comment.author.name || "익명"}
+                              replyToName={getDisplayName(comment.authorId, comment.author.name)}
                             />
                           )}
                           {currentUserId !== comment.authorId && (
@@ -202,16 +217,16 @@ export function CommentSection({
                                   {currentUserId && currentUserId !== reply.author.id ? (
                                     <AdminUserMenu
                                       userId={reply.author.id}
-                                      userName={reply.author.name || "익명"}
+                                      userName={getDisplayName(reply.authorId, reply.author.name)}
                                       currentRole={reply.author.role}
-                                      isPostAuthor={reply.authorId === postAuthorId}
+                                      isPostAuthor={showAuthorBadge(reply.authorId)}
                                       isAdmin={isAdmin}
                                       isUserActive={reply.author.isActive}
                                     />
                                   ) : (
                                     <>
-                                      <span className="max-w-[120px] truncate font-medium sm:max-w-none">{reply.author.name}</span>
-                                      {reply.authorId === postAuthorId && (
+                                      <span className="max-w-[120px] truncate font-medium sm:max-w-none">{getDisplayName(reply.authorId, reply.author.name)}</span>
+                                      {showAuthorBadge(reply.authorId) && (
                                         <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">
                                           작성자
                                         </span>
@@ -246,7 +261,7 @@ export function CommentSection({
                                     <ReplyButton
                                       postId={postId}
                                       parentId={comment.id}
-                                      replyToName={reply.author.name || "익명"}
+                                      replyToName={getDisplayName(reply.authorId, reply.author.name)}
                                     />
                                   )}
                                   {currentUserId !== reply.authorId && (

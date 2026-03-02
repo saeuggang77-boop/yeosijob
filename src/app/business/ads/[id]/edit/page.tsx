@@ -9,6 +9,7 @@ import { BANNER_COLORS } from "@/lib/constants/banner-themes";
 import { Banner } from "@/components/ads/Banner";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Check } from "lucide-react";
+import { AdImageUploader } from "@/components/ads/AdImageUploader";
 
 interface AdData {
   id: string;
@@ -29,6 +30,7 @@ interface AdData {
   bannerTitle: string | null;
   bannerSubtitle: string | null;
   bannerTemplate: number;
+  detailImages: string[];
   productId: string;
 }
 
@@ -44,31 +46,23 @@ export default function EditAdPage() {
   const [success, setSuccess] = useState("");
 
   const [showPostcode, setShowPostcode] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const postcodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).daum?.Postcode) {
-      setScriptLoaded(true);
-      return;
-    }
+    if ((window as any).daum?.Postcode) return;
     const existing = document.getElementById("daum-postcode-script");
-    if (existing) {
-      existing.addEventListener("load", () => setScriptLoaded(true));
-      return;
-    }
+    if (existing) return;
     const script = document.createElement("script");
     script.id = "daum-postcode-script";
     script.src = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
     script.async = true;
-    script.onload = () => setScriptLoaded(true);
     document.head.appendChild(script);
   }, []);
 
   const openPostcode = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!scriptLoaded || !(window as any).daum?.Postcode) {
+    if (!(window as any).daum?.Postcode) {
       alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -107,6 +101,7 @@ export default function EditAdPage() {
     bannerTitle: "",
     bannerSubtitle: "",
     bannerTemplate: 0,
+    detailImages: [] as string[],
   });
 
   useEffect(() => {
@@ -132,6 +127,7 @@ export default function EditAdPage() {
           bannerTitle: data.bannerTitle || "",
           bannerSubtitle: data.bannerSubtitle || "",
           bannerTemplate: data.bannerTemplate ?? 0,
+          detailImages: data.detailImages || [],
         });
       })
       .catch((err) => setError(err.message))
@@ -278,6 +274,18 @@ export default function EditAdPage() {
                   maxLength={500}
                   className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   placeholder="CCTV 유무, 비상연락망, 안전 수칙 등"
+                />
+              </div>
+              {/* 상세 이미지 */}
+              <div className="border-t pt-4">
+                <Label>상세 이미지 (선택)</Label>
+                <p className="mt-1 mb-2 text-xs text-muted-foreground">
+                  상세내역 이미지가 있으면 업로드하세요
+                </p>
+                <AdImageUploader
+                  images={form.detailImages}
+                  onChange={(imgs) => setForm((prev) => ({ ...prev, detailImages: imgs }))}
+                  maxImages={10}
                 />
               </div>
             </CardContent>

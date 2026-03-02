@@ -115,6 +115,7 @@ export async function PUT(
       bannerSubtitle,
       bannerTemplate,
       bannerColor,
+      detailImages,
     } = body;
 
     // Validation
@@ -142,6 +143,7 @@ export async function PUT(
         ...(bannerSubtitle !== undefined && { bannerSubtitle: bannerSubtitle || null }),
         ...(bannerTemplate !== undefined && { bannerTemplate }),
         ...(bannerColor !== undefined && { bannerColor }),
+        ...(detailImages !== undefined && { detailImages: Array.isArray(detailImages) ? detailImages.slice(0, 10) : [] }),
         editCount: { increment: 1 },
       },
     });

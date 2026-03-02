@@ -45,28 +45,19 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
   const [showPostcode, setShowPostcode] = useState(false);
   const postcodeRef = useRef<HTMLDivElement>(null);
 
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-
   useEffect(() => {
-    if (window.daum?.Postcode) {
-      setScriptLoaded(true);
-      return;
-    }
+    if (window.daum?.Postcode) return;
     const existing = document.getElementById("daum-postcode-script");
-    if (existing) {
-      existing.addEventListener("load", () => setScriptLoaded(true));
-      return;
-    }
+    if (existing) return;
     const script = document.createElement("script");
     script.id = "daum-postcode-script";
     script.src = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
     script.async = true;
-    script.onload = () => setScriptLoaded(true);
     document.head.appendChild(script);
   }, []);
 
   const openPostcode = useCallback(() => {
-    if (!scriptLoaded || !window.daum?.Postcode) {
+    if (!window.daum?.Postcode) {
       alert("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }

@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
     bannerTitle,
     bannerSubtitle,
     bannerTemplate,
+    detailImages = [],
     } = body;
 
     // 검증
@@ -236,6 +237,7 @@ export async function POST(request: NextRequest) {
             bannerTitle: bannerTitle || null,
             bannerSubtitle: bannerSubtitle || null,
             bannerTemplate: bannerTemplate ?? 0,
+            detailImages: Array.isArray(detailImages) ? detailImages.slice(0, 10) : [],
           },
         });
 
@@ -354,6 +356,7 @@ export async function POST(request: NextRequest) {
           bannerTitle: bannerTitle || null,
           bannerSubtitle: bannerSubtitle || null,
           bannerTemplate: bannerTemplate ?? 0,
+          detailImages: Array.isArray(detailImages) ? detailImages.slice(0, 10) : [],
           options: {
             create: (options as string[]).map((optId: string) => ({
               optionId: optId as AdOptionId,

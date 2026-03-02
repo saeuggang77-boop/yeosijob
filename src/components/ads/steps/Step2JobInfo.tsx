@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { step2Schema } from "@/lib/validators/ad";
 import type { AdFormData } from "@/lib/validators/ad";
+import { AdImageUploader } from "@/components/ads/AdImageUploader";
 
 interface Props {
   data: Partial<AdFormData>;
@@ -129,6 +130,19 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
             {errors.description && (
               <p className="text-xs text-destructive">{errors.description}</p>
             )}
+          </div>
+
+          {/* 상세 이미지 업로드 */}
+          <div className="space-y-2 border-t pt-4">
+            <Label>상세 이미지 (선택)</Label>
+            <p className="text-xs text-muted-foreground">
+              상세내역 이미지가 있으면 업로드하세요
+            </p>
+            <AdImageUploader
+              images={data.detailImages || []}
+              onChange={(imgs) => onUpdate({ detailImages: imgs })}
+              maxImages={10}
+            />
           </div>
 
           <div className="space-y-2">

@@ -28,6 +28,7 @@ export const step2Schema = z.object({
   description: z.string().min(10, "상세 설명은 10자 이상 입력해주세요"),
   workEnvironment: z.string().max(500, "근무환경은 500자 이내로 입력해주세요").optional(),
   safetyInfo: z.string().max(500, "안전정보는 500자 이내로 입력해주세요").optional(),
+  detailImages: z.array(z.string().url()).max(10, "이미지는 최대 10장까지 가능합니다").optional(),
 });
 
 export const step3Schema = z.object({

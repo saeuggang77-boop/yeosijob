@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -31,11 +31,7 @@ export function BannedUsersClient() {
   const [suspendedUsers, setSuspendedUsers] = useState<SuspendedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, [tab]);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/banned?tab=${tab}`);
@@ -51,7 +47,11 @@ export function BannedUsersClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [tab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   async function handleUnban(id: string) {
     if (!confirm("강퇴를 해제하시겠습니까? 해당 사용자는 재가입이 가능해집니다.")) {

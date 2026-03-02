@@ -19,6 +19,7 @@ import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region } from "@/generated/prisma/client";
 import { FloatingContact } from "@/components/ads/FloatingContact";
+import { AdDetailGallery } from "@/components/ads/AdDetailGallery";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -92,6 +93,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       bannerSubtitle: true,
       bannerTemplate: true,
       bannerColor: true,
+      detailImages: true,
       user: {
         select: { isVerifiedBiz: true, totalPaidAdDays: true },
       },
@@ -389,6 +391,13 @@ export default async function JobDetailPage({ params }: PageProps) {
               <div className="whitespace-pre-wrap text-sm leading-relaxed">
                 {ad.safetyInfo}
               </div>
+            </div>
+          )}
+
+          {/* 상세 이미지 */}
+          {ad.detailImages && ad.detailImages.length > 0 && (
+            <div className="border-t pt-3">
+              <AdDetailGallery images={ad.detailImages} />
             </div>
           )}
 

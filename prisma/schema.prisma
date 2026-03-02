@@ -330,6 +330,7 @@ model Ad {
   // 이미지 / 배너
   imageUrl       String?
   thumbnailUrl   String?
+  detailImages   String[]
   bannerColor    Int     @default(0)
   bannerTitle    String?
   bannerSubtitle String?

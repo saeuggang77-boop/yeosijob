@@ -373,7 +373,7 @@ export default async function HomePage() {
                             <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
                           )}
                           {isNewPost(post.createdAt) && (
-                            <span className="ml-1 shrink-0 rounded-sm bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white">N</span>
+                            <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">N</span>
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 
 function HomeIcon({ className }: { className?: string }) {
   return (
@@ -53,10 +52,10 @@ function BookmarkIcon({ className }: { className?: string }) {
   );
 }
 
-function BellIcon({ className }: { className?: string }) {
+function ChatIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
     </svg>
   );
 }
@@ -64,30 +63,7 @@ function BellIcon({ className }: { className?: string }) {
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [unreadCount, setUnreadCount] = useState(0);
-
   const role = session?.user.role;
-
-  useEffect(() => {
-    if (!session) return;
-
-    const fetchUnreadCount = async () => {
-      try {
-        const res = await fetch("/api/notifications");
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.unreadCount);
-        }
-      } catch (error) {
-        console.error("Failed to fetch unread count:", error);
-      }
-    };
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-
-    return () => clearInterval(interval);
-  }, [session]);
 
   let navItems;
 
@@ -103,7 +79,7 @@ export function MobileBottomNav() {
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/business/dashboard", label: "광고관리", icon: BriefcaseIcon },
       { href: "/business/resumes", label: "인재정보", icon: DocumentIcon },
-      { href: "/notifications", label: "알림", icon: BellIcon },
+      { href: "/community", label: "커뮤니티", icon: ChatIcon },
       { href: "/business/profile", label: "마이", icon: UserIcon },
     ];
   } else if (role === "JOBSEEKER") {
@@ -111,9 +87,8 @@ export function MobileBottomNav() {
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/jobs", label: "채용정보", icon: SearchIcon },
-      { href: "/jobseeker/my-resume", label: "이력서", icon: DocumentIcon },
+      { href: "/community", label: "커뮤니티", icon: ChatIcon },
       { href: "/jobseeker/scraps", label: "스크랩", icon: BookmarkIcon },
-      { href: "/notifications", label: "알림", icon: BellIcon },
       { href: "/jobseeker/profile", label: "마이", icon: UserIcon },
     ];
   } else {
@@ -121,6 +96,7 @@ export function MobileBottomNav() {
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/jobs", label: "채용정보", icon: SearchIcon },
+      { href: "/community", label: "커뮤니티", icon: ChatIcon },
       { href: "/login", label: "로그인", icon: UserIcon },
     ];
   }
@@ -129,9 +105,7 @@ export function MobileBottomNav() {
     <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-background md:hidden">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const isNotificationItem = item.href === "/notifications";
-          const showBadge = isNotificationItem && unreadCount > 0;
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
           return (
             <Link
@@ -142,15 +116,9 @@ export function MobileBottomNav() {
                   ? "text-primary font-bold"
                   : "text-muted-foreground"
               }`}
-              aria-label={showBadge ? `${item.label} (${unreadCount}개 알림)` : item.label}
               aria-current={isActive ? "page" : undefined}
             >
-              <div className="relative">
-                <item.icon className="h-6 w-6" />
-                {showBadge && (
-                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
-                )}
-              </div>
+              <item.icon className="h-6 w-6" />
               <span>{item.label}</span>
             </Link>
           );

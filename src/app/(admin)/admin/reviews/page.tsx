@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
 
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
@@ -144,8 +145,8 @@ export default async function AdminReviewsPage({ searchParams }: PageProps) {
                 <TableHead>작성자</TableHead>
                 <TableHead>평점</TableHead>
                 <TableHead>내용</TableHead>
-                <TableHead>상태</TableHead>
                 <TableHead>작성일</TableHead>
+                <TableHead>관리</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -167,12 +168,15 @@ export default async function AdminReviewsPage({ searchParams }: PageProps) {
                     {truncateText(review.content, 100)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={review.isHidden ? "secondary" : "default"}>
-                      {review.isHidden ? "숨김" : "공개"}
-                    </Badge>
+                    {new Date(review.createdAt).toLocaleDateString("ko-KR")}
                   </TableCell>
                   <TableCell>
-                    {new Date(review.createdAt).toLocaleDateString("ko-KR")}
+                    <AdminReviewActions
+                      reviewId={review.id}
+                      isHidden={review.isHidden}
+                      content={review.content}
+                      rating={review.rating}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

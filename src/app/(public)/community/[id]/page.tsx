@@ -9,7 +9,7 @@ import { ReportButton } from "@/components/community/ReportButton";
 import { AdminUserMenu } from "@/components/community/AdminUserMenu";
 import { ReactionButton } from "@/components/community/ReactionButton";
 import { ImageGallery } from "@/components/community/ImageGallery";
-import { CopyLinkButton } from "@/components/community/CopyLinkButton";
+import { ShareButton } from "@/components/share/ShareButton";
 import { CommentSection } from "@/components/community/CommentSection";
 import { formatDateSmart } from "@/lib/utils/format";
 import { getCommunityAccess } from "@/lib/utils/community-access";
@@ -302,7 +302,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* 게시글 반응 및 링크 복사 */}
+              {/* 게시글 반응 */}
               <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
                 <ReactionButton
                   postId={post.id}
@@ -310,7 +310,6 @@ export default async function PostDetailPage({ params }: PageProps) {
                   initialUserReaction={userReaction}
                   isLoggedIn={!!session}
                 />
-                <CopyLinkButton />
               </div>
             </>
           )}
@@ -342,7 +341,11 @@ export default async function PostDetailPage({ params }: PageProps) {
       {/* Actions Bar */}
       {!(post.isHidden && !isAuthor && !isAdmin) && (
         <div className={`mt-4 flex items-center justify-between ${accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}`}>
-          <div>
+          <div className="flex items-center gap-1">
+            <ShareButton
+              title={post.title}
+              description={post.content.substring(0, 100)}
+            />
             {!isAuthor && (
               <ReportButton postId={post.id} isLoggedIn={!!session} />
             )}

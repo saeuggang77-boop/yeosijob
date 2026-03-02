@@ -446,6 +446,7 @@ export async function generateConversationThread(
 
     // 5. DB에 저장 (순서대로 생성하면서 인덱스→실제ID 매핑)
     const indexToCommentId = new Map<number, string>();
+    const indexToParentId = new Map<number, string | null>();
     const messagesByIndex = new Map<number, { name: string; content: string }>();
     let commentCount = 0;
     let replyCount = 0;
@@ -475,7 +476,17 @@ export async function generateConversationThread(
 
       if (msg.replyTo !== null && msg.replyTo !== undefined) {
         // 답글인 경우
-        parentId = indexToCommentId.get(msg.replyTo) || null;
+        const targetCommentId = indexToCommentId.get(msg.replyTo) || null;
+
+        // 2단 평탄화: replyTo 대상이 이미 답글(parentId가 있음)이면, 그 최상위로 연결
+        const targetParentId = indexToParentId.get(msg.replyTo);
+        if (targetParentId !== undefined && targetParentId !== null) {
+          // replyTo 대상이 이미 답글이면, 그 부모(최상위)를 사용
+          parentId = targetParentId;
+        } else {
+          // replyTo 대상이 최상위 댓글이면 그대로 사용
+          parentId = targetCommentId;
+        }
 
         // @이름 prefix 추가: 부모 체인을 거슬러 올라가 다른 사람 이름 찾기
         let targetName: string | null = null;
@@ -515,6 +526,7 @@ export async function generateConversationThread(
       });
 
       indexToCommentId.set(i, comment.id);
+      indexToParentId.set(i, parentId);
 
       if (parentId === null) {
         commentCount++;

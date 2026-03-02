@@ -150,7 +150,7 @@ export default async function HomePage() {
         viewCount: true,
         createdAt: true,
         author: { select: { name: true } },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: { where: { deletedAt: null } } } },
       },
     }),
   ]);

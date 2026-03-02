@@ -100,7 +100,11 @@ export default async function CommunityPage({ searchParams }: PageProps) {
           select: { id: true, name: true, role: true, isActive: true },
         },
         _count: {
-          select: { comments: true, likes: true, images: true },
+          select: {
+            comments: { where: { deletedAt: null } },
+            likes: true,
+            images: true,
+          },
         },
       },
     }),

@@ -39,7 +39,7 @@ export async function GET(
           createdAt: true,
           viewCount: true,
           _count: {
-            select: { comments: true },
+            select: { comments: { where: { deletedAt: null } } },
           },
         },
       }),

@@ -135,7 +135,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   });
 
   // Get total comment count (including replies)
-  const commentCount = await prisma.comment.count({ where: { postId } });
+  const commentCount = await prisma.comment.count({ where: { postId, deletedAt: null } });
 
   if (!post) {
     notFound();

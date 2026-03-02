@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           },
           _count: {
             select: {
-              comments: true,
+              comments: { where: { deletedAt: null } },
             },
           },
         },

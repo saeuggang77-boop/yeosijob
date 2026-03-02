@@ -57,7 +57,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
         createdAt: true,
         deletedAt: true,
         author: { select: { name: true, email: true, isGhost: true } },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: { where: { deletedAt: null } } } },
       },
     }),
     prisma.post.count({ where }),

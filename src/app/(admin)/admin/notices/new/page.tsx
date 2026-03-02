@@ -12,6 +12,7 @@ export default function NewNoticePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
+  const [sendNotification, setSendNotification] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,7 +45,7 @@ export default function NewNoticePage() {
       const res = await fetch("/api/notices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, isPinned }),
+        body: JSON.stringify({ title, content, isPinned, sendNotification }),
       });
 
       if (!res.ok) {
@@ -120,6 +121,27 @@ export default function NewNoticePage() {
               <label htmlFor="isPinned" className="text-sm font-medium">
                 상단 고정
               </label>
+            </div>
+
+            {/* sendNotification */}
+            <div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="sendNotification"
+                  type="checkbox"
+                  checked={sendNotification}
+                  onChange={(e) => setSendNotification(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <label htmlFor="sendNotification" className="text-sm font-medium">
+                  알림 발송
+                </label>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {sendNotification
+                  ? "공지 알림을 켜둔 사용자에게 푸시 + 사이트 알림이 전송됩니다"
+                  : "공지만 등록되고 사용자에게 알림이 가지 않습니다"}
+              </p>
             </div>
 
             {/* Error */}

@@ -9,6 +9,7 @@ import { ChevronRight, FileText, Heart, MessageSquare, Bell } from "lucide-react
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
+import { FontSizeToggle } from "@/components/FontSizeToggle";
 
 async function LogoutButton() {
   return (
@@ -138,6 +139,9 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
         </Link>
+
+        {/* 글자 크기 설정 */}
+        <FontSizeToggle />
 
         {/* 비밀번호 변경 */}
         {hasPassword && <ChangePasswordSection />}

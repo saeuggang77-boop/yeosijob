@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, content, isPinned } = body;
+    const { title, content, isPinned, sendNotification = true } = body;
 
     // Validation
     if (!title || title.length < 1 || title.length > 100) {
@@ -97,48 +97,50 @@ export async function POST(request: NextRequest) {
     });
 
     // Send notification to all active, non-ghost users
-    try {
-      // 공지 알림을 받겠다고 설정한 사용자만 대상
-      const notifyUsers = await prisma.user.findMany({
-        where: {
-          isActive: true,
-          isGhost: false,
-          notifyNotice: true,
-        },
-        select: {
-          id: true,
-          quietHoursStart: true,
-          quietHoursEnd: true,
-        },
-      });
-
-      if (notifyUsers.length > 0) {
-        await prisma.notification.createMany({
-          data: notifyUsers.map((user) => ({
-            userId: user.id,
-            title: "새 공지사항",
-            message: `새 공지사항: ${notice.title}`,
-            link: `/notice/${notice.id}`,
-          })),
+    if (sendNotification !== false) {
+      try {
+        // 공지 알림을 받겠다고 설정한 사용자만 대상
+        const notifyUsers = await prisma.user.findMany({
+          where: {
+            isActive: true,
+            isGhost: false,
+            notifyNotice: true,
+          },
+          select: {
+            id: true,
+            quietHoursStart: true,
+            quietHoursEnd: true,
+          },
         });
 
-        // 방해금지 시간이 아닌 사용자에게만 푸시
-        const pushTargets = notifyUsers.filter(
-          (user) => !isInQuietHours(user.quietHoursStart, user.quietHoursEnd)
-        );
-        Promise.allSettled(
-          pushTargets.map((user) =>
-            sendPushNotification(user.id, {
+        if (notifyUsers.length > 0) {
+          await prisma.notification.createMany({
+            data: notifyUsers.map((user) => ({
+              userId: user.id,
               title: "새 공지사항",
-              body: notice.title,
-              url: `/notice/${notice.id}`,
-            })
-          )
-        ).catch(() => {});
+              message: `새 공지사항: ${notice.title}`,
+              link: `/notice/${notice.id}`,
+            })),
+          });
+
+          // 방해금지 시간이 아닌 사용자에게만 푸시
+          const pushTargets = notifyUsers.filter(
+            (user) => !isInQuietHours(user.quietHoursStart, user.quietHoursEnd)
+          );
+          Promise.allSettled(
+            pushTargets.map((user) =>
+              sendPushNotification(user.id, {
+                title: "새 공지사항",
+                body: notice.title,
+                url: `/notice/${notice.id}`,
+              })
+            )
+          ).catch(() => {});
+        }
+      } catch (error) {
+        console.error("Failed to create notifications for notice:", error);
+        // Don't fail notice creation if notification fails
       }
-    } catch (error) {
-      console.error("Failed to create notifications for notice:", error);
-      // Don't fail notice creation if notification fails
     }
 
     return NextResponse.json(

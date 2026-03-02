@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { FontSizeProvider } from "@/components/FontSizeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AgeVerification } from "@/components/AgeVerification";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
@@ -78,13 +79,15 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className={`${jakartaSans.variable} antialiased`}>
         <GoogleAnalytics />
-        <ThemeProvider>
-          <SessionProvider>
-            <AgeVerification />
-            {children}
-            <Toaster />
-          </SessionProvider>
-        </ThemeProvider>
+        <FontSizeProvider>
+          <ThemeProvider>
+            <SessionProvider>
+              <AgeVerification />
+              {children}
+              <Toaster />
+            </SessionProvider>
+          </ThemeProvider>
+        </FontSizeProvider>
       </body>
     </html>
   );

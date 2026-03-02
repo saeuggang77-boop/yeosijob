@@ -397,7 +397,9 @@ export default async function JobDetailPage({ params }: PageProps) {
           {/* 상세 이미지 */}
           {ad.detailImages && ad.detailImages.length > 0 && (
             <div className="border-t pt-3">
-              <AdDetailGallery images={ad.detailImages} />
+              <AdDetailGallery images={ad.detailImages.filter((url: string) =>
+                url.startsWith("https://") && url.includes("vercel-storage.com")
+              )} />
             </div>
           )}
 

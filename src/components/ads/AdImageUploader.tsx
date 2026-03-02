@@ -24,7 +24,21 @@ export function AdImageUploader({ images, onChange, maxImages = 10 }: Props) {
       return;
     }
 
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+    const MAX_SIZE = 5 * 1024 * 1024;
     const filesToUpload = Array.from(files).slice(0, remaining);
+
+    for (const file of filesToUpload) {
+      if (!ALLOWED.includes(file.type)) {
+        setError("JPG, PNG, WEBP 형식만 업로드 가능합니다");
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        setError(`${file.name} 파일이 5MB를 초과합니다`);
+        return;
+      }
+    }
+
     setError("");
     setUploading(true);
 

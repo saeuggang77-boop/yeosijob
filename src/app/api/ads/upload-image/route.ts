@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     } catch {
       processedBuffer = buffer;
       contentType = file.type;
-      ext = file.name.split(".").pop() || "jpg";
+      ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
     }
 
     const timestamp = Date.now();

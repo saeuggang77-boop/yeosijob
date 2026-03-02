@@ -17,18 +17,6 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-function maskKakao(kakaoId: string): string {
-  if (kakaoId.length <= 4) return kakaoId.slice(0, 1) + "***";
-  return kakaoId.slice(0, 4) + "*".repeat(Math.min(kakaoId.length - 4, 5));
-}
-
-function maskPhoneNumber(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length >= 10) {
-    return digits.slice(0, 3) + "-****-" + digits.slice(-4);
-  }
-  return phone.slice(0, 3) + "****";
-}
 
 export default async function ResumeDetailPage({ params }: PageProps) {
   const session = await auth();
@@ -53,13 +41,15 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch active ads to determine tier (exclude FREE) - skip for admin
+  // Fetch active ads with resume view permission (추천 이상) - skip for admin
   const activeAds = isAdmin ? [] : await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
     select: { id: true, productId: true },
   });
 
-  const hasActiveAd = isAdmin || activeAds.length > 0;
+  // Only count ads that include resume viewing (추천 등급 이상)
+  const resumeAds = activeAds.filter((ad) => AD_PRODUCTS[ad.productId]?.includeResumeView);
+  const hasActiveAd = isAdmin || resumeAds.length > 0;
 
   // Determine best product tier
   let bestProductId = "";
@@ -67,13 +57,13 @@ export default async function ResumeDetailPage({ params }: PageProps) {
   let dailyLimit = 0;
   let isUnlimited = isAdmin; // Admin always has unlimited access
 
-  if (!isAdmin && activeAds.length > 0) {
-    bestProductId = activeAds.reduce((best, ad) => {
+  if (!isAdmin && resumeAds.length > 0) {
+    bestProductId = resumeAds.reduce((best, ad) => {
       const currentRank = AD_PRODUCTS[ad.productId]?.rank ?? 999;
       const bestRank = AD_PRODUCTS[best]?.rank ?? 999;
       return currentRank < bestRank ? ad.productId : best;
-    }, activeAds[0].productId);
-    bestAdId = activeAds.find((ad) => ad.productId === bestProductId)?.id || activeAds[0].id;
+    }, resumeAds[0].productId);
+    bestAdId = resumeAds.find((ad) => ad.productId === bestProductId)?.id || resumeAds[0].id;
     dailyLimit = AD_PRODUCTS[bestProductId]?.resumeViewLimit ?? 3;
     isUnlimited = dailyLimit >= 9999;
   }
@@ -132,24 +122,19 @@ export default async function ResumeDetailPage({ params }: PageProps) {
     }
   }
 
-  // Resolve contact info (masked or real)
+  // Resolve contact info (only needed when canViewContact is true)
   const rawPhone = resume.phone || resume.user.phone || "";
   const rawKakao = resume.kakaoId || "";
 
-  const displayPhone = canViewContact
-    ? rawPhone ? formatPhone(rawPhone) : "미등록"
-    : rawPhone ? maskPhoneNumber(rawPhone) : "미등록";
-
-  const displayKakao = canViewContact
-    ? rawKakao
-    : rawKakao ? maskKakao(rawKakao) : "";
+  const displayPhone = rawPhone ? formatPhone(rawPhone) : "미등록";
+  const displayKakao = rawKakao || "";
 
   // Reason for restriction
   let restrictionReason = "";
   if (!hasActiveAd) {
-    restrictionReason = "이력서 열람은 유료 등급부터 가능합니다. 업그레이드하기";
+    restrictionReason = "이력서 열람은 추천 등급부터 가능합니다";
   } else if (limitExceeded) {
-    restrictionReason = `오늘 열람 가능 횟수(${dailyLimit}건)를 초과했습니다. 상위 등급 광고를 이용하면 더 많은 인재를 확인할 수 있습니다`;
+    restrictionReason = `오늘 열람 가능 횟수(${dailyLimit}건)를 초과했습니다`;
   }
 
   return (
@@ -311,37 +296,34 @@ export default async function ResumeDetailPage({ params }: PageProps) {
             <CardTitle>연락처</CardTitle>
           </CardHeader>
           <CardContent>
-            {restrictionReason && (
-              <div className="mb-4 rounded-md bg-orange-50 p-3 text-sm text-orange-800">
-                {restrictionReason}
-                {!hasActiveAd && (
-                  <Link href="/business/ads/new">
-                    <Button size="sm" className="ml-3">광고 등록하기</Button>
-                  </Link>
+            {canViewContact ? (
+              <div className="space-y-3">
+                {displayKakao && (
+                  <div className="flex items-center gap-3">
+                    <span className="w-24 text-sm font-medium text-muted-foreground">카카오톡</span>
+                    <span className="text-lg font-medium">{displayKakao}</span>
+                  </div>
                 )}
-                {limitExceeded && (
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-muted-foreground">전화번호</span>
+                  <span className="text-lg font-medium">{displayPhone}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center py-6 text-center">
+                <span className="mb-3 text-3xl">🔒</span>
+                <p className="mb-4 text-sm text-muted-foreground">{restrictionReason}</p>
+                {!hasActiveAd ? (
                   <Link href="/business/ads/new">
-                    <Button size="sm" variant="outline" className="ml-3">상위 등급 알아보기</Button>
+                    <Button size="sm">광고 등록하고 열람하기</Button>
+                  </Link>
+                ) : (
+                  <Link href="/business/ads/new">
+                    <Button size="sm" variant="outline">상위 등급으로 업그레이드</Button>
                   </Link>
                 )}
               </div>
             )}
-            <div className="space-y-3">
-              {displayKakao && (
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-muted-foreground">카카오톡</span>
-                  <span className={`text-lg font-medium ${!canViewContact ? "text-muted-foreground" : ""}`}>
-                    {displayKakao}
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-muted-foreground">전화번호</span>
-                <span className={`text-lg font-medium ${!canViewContact ? "text-muted-foreground" : ""}`}>
-                  {displayPhone}
-                </span>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

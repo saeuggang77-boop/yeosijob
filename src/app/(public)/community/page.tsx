@@ -269,7 +269,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {post._count.likes > 0 && (
                       <>
                         <span>·</span>
-                        <span className="text-red-500">♥ {post._count.likes}</span>
+                        <span>♥ {post._count.likes}</span>
                       </>
                     )}
                   </div>
@@ -351,7 +351,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-muted-foreground">
                         {post._count.likes > 0 ? (
-                          <span className="text-red-500">♥ {post._count.likes}</span>
+                          <span>♥ {post._count.likes}</span>
                         ) : (
                           <span>0</span>
                         )}

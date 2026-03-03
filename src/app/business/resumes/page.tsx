@@ -32,7 +32,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   // Fetch active ads to determine tier (exclude FREE) - skip for admin
   const activeAds = isAdmin ? [] : await prisma.ad.findMany({
     where: { userId: session.user.id, status: "ACTIVE", productId: { not: "FREE" } },
-    select: { id: true, productId: true },
+    select: { id: true, productId: true, regions: true, businessType: true },
   });
 
   // Determine best product tier
@@ -70,8 +70,18 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   }
 
   const params = await searchParams;
-  const region = params.region as Region | undefined;
-  const businessType = params.businessType as BusinessType | undefined;
+
+  // Smart default filtering based on first active ad
+  let defaultRegion: Region | undefined;
+  let defaultBusinessType: BusinessType | undefined;
+  if (!isAdmin && activeAds.length > 0) {
+    const firstAd = activeAds[0];
+    defaultRegion = firstAd.regions[0];
+    defaultBusinessType = firstAd.businessType;
+  }
+
+  const region = (params.region as Region | undefined) || defaultRegion;
+  const businessType = (params.businessType as BusinessType | undefined) || defaultBusinessType;
   const experience = params.experience;
   const ageRange = params.ageRange;
   const page = parseInt(params.page || "1", 10);
@@ -151,7 +161,11 @@ export default async function ResumesPage({ searchParams }: PageProps) {
       )}
 
       <div className="mt-4">
-        <ResumeFilter />
+        <ResumeFilter
+          defaultRegion={defaultRegion}
+          defaultBusinessType={defaultBusinessType}
+          hasSmartFilter={!isAdmin && !!defaultRegion && !!defaultBusinessType}
+        />
       </div>
 
       <div className="mt-6 space-y-3">

@@ -89,21 +89,21 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             {icon?.value && (
-              <span className="text-sm">
+              <span className="shrink-0 text-[14px]">
                 {iconEmojis[icon.value] || "🔹"}
               </span>
             )}
             {productId === "URGENT" && (
-              <span className="animate-pulse-urgent rounded bg-urgent px-1.5 py-0.5 text-xs font-bold text-white">급구</span>
+              <span className="shrink-0 animate-pulse-urgent rounded bg-urgent px-1.5 py-0.5 text-[12px] font-bold text-white">급구</span>
             )}
             {productId === "VIP" && (
-              <span className="rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-xs font-bold text-primary-foreground">VIP</span>
+              <span className="shrink-0 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[12px] font-bold text-primary-foreground">VIP</span>
             )}
             {productId === "PREMIUM" && (
-              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-bold text-primary">PREMIUM</span>
+              <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[12px] font-bold text-primary">PREMIUM</span>
             )}
             <h3
-              className={`truncate text-sm ${
+              className={`truncate text-[14px] ${
                 hasBold || emphasized ? "font-bold" : "font-medium"
               }`}
             >
@@ -117,7 +117,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
               </Badge>
             )}
           </div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
             <span>{ad.businessName}</span>
 
             <span>·</span>
@@ -128,7 +128,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-sm font-medium text-success">{ad.salaryText}</p>
+          <p className="text-[14px] font-medium text-success">{ad.salaryText}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {timeAgo(ad.lastJumpedAt)}
           </p>

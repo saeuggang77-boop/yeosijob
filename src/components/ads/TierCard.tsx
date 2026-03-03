@@ -116,9 +116,6 @@ export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
           <div className={isLarge ? "mt-2" : "mt-1.5"}>
             <p className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold text-success`}>{ad.salaryText}</p>
             <div className={`${isLarge ? "mt-1" : "mt-0.5"} flex items-center justify-end gap-1.5`}>
-              <span className="text-[10px] text-muted-foreground">
-                조회 {ad.viewCount.toLocaleString()}
-              </span>
               {hideBadge && ddayInfo && (
                 <Badge
                   className={`px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
@@ -126,6 +123,9 @@ export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
                   {ddayInfo.text}
                 </Badge>
               )}
+              <span className="text-[10px] text-muted-foreground">
+                조회 {ad.viewCount.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>

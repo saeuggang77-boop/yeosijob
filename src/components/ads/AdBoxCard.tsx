@@ -52,17 +52,17 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
           <div className="flex items-center justify-between gap-2 py-2 px-2 sm:gap-3 sm:px-3">
             {/* Left side: title + info */}
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-medium">{ad.title}</h3>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              <h3 className="truncate text-[14px] font-medium">{ad.title}</h3>
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                 {ad.businessName} · {regionLabels} · {bizLabel}
               </p>
             </div>
             {/* Right side: salary + dday */}
-            <div className="flex items-center gap-1.5 sm:shrink-0 sm:gap-2">
-              <p className="text-xs font-medium text-success truncate sm:text-sm sm:whitespace-nowrap">{ad.salaryText}</p>
+            <div className="shrink-0 flex items-center gap-1.5 sm:gap-2">
+              <p className="text-[12px] font-medium text-success truncate sm:text-[14px] sm:whitespace-nowrap">{ad.salaryText}</p>
               {ddayInfo && (
                 <Badge
-                  className={`px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+                  className={`shrink-0 px-1.5 py-0.5 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
                 >
                   {ddayInfo.text}
                 </Badge>
@@ -92,10 +92,10 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
               {ddayInfo.text}
             </Badge>
           )}
-          <h3 className="truncate text-sm font-medium">{ad.title}</h3>
-          <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
-          <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>
+          <h3 className="truncate text-[14px] font-medium">{ad.title}</h3>
+          <p className="mt-1 truncate text-[12px] text-muted-foreground">{ad.businessName}</p>
+          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{regionLabels} · {bizLabel}</p>
+          <p className="mt-1 text-[14px] font-medium text-success">{ad.salaryText}</p>
           {ad.viewCount !== undefined && (
             <p className="mt-0.5 text-[10px] text-muted-foreground">👁 {ad.viewCount.toLocaleString()}</p>
           )}

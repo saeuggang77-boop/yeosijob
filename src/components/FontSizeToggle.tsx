@@ -25,7 +25,14 @@ export function FontSizeToggle() {
     const fontSizeValue = FONT_SIZES[size];
     setFontSize(size);
     localStorage.setItem(FONT_SIZE_KEY, fontSizeValue);
-    document.documentElement.style.fontSize = `${fontSizeValue}px`;
+    // Use data attribute for text-only scaling (no layout breakage)
+    if (size === "large") {
+      document.documentElement.setAttribute("data-font-size", "large");
+    } else {
+      document.documentElement.removeAttribute("data-font-size");
+    }
+    // Clean up old approach
+    document.documentElement.style.fontSize = "";
   };
 
   return (

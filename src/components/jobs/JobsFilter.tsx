@@ -41,14 +41,14 @@ export function JobsFilter({
     <div className="sticky top-14 z-40 border-b bg-background">
       {/* 모바일: 컴팩트 바 */}
       <div className="flex items-center gap-2 px-4 py-2 md:hidden">
-        <div className="flex flex-1 flex-wrap items-center gap-1.5">
+        <div className="flex flex-1 flex-nowrap items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
             onClick={() => {
               if (!open) setOpen(true);
               setFocusFilter("region");
             }}
-            className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors active:bg-muted ${currentRegion ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+            className={`shrink-0 cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors active:bg-muted ${currentRegion ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
           >
             {regionLabel}
           </button>
@@ -58,7 +58,7 @@ export function JobsFilter({
               if (!open) setOpen(true);
               setFocusFilter("businessType");
             }}
-            className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors active:bg-muted ${currentBusinessType ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+            className={`shrink-0 cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors active:bg-muted ${currentBusinessType ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
           >
             {bizLabel}
           </button>
@@ -68,12 +68,12 @@ export function JobsFilter({
               if (!open) setOpen(true);
               setFocusFilter("sort");
             }}
-            className="cursor-pointer rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors active:bg-muted"
+            className="shrink-0 cursor-pointer rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors active:bg-muted"
           >
             {sortLabel}
           </button>
           {currentSearch && (
-            <span className="rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs text-primary">
+            <span className="shrink-0 rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs text-primary">
               &quot;{currentSearch}&quot;
             </span>
           )}

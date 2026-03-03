@@ -6,6 +6,7 @@ import { TierCard } from "@/components/ads/TierCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { EventBanner } from "@/components/layout/EventBanner";
+import { CommunitySection } from "@/components/community/CommunitySection";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
@@ -80,6 +81,7 @@ export default async function HomePage() {
     , // LINE count (unused)
     recentResumes,
     recentPosts,
+    hotPost,
   ] = await Promise.all([
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "BANNER" },
@@ -151,16 +153,36 @@ export default async function HomePage() {
     prisma.post.findMany({
       where: { isHidden: false, deletedAt: null },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 6,
       select: {
         id: true,
         slug: true,
         title: true,
+        content: true,
         category: true,
         viewCount: true,
         createdAt: true,
         author: { select: { name: true } },
-        _count: { select: { comments: { where: { deletedAt: null } } } },
+        _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
+      },
+    }),
+    prisma.post.findFirst({
+      where: {
+        isHidden: false,
+        deletedAt: null,
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      },
+      orderBy: [
+        { comments: { _count: "desc" } },
+      ],
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        content: true,
+        category: true,
+        createdAt: true,
+        _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
       },
     }),
   ]);
@@ -309,7 +331,7 @@ export default async function HomePage() {
       {/* URGENT + RECOMMEND Section - 2 Column Grid */}
       {(urgentAds.length > 0 || recommendAds.length > 0) && (
         <section className="border-b">
-          <div className="grid gap-4 px-1 py-3 sm:p-4 md:grid-cols-2">
+          <div className="grid gap-4 px-2 py-3 sm:p-4 md:grid-cols-2">
             {/* Urgent Column */}
             {urgentAds.length > 0 && (
               <div className="rounded-xl bg-urgent/5 p-3 sm:p-4">
@@ -366,34 +388,7 @@ export default async function HomePage() {
                     </Link>
                   </div>
                 </div>
-                <div className="flex-1 divide-y divide-border rounded-lg border">
-                  {recentPosts.map((post) => (
-                    <Link key={post.id} href={`/community/${post.slug || post.id}`} className="block transition-colors hover:bg-muted/50">
-                      <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                            post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
-                            post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
-                            post.category === "WORK" ? "bg-green-500/15 text-green-600 dark:text-green-400" :
-                            "bg-muted text-muted-foreground"
-                          }`}>
-                            {post.category === "CHAT" ? "수다방" : post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문방" : "가게이야기"}
-                          </span>
-                          <span className="truncate text-sm font-medium">{post.title}</span>
-                          {post._count.comments > 0 && (
-                            <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
-                          )}
-                          {isNewPost(post.createdAt) && (
-                            <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">N</span>
-                          )}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                          <span>{post.author.name}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                <CommunitySection hotPost={hotPost} posts={recentPosts} />
               </div>
             )}
 

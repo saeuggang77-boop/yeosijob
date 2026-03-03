@@ -373,6 +373,50 @@
   box-shadow: 0 0 30px rgba(212, 168, 83, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* ===== Font Size: Large (text-only scaling, no layout breakage) ===== */
+[data-font-size="large"] {
+  /* Scale text elements only — padding, gap, width stay unchanged */
+  --font-size-boost: 2px;
+}
+
+[data-font-size="large"] p,
+[data-font-size="large"] span,
+[data-font-size="large"] a,
+[data-font-size="large"] button,
+[data-font-size="large"] label,
+[data-font-size="large"] h1,
+[data-font-size="large"] h2,
+[data-font-size="large"] h3,
+[data-font-size="large"] h4,
+[data-font-size="large"] input,
+[data-font-size="large"] textarea,
+[data-font-size="large"] select,
+[data-font-size="large"] option,
+[data-font-size="large"] li,
+[data-font-size="large"] td,
+[data-font-size="large"] th {
+  font-size: calc(1em + var(--font-size-boost));
+}
+
+/* Prevent double-scaling on nested elements */
+[data-font-size="large"] p *,
+[data-font-size="large"] span *,
+[data-font-size="large"] a *,
+[data-font-size="large"] button *,
+[data-font-size="large"] label *,
+[data-font-size="large"] li *,
+[data-font-size="large"] td *,
+[data-font-size="large"] th * {
+  font-size: inherit;
+}
+
+/* Badges and tiny labels: smaller boost to prevent overflow */
+[data-font-size="large"] [class*="text-\\[10px\\]"],
+[data-font-size="large"] [class*="text-\\[11px\\]"],
+[data-font-size="large"] [class*="text-\\[12px\\]"] {
+  --font-size-boost: 1px;
+}
+
 /* Banner BANNER badge */
 .banner-badge {
   background: linear-gradient(135deg, #C49A45, #D4A853, #E8C547);

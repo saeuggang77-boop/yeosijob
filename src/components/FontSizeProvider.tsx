@@ -3,13 +3,18 @@
 import { useLayoutEffect } from "react";
 
 const FONT_SIZE_KEY = "yeosialba-font-size";
-const DEFAULT_FONT_SIZE = "16";
 
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   useLayoutEffect(() => {
-    // Read from localStorage and apply immediately to prevent flicker
-    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY) || DEFAULT_FONT_SIZE;
-    document.documentElement.style.fontSize = `${savedFontSize}px`;
+    // Read from localStorage and apply as data attribute (text-only scaling)
+    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY) || "16";
+    if (savedFontSize === "18") {
+      document.documentElement.setAttribute("data-font-size", "large");
+    } else {
+      document.documentElement.removeAttribute("data-font-size");
+    }
+    // Clean up old approach: reset root font-size if it was set
+    document.documentElement.style.fontSize = "";
   }, []);
 
   return <>{children}</>;

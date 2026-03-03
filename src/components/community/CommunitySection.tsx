@@ -83,7 +83,7 @@ export function CommunitySection({ hotPost, postsByCategory }: Props) {
   return (
     <div>
       {/* Category Tabs */}
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-2 pr-4 scrollbar-none">
         {CATEGORY_TABS.map((tab) => (
           <button
             key={tab.id}

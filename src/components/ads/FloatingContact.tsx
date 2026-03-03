@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, MessageCircle, Send } from "lucide-react";
+import { Phone, MessageCircle, Send, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -10,6 +11,9 @@ interface FloatingContactProps {
   contactKakao?: string | null;
   contactTelegram?: string | null;
   isJobseekerWithoutResume?: boolean;
+  canApply?: boolean;
+  adId?: string;
+  hasApplied?: boolean;
 }
 
 export function FloatingContact({
@@ -17,7 +21,13 @@ export function FloatingContact({
   contactKakao,
   contactTelegram,
   isJobseekerWithoutResume = false,
+  canApply = false,
+  adId,
+  hasApplied: initialHasApplied = false,
 }: FloatingContactProps) {
+  const [hasApplied, setHasApplied] = useState(initialHasApplied);
+  const [isApplying, setIsApplying] = useState(false);
+
   const handleKakaoClick = () => {
     if (!contactKakao) return;
 
@@ -28,6 +38,29 @@ export function FloatingContact({
     }).catch(() => {
       toast.error("복사에 실패했습니다");
     });
+  };
+
+  const handleApply = async () => {
+    if (!adId || hasApplied || isApplying) return;
+    setIsApplying(true);
+
+    try {
+      const res = await fetch(`/api/ads/${adId}/apply`, { method: "POST" });
+      const data = await res.json();
+
+      if (res.ok) {
+        setHasApplied(true);
+        toast.success("지원이 완료되었습니다!", {
+          description: "사장님에게 알림이 발송되었습니다.",
+        });
+      } else {
+        toast.error(data.error || "지원에 실패했습니다");
+      }
+    } catch {
+      toast.error("네트워크 오류가 발생했습니다");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   // 이력서 미등록 구직자
@@ -55,11 +88,58 @@ export function FloatingContact({
     );
   }
 
+  const applyButton = canApply ? (
+    hasApplied ? (
+      <Button
+        variant="outline"
+        className="h-12 flex-1 gap-2 text-base opacity-60"
+        disabled
+      >
+        <ClipboardList className="h-5 w-5" />
+        <span>지원완료</span>
+      </Button>
+    ) : (
+      <Button
+        className="h-12 flex-1 gap-2 bg-blue-600 text-base text-white hover:bg-blue-700"
+        onClick={handleApply}
+        disabled={isApplying}
+      >
+        <ClipboardList className="h-5 w-5" />
+        <span>{isApplying ? "지원중..." : "지원하기"}</span>
+      </Button>
+    )
+  ) : null;
+
+  const applyButtonDesktop = canApply ? (
+    hasApplied ? (
+      <Button
+        variant="outline"
+        className="w-full gap-2 opacity-60"
+        disabled
+      >
+        <ClipboardList className="h-4 w-4" />
+        <span>지원완료</span>
+      </Button>
+    ) : (
+      <Button
+        className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700"
+        onClick={handleApply}
+        disabled={isApplying}
+      >
+        <ClipboardList className="h-4 w-4" />
+        <span>{isApplying ? "지원중..." : "지원하기"}</span>
+      </Button>
+    )
+  ) : null;
+
   return (
     <>
       {/* 모바일 하단 고정바 */}
       <div className="fixed bottom-[68px] left-0 right-0 border-t bg-background p-3 md:hidden">
         <div className="flex gap-2">
+          {/* 지원하기 버튼 */}
+          {applyButton}
+
           {/* 전화 버튼 */}
           <a href={`tel:${contactPhone}`} className="flex-1">
             <Button className="h-12 w-full gap-2 text-base">
@@ -101,6 +181,9 @@ export function FloatingContact({
       <div className="fixed bottom-6 right-6 z-50 hidden rounded-lg border bg-background p-4 shadow-lg md:block">
         <div className="flex flex-col gap-2">
           <p className="mb-1 text-sm font-medium text-muted-foreground">연락하기</p>
+
+          {/* 지원하기 버튼 */}
+          {applyButtonDesktop}
 
           {/* 전화 버튼 */}
           <a href={`tel:${contactPhone}`}>

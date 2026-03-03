@@ -246,6 +246,7 @@ model User {
   commentLikes       CommentLike[]
   banActions         BannedUser[]   @relation("banActions")
   spamWordActions    SpamWord[]     @relation("spamWordActions")
+  adApplications     AdApplication[]
 
   // 알림 설정
   notifyMessage   Boolean @default(true)
@@ -359,7 +360,8 @@ model Ad {
   jumpLogs     JumpLog[]
   reviews      Review[]
   scraps       Scrap[]
-  dailyMetrics AdDailyMetric[]
+  dailyMetrics   AdDailyMetric[]
+  applications   AdApplication[]
 
   @@index([status, lastJumpedAt(sort: Desc)])
   @@index([status, productId])
@@ -895,4 +897,21 @@ model EventConfig {
   updatedAt     DateTime  @updatedAt
 
   @@map("event_configs")
+}
+
+// ── AD APPLICATION (광고 지원) ──
+
+model AdApplication {
+  id        String   @id @default(cuid())
+  adId      String
+  userId    String
+  createdAt DateTime @default(now())
+
+  ad   Ad   @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, userId])
+  @@index([adId])
+  @@index([userId])
+  @@map("ad_applications")
 }

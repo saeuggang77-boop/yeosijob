@@ -20,6 +20,7 @@ import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region } from "@/generated/prisma/client";
 import { FloatingContact } from "@/components/ads/FloatingContact";
 import { AdDetailGallery } from "@/components/ads/AdDetailGallery";
+import { AD_PRODUCTS } from "@/lib/constants/products";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -149,6 +150,16 @@ export default async function JobDetailPage({ params }: PageProps) {
         select: { id: true },
       }).then(r => !!r)
     : true; // non-jobseekers don't need this check
+
+  // 지원 가능 여부 확인 (구직자 + 이력서 + 유료광고)
+  const adProduct = AD_PRODUCTS[ad.productId];
+  const canApply = session?.user?.role === "JOBSEEKER" && hasResume && !!adProduct?.includeResumeView;
+
+  const hasApplied = canApply
+    ? await prisma.adApplication.findUnique({
+        where: { adId_userId: { adId: id, userId: session!.user.id } },
+      }).then(a => !!a)
+    : false;
 
   // 조회수 증가 + 일별 메트릭 기록 (fire and forget)
   const today = new Date();
@@ -518,6 +529,9 @@ export default async function JobDetailPage({ params }: PageProps) {
         contactKakao={ad.contactKakao}
         contactTelegram={ad.contactTelegram}
         isJobseekerWithoutResume={session?.user?.role === "JOBSEEKER" && !hasResume}
+        canApply={canApply}
+        adId={ad.id}
+        hasApplied={hasApplied}
       />
 
       {/* 하단 여백 (모바일 고정바) */}

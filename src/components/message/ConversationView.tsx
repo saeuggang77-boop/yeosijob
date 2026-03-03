@@ -297,7 +297,7 @@ export function ConversationView({
         ) : !canSend && canSendReason === "BUSINESS_NO_AD" ? (
           <div className="flex flex-col items-center gap-2">
             <p className="text-center text-sm text-muted-foreground">
-              추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
+              급구광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
             </p>
             <Button
               variant="outline"

@@ -276,7 +276,7 @@ export async function POST(req: NextRequest) {
 
       // 6. BUSINESS 역할 유료서비스 체크
       if (sender?.role === "BUSINESS") {
-        const PAID_TIERS = ["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"] as const;
+        const PAID_TIERS = ["URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"] as const;
         const hasQualifyingAd = await prisma.ad.findFirst({
           where: {
             userId,
@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
 
         if (!hasQualifyingAd) {
           return NextResponse.json(
-            { error: "추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다", code: "BUSINESS_NO_AD" },
+            { error: "급구광고 이상 이용 회원만 쪽지를 보낼 수 있습니다", code: "BUSINESS_NO_AD" },
             { status: 403 }
           );
         }

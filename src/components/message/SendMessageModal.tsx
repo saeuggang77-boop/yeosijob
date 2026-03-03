@@ -134,7 +134,7 @@ export function SendMessageModal({
         ) : !canSend && reason === "BUSINESS_NO_AD" ? (
           <div className="flex flex-col items-center gap-4 px-6 py-8">
             <p className="text-center text-sm text-muted-foreground">
-              추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
+              급구광고 이상 이용 회원만 쪽지를 보낼 수 있습니다
             </p>
             <div className="flex gap-2">
               <Button

@@ -36,9 +36,9 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // BUSINESS: 활성 추천광고 이상 보유 체크
+  // BUSINESS: 활성 급구광고 이상 보유 체크
   if (user.role === "BUSINESS") {
-    const PAID_TIERS: string[] = ["RECOMMEND", "URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"];
+    const PAID_TIERS: string[] = ["URGENT", "SPECIAL", "PREMIUM", "VIP", "BANNER"];
     const hasQualifyingAd = await prisma.ad.findFirst({
       where: {
         userId,
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         canSend: false,
         reason: "BUSINESS_NO_AD",
-        message: "추천광고 이상 이용 회원만 쪽지를 보낼 수 있습니다",
+        message: "급구광고 이상 이용 회원만 쪽지를 보낼 수 있습니다",
       });
     }
   }

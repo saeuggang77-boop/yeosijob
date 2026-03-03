@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ConversationView } from "@/components/message/ConversationView";
+
+export const metadata: Metadata = {
+  title: "쪽지",
+  description: "쪽지 대화",
+};
 
 interface PageProps {
   params: Promise<{ userId: string }>;

@@ -79,6 +79,7 @@ export function AdDetailGallery({ images }: Props) {
             <button
               onClick={close}
               className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              aria-label="닫기"
             >
               <X className="h-5 w-5" />
             </button>
@@ -88,6 +89,7 @@ export function AdDetailGallery({ images }: Props) {
               <button
                 onClick={(e) => { e.stopPropagation(); prev(); }}
                 className="absolute left-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                aria-label="이전"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -110,6 +112,7 @@ export function AdDetailGallery({ images }: Props) {
               <button
                 onClick={(e) => { e.stopPropagation(); next(); }}
                 className="absolute right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                aria-label="다음"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>

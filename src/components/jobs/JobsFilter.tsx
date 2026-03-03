@@ -85,6 +85,7 @@ export function JobsFilter({
             if (open) setFocusFilter(null);
           }}
           className="flex shrink-0 items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-muted"
+          aria-label={open ? "필터 접기" : "필터 열기"}
         >
           {open ? <X className="size-3.5" /> : <SlidersHorizontal className="size-3.5" />}
           {open ? "접기" : "필터"}

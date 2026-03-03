@@ -23,6 +23,13 @@ export interface AdGrade {
  * @param totalPaidAdDays - Total cumulative paid ad days
  * @returns AdGrade object with grade, label, icon, color class, and total days
  */
+export const GRADE_THRESHOLDS = [
+  { grade: "bronze", label: "브론즈", icon: "🥉", colorClass: "text-[#CD7F32]", condition: "30일 이상" },
+  { grade: "silver", label: "실버", icon: "🥈", colorClass: "text-[#C0C0C0]", condition: "90일 이상" },
+  { grade: "gold", label: "골드", icon: "🥇", colorClass: "text-[#D4A853]", condition: "180일 이상" },
+  { grade: "diamond", label: "다이아", icon: "💎", colorClass: "text-[#60A5FA]", condition: "360일 이상" },
+] as const;
+
 export function getAdGrade(totalPaidAdDays: number): AdGrade {
   const days = Math.max(0, totalPaidAdDays); // Ensure non-negative
 

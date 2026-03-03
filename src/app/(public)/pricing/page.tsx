@@ -358,6 +358,43 @@ export default async function PricingPage() {
         </CardContent>
       </Card>
 
+      {/* 업소 등급 안내 */}
+      <Card className="mb-12">
+        <CardHeader>
+          <CardTitle className="text-2xl">업소 등급 안내</CardTitle>
+          <CardDescription>
+            유료 광고 이용일수가 쌓이면 업소 등급이 올라갑니다. 높은 등급은 구직자에게 신뢰감을 줍니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-[#CD7F32]/30 bg-[#CD7F32]/5 p-4 text-center">
+              <div className="text-2xl">🥉</div>
+              <div className="mt-1 font-bold text-[#CD7F32]">브론즈</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">누적 30일 이상</div>
+            </div>
+            <div className="rounded-lg border border-[#C0C0C0]/30 bg-[#C0C0C0]/5 p-4 text-center">
+              <div className="text-2xl">🥈</div>
+              <div className="mt-1 font-bold text-[#C0C0C0]">실버</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">누적 90일 이상</div>
+            </div>
+            <div className="rounded-lg border border-[#D4A853]/30 bg-[#D4A853]/5 p-4 text-center">
+              <div className="text-2xl">🥇</div>
+              <div className="mt-1 font-bold text-[#D4A853]">골드</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">누적 180일 이상</div>
+            </div>
+            <div className="rounded-lg border border-[#60A5FA]/30 bg-[#60A5FA]/5 p-4 text-center">
+              <div className="text-2xl">💎</div>
+              <div className="mt-1 font-bold text-[#60A5FA]">다이아</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">누적 360일 이상</div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            ※ 등급은 채용 상세 페이지에서 업소명 옆에 표시되며, 구직자가 업소의 신뢰도를 판단하는 기준이 됩니다.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* CTA Section */}
       <div className="text-center">
         <Card className="max-w-2xl mx-auto bg-gradient-to-br from-primary/10 to-accent/5">

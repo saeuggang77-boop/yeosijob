@@ -132,7 +132,7 @@ export function ShareButton({ title, description }: ShareButtonProps) {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded-lg border bg-popover p-1 shadow-lg animate-in fade-in-0 zoom-in-95">
+        <div className="absolute left-0 top-full z-50 mt-1 w-40 rounded-lg border bg-popover p-1 shadow-lg animate-in fade-in-0 zoom-in-95">
           <button
             onClick={handleCopyUrl}
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted"

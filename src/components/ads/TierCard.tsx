@@ -26,28 +26,27 @@ interface TierCardProps {
     user?: { totalPaidAdDays: number };
   };
   tier: "VIP" | "PREMIUM" | "SPECIAL";
-  hideBadge?: boolean;
 }
 
 const tierStyles = {
   VIP: {
     card: "border-2 border-primary bg-gradient-to-r from-primary/10 to-accent/10 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20",
-    badge: "bg-gradient-to-r from-primary to-amber text-primary-foreground",
+    badge: "bg-primary/10 text-primary/80 border border-primary/20",
     badgeText: "VIP",
   },
   PREMIUM: {
     card: "border border-primary/40 border-t-4 border-t-primary bg-card hover:-translate-y-1 hover:shadow-md",
-    badge: "bg-primary/20 text-primary",
+    badge: "bg-primary/8 text-primary/60 border border-primary/15",
     badgeText: "PREMIUM",
   },
   SPECIAL: {
     card: "border border-l-4 border-l-special bg-card hover:-translate-y-0.5 hover:bg-special/5",
-    badge: "bg-special/20 text-special",
+    badge: "bg-special/10 text-special/70 border border-special/20",
     badgeText: "SPECIAL",
   },
 } as const;
 
-export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
+export function TierCard({ ad, tier }: TierCardProps) {
   const style = tierStyles[tier];
   const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
   const bizInfo = BUSINESS_TYPES[ad.businessType];
@@ -81,21 +80,7 @@ export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 min-w-0">
-            {!hideBadge && (
-              <span
-                className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold ${style.badge}`}
-              >
-                {style.badgeText}
-              </span>
-            )}
             <h3 className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold`}>{ad.title}</h3>
-            {!hideBadge && ddayInfo && (
-              <Badge
-                className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
-              >
-                {ddayInfo.text}
-              </Badge>
-            )}
           </div>
 
           <div className={`${isLarge ? "mt-1" : "mt-0.5"} flex items-center gap-1 min-w-0`}>
@@ -116,7 +101,12 @@ export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
           <div className={isLarge ? "mt-2" : "mt-1.5"}>
             <p className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold text-success`}>{ad.salaryText}</p>
             <div className={`${isLarge ? "mt-1" : "mt-0.5"} flex items-center justify-end gap-1.5`}>
-              {hideBadge && ddayInfo && (
+              <span
+                className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide ${style.badge}`}
+              >
+                {style.badgeText}
+              </span>
+              {ddayInfo && (
                 <Badge
                   className={`px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
                 >

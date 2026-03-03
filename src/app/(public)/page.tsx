@@ -269,7 +269,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vipAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="VIP" hideBadge />
+                <TierCard key={ad.id} ad={ad} tier="VIP"  />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">
@@ -290,7 +290,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {premiumAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="PREMIUM" hideBadge />
+                <TierCard key={ad.id} ad={ad} tier="PREMIUM"  />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">
@@ -311,7 +311,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {specialAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="SPECIAL" hideBadge />
+                <TierCard key={ad.id} ad={ad} tier="SPECIAL"  />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">

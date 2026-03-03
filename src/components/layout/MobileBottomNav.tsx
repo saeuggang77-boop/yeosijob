@@ -77,7 +77,7 @@ export function MobileBottomNav() {
     // Business user navigation
     navItems = [
       { href: "/", label: "홈", icon: HomeIcon },
-      { href: "/business/dashboard", label: "광고관리", icon: BriefcaseIcon },
+      { href: "/jobs", label: "채용정보", icon: SearchIcon },
       { href: "/business/resumes", label: "인재정보", icon: DocumentIcon },
       { href: "/community", label: "커뮤니티", icon: ChatIcon },
       { href: "/business/profile", label: "마이", icon: UserIcon },

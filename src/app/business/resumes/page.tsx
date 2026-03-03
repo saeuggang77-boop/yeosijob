@@ -80,8 +80,8 @@ export default async function ResumesPage({ searchParams }: PageProps) {
     defaultBusinessType = firstAd.businessType;
   }
 
-  const region = (params.region as Region | undefined) || defaultRegion;
-  const businessType = (params.businessType as BusinessType | undefined) || defaultBusinessType;
+  const region = params.region as Region | undefined;
+  const businessType = params.businessType as BusinessType | undefined;
   const experience = params.experience;
   const ageRange = params.ageRange;
   const page = parseInt(params.page || "1", 10);

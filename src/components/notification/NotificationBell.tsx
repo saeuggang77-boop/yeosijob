@@ -123,7 +123,7 @@ export function NotificationBell() {
       </Button>
 
       {isOpen && (
-        <div className="absolute -right-2 sm:right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-1rem)] rounded-lg border bg-background shadow-lg">
+        <div className="fixed left-4 right-4 top-[3.75rem] z-50 rounded-lg border bg-background shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <h3 className="font-semibold">알림</h3>
             {unreadCount > 0 && (

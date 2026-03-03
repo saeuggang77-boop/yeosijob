@@ -373,49 +373,30 @@
   box-shadow: 0 0 30px rgba(212, 168, 83, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== Font Size: Large (text-only scaling, no layout breakage) ===== */
-[data-font-size="large"] {
-  /* Scale text elements only — padding, gap, width stay unchanged */
-  --font-size-boost: 2px;
-}
+/* ===== Font Size: Large (class-targeted, no layout breakage) ===== */
+/* Each Tailwind font-size class gets +1px boost. */
+/* Padding, gap, width are untouched — only text scales. */
 
-[data-font-size="large"] p,
-[data-font-size="large"] span,
-[data-font-size="large"] a,
-[data-font-size="large"] button,
-[data-font-size="large"] label,
-[data-font-size="large"] h1,
-[data-font-size="large"] h2,
-[data-font-size="large"] h3,
-[data-font-size="large"] h4,
-[data-font-size="large"] input,
-[data-font-size="large"] textarea,
-[data-font-size="large"] select,
-[data-font-size="large"] option,
-[data-font-size="large"] li,
-[data-font-size="large"] td,
-[data-font-size="large"] th {
-  font-size: calc(1em + var(--font-size-boost));
-}
+/* Arbitrary px sizes */
+[data-font-size="large"] .text-\[10px\] { font-size: 11px; }
+[data-font-size="large"] .text-\[11px\] { font-size: 12px; }
+[data-font-size="large"] .text-\[12px\] { font-size: 13px; }
+[data-font-size="large"] .text-\[13px\] { font-size: 14px; }
+[data-font-size="large"] .text-\[14px\] { font-size: 15px; }
+[data-font-size="large"] .text-\[15px\] { font-size: 16px; }
+[data-font-size="large"] .text-\[16px\] { font-size: 17px; }
+[data-font-size="large"] .text-\[18px\] { font-size: 19px; }
+[data-font-size="large"] .text-\[20px\] { font-size: 21px; }
+[data-font-size="large"] .text-\[24px\] { font-size: 25px; }
 
-/* Prevent double-scaling on nested elements */
-[data-font-size="large"] p *,
-[data-font-size="large"] span *,
-[data-font-size="large"] a *,
-[data-font-size="large"] button *,
-[data-font-size="large"] label *,
-[data-font-size="large"] li *,
-[data-font-size="large"] td *,
-[data-font-size="large"] th * {
-  font-size: inherit;
-}
-
-/* Badges and tiny labels: smaller boost to prevent overflow */
-[data-font-size="large"] [class*="text-\\[10px\\]"],
-[data-font-size="large"] [class*="text-\\[11px\\]"],
-[data-font-size="large"] [class*="text-\\[12px\\]"] {
-  --font-size-boost: 1px;
-}
+/* Tailwind named sizes */
+[data-font-size="large"] .text-xs { font-size: 13px; }
+[data-font-size="large"] .text-sm { font-size: 15px; }
+[data-font-size="large"] .text-base { font-size: 17px; }
+[data-font-size="large"] .text-lg { font-size: 19px; }
+[data-font-size="large"] .text-xl { font-size: 21px; }
+[data-font-size="large"] .text-2xl { font-size: 25px; }
+[data-font-size="large"] .text-3xl { font-size: 31px; }
 
 /* Banner BANNER badge */
 .banner-badge {

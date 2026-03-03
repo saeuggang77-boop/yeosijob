@@ -24,13 +24,13 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const region = searchParams.get("region") || defaultRegion || "ALL";
-  const businessType = searchParams.get("businessType") || defaultBusinessType || "ALL";
+  const region = searchParams.get("region") || "ALL";
+  const businessType = searchParams.get("businessType") || "ALL";
   const experience = searchParams.get("experience") || "ALL";
   const ageRange = searchParams.get("ageRange") || "ALL";
 
-  // Check if smart filter is active (no URL params but has defaults)
-  const isSmartFilterActive = hasSmartFilter && !searchParams.get("region") && !searchParams.get("businessType");
+  // Show suggestion banner when smart filter info is available and no filters applied
+  const showSmartBanner = hasSmartFilter && !searchParams.get("region") && !searchParams.get("businessType");
 
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -49,19 +49,24 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
 
   return (
     <div className="space-y-3">
-      {/* Smart Filter Banner */}
-      {isSmartFilterActive && defaultRegion && defaultBusinessType && (
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-lg p-2.5 flex items-center justify-between gap-3">
+      {/* Smart Filter Suggestion Banner */}
+      {showSmartBanner && defaultRegion && defaultBusinessType && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 p-2.5">
           <span className="text-sm">
-            🎯 내 업소({REGIONS[defaultRegion]?.label}·{BUSINESS_TYPES[defaultBusinessType]?.label}) 기준으로 필터링 중
+            🎯 내 광고(<strong>{REGIONS[defaultRegion]?.label}·{BUSINESS_TYPES[defaultBusinessType]?.label}</strong>) 관련 인재 보기
           </span>
           <Button
-            onClick={handleResetAll}
-            variant="ghost"
+            onClick={() => {
+              const params = new URLSearchParams();
+              params.set("region", defaultRegion);
+              params.set("businessType", defaultBusinessType);
+              params.set("page", "1");
+              router.push(`${pathname}?${params.toString()}`);
+            }}
             size="sm"
-            className="h-7 text-xs shrink-0 hover:bg-primary/10"
+            className="h-7 shrink-0 text-xs"
           >
-            전체 보기
+            필터 적용
           </Button>
         </div>
       )}

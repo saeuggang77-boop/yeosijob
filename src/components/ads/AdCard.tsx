@@ -58,12 +58,11 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
 
   function getProductStyles(productId?: string) {
     switch (productId) {
-      case "LINE": return "";
-      case "RECOMMEND": return "border-l-4 border-l-recommend";
-      case "URGENT": return "bg-urgent/5 border-l-4 border-l-urgent";
-      case "SPECIAL": return "border-t-2 border-t-special bg-special/5";
-      case "PREMIUM": return "border border-primary/50 bg-primary/5";
-      case "VIP": return "border border-primary bg-gradient-to-r from-primary/10 to-accent/10";
+      case "VIP": return "border-l-[3px] border-l-primary bg-gradient-to-r from-primary/10 to-transparent";
+      case "PREMIUM": return "border-l-[3px] border-l-primary/50";
+      case "SPECIAL": return "border-l-[3px] border-l-special";
+      case "RECOMMEND": return "border-l-[3px] border-l-recommend";
+      case "URGENT": return "border-l-[3px] border-l-urgent bg-urgent/5";
       default: return "";
     }
   }
@@ -84,7 +83,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
       <div
-        className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 ${bgClass} ${productStyles} ${emphasized ? "border-l-4 border-l-primary" : ""}`}
+        className={`flex items-center gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-muted/50 ${bgClass} ${productStyles} ${emphasized ? "border-l-[3px] border-l-primary" : ""}`}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

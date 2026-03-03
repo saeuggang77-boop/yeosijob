@@ -166,7 +166,9 @@ export default async function HomePage() {
         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
       },
       orderBy: [
+        { likes: { _count: "desc" } },
         { comments: { _count: "desc" } },
+        { viewCount: "desc" },
       ],
       select: {
         id: true,

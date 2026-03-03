@@ -49,8 +49,8 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const category = params.category || "";
   const query = params.q || "";
   const sort = params.sort || "latest";
-  const period = params.period || "week";
-  const limit = sort === "best" ? 20 : 15;
+  const isBest = sort === "weekly" || sort === "monthly";
+  const limit = isBest ? 20 : 15;
 
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";
@@ -68,28 +68,21 @@ export default async function CommunityPage({ searchParams }: PageProps) {
     ];
   }
 
-  // Popular posts: last 7 days only
-  if (sort === "popular") {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    where.createdAt = { gte: sevenDaysAgo };
-  }
-
   // Best posts: period filter
-  if (sort === "best" && period !== "all") {
+  if (sort === "weekly") {
     const cutoff = new Date();
-    if (period === "month") {
-      cutoff.setDate(cutoff.getDate() - 30);
-    } else {
-      cutoff.setDate(cutoff.getDate() - 7);
-    }
+    cutoff.setDate(cutoff.getDate() - 7);
+    where.createdAt = { gte: cutoff };
+  } else if (sort === "monthly") {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
     where.createdAt = { gte: cutoff };
   }
 
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      orderBy: sort === "popular" || sort === "best"
+      orderBy: isBest
         ? [
             { likes: { _count: "desc" } },
             { comments: { _count: "desc" } },
@@ -140,84 +133,54 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {/* Sort Tabs */}
+      {/* Best Tabs (toggle: click again to deselect) */}
       <div className="mb-4 flex gap-2">
         {[
-          { key: "latest", label: "최신" },
-          { key: "popular", label: "인기" },
-          { key: "best", label: "주간 베스트" },
+          { key: "weekly", label: "🔥 주간 베스트", activeClass: "bg-red-500/12 border-red-500/40 text-red-400 hover:bg-red-500/20" },
+          { key: "monthly", label: "🏆 월간 베스트", activeClass: "bg-[#D4A853]/15 border-[#D4A853] text-[#D4A853] hover:bg-[#D4A853]/25" },
         ].map((tab) => {
+          const isActive = sort === tab.key;
           const params = new URLSearchParams();
-          if (tab.key !== "best" && category) params.set("category", category);
+          if (category) params.set("category", category);
           if (query) params.set("q", query);
-          params.set("sort", tab.key);
-          const href = `/community?${params.toString()}`;
+          if (!isActive) params.set("sort", tab.key);
+          const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
 
           return (
             <Link key={tab.key} href={href}>
               <Button
-                variant={sort === tab.key ? "default" : "outline"}
+                variant="outline"
                 size="sm"
+                className={isActive ? tab.activeClass : ""}
               >
-                {tab.key === "best" && "🏆 "}{tab.label}
+                {tab.label}
               </Button>
             </Link>
           );
         })}
       </div>
 
-      {/* Category Tabs (hide in best mode) */}
-      {sort !== "best" && (
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-          {CATEGORIES.map((tab) => {
-            const params = new URLSearchParams();
-            if (tab.key) params.set("category", tab.key);
-            if (query) params.set("q", query);
-            if (sort) params.set("sort", sort);
-            const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
+      {/* Category Tabs */}
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+        {CATEGORIES.map((tab) => {
+          const params = new URLSearchParams();
+          if (tab.key) params.set("category", tab.key);
+          if (query) params.set("q", query);
+          if (isBest) params.set("sort", sort);
+          const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
 
-            return (
-              <Link key={tab.key} href={href}>
-                <Button
-                  variant={category === tab.key ? "default" : "outline"}
-                  size="sm"
-                >
-                  {tab.label}
-                </Button>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Period Filter (best mode only) */}
-      {sort === "best" && (
-        <div className="mb-4 flex gap-2">
-          {[
-            { key: "week", label: "이번 주" },
-            { key: "month", label: "이번 달" },
-            { key: "all", label: "전체" },
-          ].map((tab) => {
-            const params = new URLSearchParams();
-            params.set("sort", "best");
-            params.set("period", tab.key);
-            if (query) params.set("q", query);
-            const href = `/community?${params.toString()}`;
-
-            return (
-              <Link key={tab.key} href={href}>
-                <Button
-                  variant={period === tab.key ? "secondary" : "ghost"}
-                  size="sm"
-                  className={period === tab.key ? "text-[#D4A853]" : ""}
-                >
-                  {tab.label}
-                </Button>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+          return (
+            <Link key={tab.key} href={href}>
+              <Button
+                variant={category === tab.key ? "default" : "outline"}
+                size="sm"
+              >
+                {tab.label}
+              </Button>
+            </Link>
+          );
+        })}
+      </div>
 
       {/* Search Form */}
       <SearchForm />
@@ -258,7 +221,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                   className="block px-4 py-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-2">
-                    {sort === "best" && (
+                    {isBest && (
                       <span className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-extrabold ${
                         (page - 1) * limit + idx === 0 ? "bg-gradient-to-br from-[#D4A853] to-[#b8902e] text-black" :
                         (page - 1) * limit + idx === 1 ? "bg-white/10 text-zinc-300" :
@@ -292,7 +255,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">N</span>
                     )}
                   </div>
-                  <div className={`mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground ${sort === "best" ? "pl-8" : "pl-[calc(0.375rem+0.75rem+0.5rem)]"}`}>
+                  <div className={`mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground ${isBest ? "pl-8" : "pl-[calc(0.375rem+0.75rem+0.5rem)]"}`}>
                     {session?.user?.id && session.user.id !== post.authorId ? (
                       <AdminUserMenu
                         userId={post.author.id}
@@ -323,7 +286,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {post._count.likes > 0 && (
                       <>
                         <span>·</span>
-                        <span>{sort === "best" ? `👍 ${post._count.likes}` : `추천 ${post._count.likes}`}</span>
+                        <span>{isBest ? `👍 ${post._count.likes}` : `추천 ${post._count.likes}`}</span>
                       </>
                     )}
                   </div>
@@ -349,7 +312,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                   {posts.map((post, idx) => (
                     <tr key={post.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {sort === "best" ? (
+                        {isBest ? (
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-extrabold ${
                             (page - 1) * limit + idx === 0 ? "bg-gradient-to-br from-[#D4A853] to-[#b8902e] text-black" :
                             (page - 1) * limit + idx === 1 ? "bg-white/10 text-zinc-300" :

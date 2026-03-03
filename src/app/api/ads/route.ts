@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 유료 광고: 사업자당 최대 5개 제한
+    // 유료 광고: 사업자당 최대 2개 제한
     if (!isFreeProduct) {
       const existingPaidAds = await prisma.ad.count({
         where: {
@@ -180,8 +180,8 @@ export async function POST(request: NextRequest) {
           status: { in: ["ACTIVE", "PENDING_DEPOSIT"] },
         },
       });
-      if (existingPaidAds >= 5) {
-        return NextResponse.json({ error: "유료 광고는 최대 5개까지 등록할 수 있습니다" }, { status: 400 });
+      if (existingPaidAds >= 2) {
+        return NextResponse.json({ error: "유료 광고는 최대 2개까지 등록할 수 있습니다" }, { status: 400 });
       }
     }
 

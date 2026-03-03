@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, MessageCircle, Send, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ export function FloatingContact({
 }: FloatingContactProps) {
   const [hasApplied, setHasApplied] = useState(initialHasApplied);
   const [isApplying, setIsApplying] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleKakaoClick = () => {
     if (!contactKakao) return;
@@ -43,6 +45,7 @@ export function FloatingContact({
   const handleApply = async () => {
     if (!adId || hasApplied || isApplying) return;
     setIsApplying(true);
+    setShowConfirmDialog(false);
 
     try {
       const res = await fetch(`/api/ads/${adId}/apply`, { method: "POST" });
@@ -101,7 +104,7 @@ export function FloatingContact({
     ) : (
       <Button
         className="h-12 flex-1 gap-2 bg-blue-600 text-base text-white hover:bg-blue-700"
-        onClick={handleApply}
+        onClick={() => setShowConfirmDialog(true)}
         disabled={isApplying}
       >
         <ClipboardList className="h-5 w-5" />
@@ -123,7 +126,7 @@ export function FloatingContact({
     ) : (
       <Button
         className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700"
-        onClick={handleApply}
+        onClick={() => setShowConfirmDialog(true)}
         disabled={isApplying}
       >
         <ClipboardList className="h-4 w-4" />
@@ -134,6 +137,35 @@ export function FloatingContact({
 
   return (
     <>
+      {/* 지원 확인 다이얼로그 */}
+      {showConfirmDialog && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
+          <div className="w-[90%] max-w-sm rounded-xl border bg-background p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold">이력서를 지원하시겠습니까?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              내 이력서가 사장님에게 전달됩니다. 지원 후에는 취소할 수 없습니다.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowConfirmDialog(false)}
+              >
+                취소
+              </Button>
+              <Button
+                className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+                onClick={handleApply}
+                disabled={isApplying}
+              >
+                {isApplying ? "지원중..." : "지원하기"}
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* 모바일 하단 고정바 */}
       <div className="fixed bottom-[68px] left-0 right-0 border-t bg-background p-3 md:hidden">
         <div className="flex gap-2">

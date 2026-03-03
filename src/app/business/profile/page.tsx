@@ -62,15 +62,7 @@ export default async function BusinessProfilePage() {
         {/* 사업자 인증 상태 */}
         <VerificationStatus isVerified={isVerified} />
 
-        {/* 프로필 수정 */}
-        <EditProfileSection
-          currentName={user?.name || ""}
-          currentPhone={user?.phone || ""}
-          currentBusinessName={user?.businessName || ""}
-          isBusiness={true}
-        />
-
-        {/* 광고 바로가기 */}
+        {/* 광고 바로가기 (핵심 기능 최상단) */}
         <div className="grid grid-cols-2 gap-3">
           <Link href="/business/dashboard" className="block">
             <Card className="border-primary/30 bg-primary/5 transition-shadow hover:shadow-md">
@@ -106,6 +98,14 @@ export default async function BusinessProfilePage() {
             </CardContent>
           </Card>
         </Link>
+
+        {/* 프로필 수정 */}
+        <EditProfileSection
+          currentName={user?.name || ""}
+          currentPhone={user?.phone || ""}
+          currentBusinessName={user?.businessName || ""}
+          isBusiness={true}
+        />
 
         {/* 글자 크기 설정 */}
         <FontSizeToggle />

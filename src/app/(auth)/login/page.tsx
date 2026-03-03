@@ -75,15 +75,7 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">비밀번호</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-muted-foreground hover:underline"
-              >
-                비밀번호를 잊으셨나요?
-              </Link>
-            </div>
+            <Label htmlFor="password">비밀번호</Label>
             <Input
               id="password"
               name="password"
@@ -92,6 +84,15 @@ export default function LoginPage() {
               required
               minLength={6}
             />
+            <div className="flex justify-end gap-2 text-xs text-muted-foreground">
+              <Link href="/find-email" className="hover:underline">
+                이메일 찾기
+              </Link>
+              <span>|</span>
+              <Link href="/forgot-password" className="hover:underline">
+                비밀번호 찾기
+              </Link>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, FileText, Heart, MessageSquare, Bell } from "lucide-react";
+import { ChevronRight, FileText, Heart, MessageSquare, Bell, ClipboardList } from "lucide-react";
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
@@ -41,9 +41,10 @@ export default async function ProfilePage() {
   const userId = session.user.id;
 
   // Query counts
-  const [scrapCount, reviewCount, resume, user] = await Promise.all([
+  const [scrapCount, reviewCount, applicationCount, resume, user] = await Promise.all([
     prisma.scrap.count({ where: { userId } }),
     prisma.review.count({ where: { userId } }),
+    prisma.adApplication.count({ where: { userId } }),
     prisma.resume.findUnique({ where: { userId } }),
     prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true, name: true, phone: true } }),
   ]);
@@ -62,13 +63,6 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-4">
-        {/* 프로필 수정 */}
-        <EditProfileSection
-          currentName={user?.name || ""}
-          currentPhone={user?.phone || ""}
-          isBusiness={false}
-        />
-
         {/* 내 이력서 */}
         <Link href="/jobseeker/my-resume" className="block">
           <Card className="transition-shadow hover:shadow-md">
@@ -82,6 +76,24 @@ export default async function ProfilePage() {
                   <Badge variant={resume ? "default" : "secondary"}>
                     {resumeStatus}
                   </Badge>
+                  <ChevronRight className="size-5 text-muted-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* 지원 내역 */}
+        <Link href="/jobseeker/applications" className="block">
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ClipboardList className="size-5 text-muted-foreground" />
+                  <span className="font-medium">지원 내역</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{applicationCount}건</Badge>
                   <ChevronRight className="size-5 text-muted-foreground" />
                 </div>
               </div>
@@ -139,6 +151,13 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
         </Link>
+
+        {/* 프로필 수정 */}
+        <EditProfileSection
+          currentName={user?.name || ""}
+          currentPhone={user?.phone || ""}
+          isBusiness={false}
+        />
 
         {/* 글자 크기 설정 */}
         <FontSizeToggle />

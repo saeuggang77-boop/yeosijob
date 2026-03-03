@@ -108,7 +108,7 @@ const CATEGORY_OPTIONS = [
   { key: "CHAT", label: "수다방" },
   { key: "BEAUTY", label: "뷰티톡" },
   { key: "QNA", label: "질문방" },
-  { key: "WORK", label: "가게이야기" },
+  { key: "WORK", label: "가게톡" },
 ];
 
 export function AutoContentManager({
@@ -886,7 +886,7 @@ export function AutoContentManager({
                 { key: "CHAT", label: "수다방" },
                 { key: "BEAUTY", label: "뷰티톡" },
                 { key: "QNA", label: "질문방" },
-                { key: "WORK", label: "가게이야기" },
+                { key: "WORK", label: "가게톡" },
               ].map((cat) => (
                 <div key={cat.key} className="flex items-center gap-2">
                   <Label className="w-16 shrink-0 text-sm">{cat.label}</Label>

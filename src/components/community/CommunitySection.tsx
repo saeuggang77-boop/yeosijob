@@ -21,7 +21,7 @@ type Post = {
 
 type Props = {
   hotPost: Post | null;
-  posts: Post[];
+  postsByCategory: Record<string, Post[]>;
 };
 
 const CATEGORY_TABS = [
@@ -29,7 +29,7 @@ const CATEGORY_TABS = [
   { id: "CHAT" as const, label: "수다방" },
   { id: "BEAUTY" as const, label: "뷰티톡" },
   { id: "QNA" as const, label: "질문방" },
-  { id: "WORK" as const, label: "가게이야기" },
+  { id: "WORK" as const, label: "가게톡" },
 ];
 
 function getCategoryBadgeClass(category: string): string {
@@ -54,7 +54,7 @@ function getCategoryLabel(category: string): string {
     case "QNA":
       return "질문방";
     case "WORK":
-      return "가게이야기";
+      return "가게톡";
     default:
       return category;
   }
@@ -68,19 +68,17 @@ function stripHtmlTags(html: string): string {
   return html.replace(/<[^>]*>/g, "");
 }
 
-export function CommunitySection({ hotPost, posts }: Props) {
+export function CommunitySection({ hotPost, postsByCategory }: Props) {
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
 
-  // Filter posts by category
-  const filteredPosts = posts.filter(
-    (post) => activeCategory === "ALL" || post.category === activeCategory
-  );
+  // Get posts for active category directly (already fetched per-category from server)
+  const categoryPosts = postsByCategory[activeCategory] || [];
 
   // Check if hot post should be shown
   const showHotPost = hotPost && (activeCategory === "ALL" || hotPost.category === activeCategory);
 
   // Take only 4 posts for the list (after hot post)
-  const displayPosts = filteredPosts.slice(0, 4);
+  const displayPosts = categoryPosts.slice(0, 4);
 
   return (
     <div>

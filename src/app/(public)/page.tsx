@@ -80,7 +80,11 @@ export default async function HomePage() {
     freeAds,
     , // LINE count (unused)
     recentResumes,
-    recentPosts,
+    postsAll,
+    postsCHAT,
+    postsBEAUTY,
+    postsQNA,
+    postsWORK,
     hotPost,
   ] = await Promise.all([
     prisma.ad.findMany({
@@ -150,22 +154,11 @@ export default async function HomePage() {
         updatedAt: true,
       },
     }),
-    prisma.post.findMany({
-      where: { isHidden: false, deletedAt: null },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        content: true,
-        category: true,
-        viewCount: true,
-        createdAt: true,
-        author: { select: { name: true } },
-        _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
-      },
-    }),
+    prisma.post.findMany({ where: { isHidden: false, deletedAt: null }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
+    prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "CHAT" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
+    prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "BEAUTY" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
+    prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "QNA" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
+    prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "WORK" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
     prisma.post.findFirst({
       where: {
         isHidden: false,
@@ -371,11 +364,11 @@ export default async function HomePage() {
       )}
 
       {/* Community + Resume Info - 2 Column Layout */}
-      {(recentPosts.length > 0 || recentResumes.length > 0) && (
+      {(postsAll.length > 0 || recentResumes.length > 0) && (
         <section className="border-b px-4 py-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Community */}
-            {recentPosts.length > 0 && (
+            {postsAll.length > 0 && (
               <div className="flex flex-col">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-xl font-bold">커뮤니티</h2>
@@ -388,7 +381,7 @@ export default async function HomePage() {
                     </Link>
                   </div>
                 </div>
-                <CommunitySection hotPost={hotPost} posts={recentPosts} />
+                <CommunitySection hotPost={hotPost} postsByCategory={{ ALL: postsAll, CHAT: postsCHAT, BEAUTY: postsBEAUTY, QNA: postsQNA, WORK: postsWORK }} />
               </div>
             )}
 

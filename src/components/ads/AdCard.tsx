@@ -109,17 +109,9 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
             >
               {ad.title}
             </h3>
-            {ddayInfo && (
-              <Badge
-                className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
-              >
-                {ddayInfo.text}
-              </Badge>
-            )}
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
             <span>{ad.businessName}</span>
-
             <span>·</span>
             <span>{regionLabels}</span>
             <span>·</span>
@@ -132,9 +124,18 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {timeAgo(ad.lastJumpedAt)}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            👁 {ad.viewCount.toLocaleString()}
-          </p>
+          <div className="mt-0.5 flex items-center justify-end gap-1.5">
+            {ddayInfo && (
+              <Badge
+                className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+              >
+                {ddayInfo.text}
+              </Badge>
+            )}
+            <span className="text-[11px] text-muted-foreground">
+              👁 {ad.viewCount.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

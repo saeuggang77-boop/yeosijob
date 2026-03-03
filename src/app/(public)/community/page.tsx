@@ -39,6 +39,7 @@ interface PageProps {
     category?: string;
     q?: string;
     sort?: string;
+    period?: string;
   }>;
 }
 
@@ -48,7 +49,8 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const category = params.category || "";
   const query = params.q || "";
   const sort = params.sort || "latest";
-  const limit = 15;
+  const period = params.period || "week";
+  const limit = sort === "best" ? 20 : 15;
 
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";
@@ -73,12 +75,22 @@ export default async function CommunityPage({ searchParams }: PageProps) {
     where.createdAt = { gte: sevenDaysAgo };
   }
 
+  // Best posts: period filter
+  if (sort === "best" && period !== "all") {
+    const cutoff = new Date();
+    if (period === "month") {
+      cutoff.setDate(cutoff.getDate() - 30);
+    } else {
+      cutoff.setDate(cutoff.getDate() - 7);
+    }
+    where.createdAt = { gte: cutoff };
+  }
+
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      orderBy: sort === "popular"
+      orderBy: sort === "popular" || sort === "best"
         ? [
-            // No direct score calculation, so we approximate with likes desc, then comments, then views
             { likes: { _count: "desc" } },
             { comments: { _count: "desc" } },
             { viewCount: "desc" },
@@ -133,9 +145,10 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         {[
           { key: "latest", label: "최신" },
           { key: "popular", label: "인기" },
+          { key: "best", label: "주간 베스트" },
         ].map((tab) => {
           const params = new URLSearchParams();
-          if (category) params.set("category", category);
+          if (tab.key !== "best" && category) params.set("category", category);
           if (query) params.set("q", query);
           params.set("sort", tab.key);
           const href = `/community?${params.toString()}`;
@@ -146,34 +159,65 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                 variant={sort === tab.key ? "default" : "outline"}
                 size="sm"
               >
-                {tab.label}
+                {tab.key === "best" && "🏆 "}{tab.label}
               </Button>
             </Link>
           );
         })}
       </div>
 
-      {/* Category Tabs */}
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        {CATEGORIES.map((tab) => {
-          const params = new URLSearchParams();
-          if (tab.key) params.set("category", tab.key);
-          if (query) params.set("q", query);
-          if (sort) params.set("sort", sort);
-          const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
+      {/* Category Tabs (hide in best mode) */}
+      {sort !== "best" && (
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          {CATEGORIES.map((tab) => {
+            const params = new URLSearchParams();
+            if (tab.key) params.set("category", tab.key);
+            if (query) params.set("q", query);
+            if (sort) params.set("sort", sort);
+            const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
 
-          return (
-            <Link key={tab.key} href={href}>
-              <Button
-                variant={category === tab.key ? "default" : "outline"}
-                size="sm"
-              >
-                {tab.label}
-              </Button>
-            </Link>
-          );
-        })}
-      </div>
+            return (
+              <Link key={tab.key} href={href}>
+                <Button
+                  variant={category === tab.key ? "default" : "outline"}
+                  size="sm"
+                >
+                  {tab.label}
+                </Button>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Period Filter (best mode only) */}
+      {sort === "best" && (
+        <div className="mb-4 flex gap-2">
+          {[
+            { key: "week", label: "이번 주" },
+            { key: "month", label: "이번 달" },
+            { key: "all", label: "전체" },
+          ].map((tab) => {
+            const params = new URLSearchParams();
+            params.set("sort", "best");
+            params.set("period", tab.key);
+            if (query) params.set("q", query);
+            const href = `/community?${params.toString()}`;
+
+            return (
+              <Link key={tab.key} href={href}>
+                <Button
+                  variant={period === tab.key ? "secondary" : "ghost"}
+                  size="sm"
+                  className={period === tab.key ? "text-[#D4A853]" : ""}
+                >
+                  {tab.label}
+                </Button>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* Search Form */}
       <SearchForm />
@@ -207,13 +251,23 @@ export default async function CommunityPage({ searchParams }: PageProps) {
           <>
             {/* Mobile Card Layout */}
             <div className="md:hidden divide-y divide-border">
-              {posts.map((post) => (
+              {posts.map((post, idx) => (
                 <Link
                   key={post.id}
                   href={`/community/${post.slug || post.id}`}
                   className="block px-4 py-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-2">
+                    {sort === "best" && (
+                      <span className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-extrabold ${
+                        (page - 1) * limit + idx === 0 ? "bg-gradient-to-br from-[#D4A853] to-[#b8902e] text-black" :
+                        (page - 1) * limit + idx === 1 ? "bg-white/10 text-zinc-300" :
+                        (page - 1) * limit + idx === 2 ? "bg-amber-900/30 text-amber-600" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        {(page - 1) * limit + idx + 1}
+                      </span>
+                    )}
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                       post.category === "BEAUTY" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400" :
                       post.category === "QNA" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
@@ -238,7 +292,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">N</span>
                     )}
                   </div>
-                  <div className="mt-1 flex items-center gap-1.5 pl-[calc(0.375rem+0.75rem+0.5rem)] text-[11px] text-muted-foreground">
+                  <div className={`mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground ${sort === "best" ? "pl-8" : "pl-[calc(0.375rem+0.75rem+0.5rem)]"}`}>
                     {session?.user?.id && session.user.id !== post.authorId ? (
                       <AdminUserMenu
                         userId={post.author.id}
@@ -269,7 +323,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {post._count.likes > 0 && (
                       <>
                         <span>·</span>
-                        <span>추천 {post._count.likes}</span>
+                        <span>{sort === "best" ? `👍 ${post._count.likes}` : `추천 ${post._count.likes}`}</span>
                       </>
                     )}
                   </div>
@@ -295,7 +349,18 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                   {posts.map((post, idx) => (
                     <tr key={post.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {total - (page - 1) * limit - idx}
+                        {sort === "best" ? (
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-extrabold ${
+                            (page - 1) * limit + idx === 0 ? "bg-gradient-to-br from-[#D4A853] to-[#b8902e] text-black" :
+                            (page - 1) * limit + idx === 1 ? "bg-white/10 text-zinc-300" :
+                            (page - 1) * limit + idx === 2 ? "bg-amber-900/30 text-amber-600" :
+                            ""
+                          }`}>
+                            {(page - 1) * limit + idx + 1}
+                          </span>
+                        ) : (
+                          total - (page - 1) * limit - idx
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <Link href={`/community/${post.slug || post.id}`} className="hover:underline">

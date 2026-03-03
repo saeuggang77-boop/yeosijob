@@ -230,9 +230,9 @@ export default function NewPostPage() {
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="CHAT">수다방</option>
+                  <option value="CHAT">수다톡</option>
                   <option value="BEAUTY">뷰티톡</option>
-                  <option value="QNA">질문방</option>
+                  <option value="QNA">질문톡</option>
                   <option value="WORK">가게톡</option>
                 </select>
               </div>

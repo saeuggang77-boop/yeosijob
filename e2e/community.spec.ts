@@ -20,7 +20,7 @@ test.describe('커뮤니티 테스트', () => {
 
     // 카테고리 탭 찾기
     const tabs = page.locator('a[href*="/community?category="], button').filter({
-      hasText: /전체|수다방|뷰티|Q&A|취업/,
+      hasText: /전체|수다톡|뷰티|Q&A|취업/,
     });
 
     const tabCount = await tabs.count();

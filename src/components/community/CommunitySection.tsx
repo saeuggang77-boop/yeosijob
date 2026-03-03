@@ -26,9 +26,9 @@ type Props = {
 
 const CATEGORY_TABS = [
   { id: "ALL" as const, label: "전체" },
-  { id: "CHAT" as const, label: "수다방" },
+  { id: "CHAT" as const, label: "수다톡" },
   { id: "BEAUTY" as const, label: "뷰티톡" },
-  { id: "QNA" as const, label: "질문방" },
+  { id: "QNA" as const, label: "질문톡" },
   { id: "WORK" as const, label: "가게톡" },
 ];
 
@@ -48,11 +48,11 @@ function getCategoryBadgeClass(category: string): string {
 function getCategoryLabel(category: string): string {
   switch (category) {
     case "CHAT":
-      return "수다방";
+      return "수다톡";
     case "BEAUTY":
       return "뷰티톡";
     case "QNA":
-      return "질문방";
+      return "질문톡";
     case "WORK":
       return "가게톡";
     default:

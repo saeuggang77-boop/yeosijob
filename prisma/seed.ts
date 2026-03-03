@@ -1528,7 +1528,7 @@ async function main() {
   await prisma.post.deleteMany();
 
   const communityPosts = [
-    // 수다방 (CHAT) - 4개
+    // 수다톡 (CHAT) - 4개
     { title: "오늘 첫 출근했어요!", content: "긴장되긴 했는데 사장님이 잘 알려주셔서 금방 적응할 것 같아요.\n다들 첫 출근 때 어떠셨어요?", category: "CHAT" },
     { title: "다들 어디서 일하세요?", content: "강남 쪽이 많은지 다른 지역도 있는지 궁금해요.\n지방도 괜찮은 곳 많나요?", category: "CHAT" },
     { title: "일하면서 운동하는 사람?", content: "야간 근무하다 보니까 체력 관리가 중요한 것 같아서\n필라테스 시작했는데 다들 운동 뭐 하세요?", category: "CHAT" },
@@ -1538,7 +1538,7 @@ async function main() {
     { title: "텐카페 알바 한 달 후기", content: "홍대 텐카페에서 한 달 일했어요.\n\n분위기가 가볍고 재밌어서 초보자도 적응하기 좋았어요.\n시급도 나쁘지 않고, 무엇보다 사람들이 친절해서 좋았습니다.", category: "BEAUTY" },
     { title: "부산 바라운지 후기 (6개월)", content: "부산 서면에서 6개월 일한 경험입니다.\n\n서울보다 수입은 좀 적지만 생활비도 적어서 비슷한 것 같아요.\n사람 스트레스가 적은 게 큰 장점이었어요.", category: "BEAUTY" },
     { title: "하이퍼블릭 vs 퍼블릭바 비교 후기", content: "둘 다 경험해본 입장에서 비교해볼게요.\n\n하이퍼블릭: 팁이 더 좋고, 분위기가 화려함\n퍼블릭바: 좀 더 편하고, 근무 시간이 유연함\n\n각자 성격에 맞는 걸 선택하면 좋을 것 같아요.", category: "BEAUTY" },
-    // 질문방 (QNA) - 4개
+    // 질문톡 (QNA) - 4개
     { title: "면접 볼 때 뭐 입고 가야 하나요?", content: "다음주에 면접 보러 가는데\n어떤 옷 입고 가면 좋을까요?\n\n너무 화려하면 안 되겠죠?", category: "QNA" },
     { title: "팁은 보통 얼마나 받나요?", content: "일 시작한 지 얼마 안 됐는데\n팁 평균이 궁금해요.\n\n지역이나 업종에 따라 다르겠지만 대략적으로 알려주세요!", category: "QNA" },
     { title: "경력 없으면 불리한가요?", content: "완전 초보인데 괜찮은 곳 들어갈 수 있을까요?\n경력 없어도 잘 가르쳐주는 곳이 있는지 궁금합니다.", category: "QNA" },

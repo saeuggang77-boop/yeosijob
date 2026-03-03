@@ -89,7 +89,7 @@ function getRandomStyle(): string {
 
 const CATEGORY_TOPICS: Record<string, { name: string; topics: string }> = {
   CHAT: {
-    name: "수다방",
+    name: "수다톡",
     topics: `- 오늘 출근 전/후 일상 이야기
 - 손님 에피소드 (재밌는 일, 황당한 일)
 - 가게 이야기 (분위기, 실장, 마담, 동료)
@@ -109,7 +109,7 @@ const CATEGORY_TOPICS: Record<string, { name: string; topics: string }> = {
 - 향수/바디케어 추천`,
   },
   QNA: {
-    name: "질문방",
+    name: "질문톡",
     topics: `- 신입 관련 질문 (면접, 첫 출근, 준비물)
 - 가게 선택 고민 (분위기, 조건 비교)
 - TC/수입 관련 질문
@@ -173,7 +173,7 @@ ${keywordSection}
 
 ${titleGuide}
 본문은 최소 150자 이상 작성하세요. 너무 짧으면 검색엔진에 불리합니다.
-각 글은 지정된 카테고리(수다방/뷰티톡/질문방/가게톡)의 주제에 맞게 작성하세요.
+각 글은 지정된 카테고리(수다톡/뷰티톡/질문톡/가게톡)의 주제에 맞게 작성하세요.
 
 🔥 가장 중요한 규칙: 각 글은 완전히 다른 사람이 쓴 것처럼 보여야 합니다!
 - 글의 구조, 길이, 톤, 줄바꿈 패턴이 모두 달라야 함

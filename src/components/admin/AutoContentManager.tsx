@@ -105,9 +105,9 @@ const PERSONALITY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_OPTIONS = [
-  { key: "CHAT", label: "수다방" },
+  { key: "CHAT", label: "수다톡" },
   { key: "BEAUTY", label: "뷰티톡" },
-  { key: "QNA", label: "질문방" },
+  { key: "QNA", label: "질문톡" },
   { key: "WORK", label: "가게톡" },
 ];
 
@@ -883,9 +883,9 @@ export function AutoContentManager({
             <p className="text-sm text-muted-foreground">자동 생성 게시글의 카테고리 분배 비율</p>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { key: "CHAT", label: "수다방" },
+                { key: "CHAT", label: "수다톡" },
                 { key: "BEAUTY", label: "뷰티톡" },
-                { key: "QNA", label: "질문방" },
+                { key: "QNA", label: "질문톡" },
                 { key: "WORK", label: "가게톡" },
               ].map((cat) => (
                 <div key={cat.key} className="flex items-center gap-2">

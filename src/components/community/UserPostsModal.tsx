@@ -114,11 +114,11 @@ export function UserPostsModal({
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case "CHAT":
-        return "수다방";
+        return "수다톡";
       case "BEAUTY":
         return "뷰티톡";
       case "QNA":
-        return "질문방";
+        return "질문톡";
       case "WORK":
         return "가게톡";
       default:

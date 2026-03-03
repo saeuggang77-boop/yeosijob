@@ -894,6 +894,7 @@ export function AutoContentManager({
                     type="number"
                     min="0"
                     max="100"
+                    step="5"
                     value={config.categoryWeights[cat.key] ?? 0}
                     onChange={(e) => {
                       const val = parseInt(e.target.value) || 0;

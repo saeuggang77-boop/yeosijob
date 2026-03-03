@@ -26,6 +26,7 @@ interface TierCardProps {
     user?: { totalPaidAdDays: number };
   };
   tier: "VIP" | "PREMIUM" | "SPECIAL";
+  hideBadge?: boolean;
 }
 
 const tierStyles = {
@@ -46,7 +47,7 @@ const tierStyles = {
   },
 } as const;
 
-export function TierCard({ ad, tier }: TierCardProps) {
+export function TierCard({ ad, tier, hideBadge = false }: TierCardProps) {
   const style = tierStyles[tier];
   const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
   const bizInfo = BUSINESS_TYPES[ad.businessType];
@@ -80,21 +81,15 @@ export function TierCard({ ad, tier }: TierCardProps) {
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold ${style.badge}`}
-            >
-              {style.badgeText}
-            </span>
-            <h3 className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold`}>{ad.title}</h3>
-            {ad.isVerified && (
-              <Badge
-                variant="secondary"
-                className="shrink-0 px-1 py-0 text-[10px]"
+            {!hideBadge && (
+              <span
+                className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold ${style.badge}`}
               >
-                인증
-              </Badge>
+                {style.badgeText}
+              </span>
             )}
-            {ddayInfo && (
+            <h3 className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold`}>{ad.title}</h3>
+            {!hideBadge && ddayInfo && (
               <Badge
                 className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
               >
@@ -120,9 +115,18 @@ export function TierCard({ ad, tier }: TierCardProps) {
 
           <div className={isLarge ? "mt-2" : "mt-1.5"}>
             <p className={`min-w-0 truncate ${isLarge ? "text-[16px]" : "text-[15px]"} font-bold text-success`}>{ad.salaryText}</p>
-            <p className={`${isLarge ? "mt-1" : "mt-0.5"} text-[10px] text-muted-foreground text-right`}>
-              조회 {ad.viewCount.toLocaleString()}
-            </p>
+            <div className={`${isLarge ? "mt-1" : "mt-0.5"} flex items-center justify-end gap-1.5`}>
+              <span className="text-[10px] text-muted-foreground">
+                조회 {ad.viewCount.toLocaleString()}
+              </span>
+              {hideBadge && ddayInfo && (
+                <Badge
+                  className={`px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}
+                >
+                  {ddayInfo.text}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>

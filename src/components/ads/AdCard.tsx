@@ -109,14 +109,6 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
             >
               {ad.title}
             </h3>
-            {ad.isVerified && (
-              <Badge
-                variant="secondary"
-                className="shrink-0 text-[10px] px-1 py-0"
-              >
-                인증
-              </Badge>
-            )}
             {ddayInfo && (
               <Badge
                 className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${getDdayColorClass(ddayInfo.color)}`}

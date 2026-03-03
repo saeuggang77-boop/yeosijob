@@ -285,7 +285,29 @@ export default async function PricingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile Card Layout */}
+          <div className="lg:hidden space-y-3">
+            {orderedAddOns.map((option) => (
+              <div key={option.id} className="rounded-lg border p-4">
+                <div className="mb-1 font-semibold">{option.name}</div>
+                <p className="mb-3 text-xs text-muted-foreground">{option.description}</p>
+                <div className="flex gap-2">
+                  {([30, 60, 90] as const).map((days) => (
+                    <div
+                      key={days}
+                      className="flex-1 rounded-md bg-muted/50 px-2 py-2 text-center"
+                    >
+                      <div className="text-[10px] text-muted-foreground">{days}일</div>
+                      <div className="text-sm font-semibold text-primary">{formatPrice(option.pricing[days])}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table Layout */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b-2 bg-muted/50">

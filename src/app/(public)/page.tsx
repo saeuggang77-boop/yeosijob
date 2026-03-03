@@ -5,6 +5,7 @@ import { AdBoxCard } from "@/components/ads/AdBoxCard";
 import { TierCard } from "@/components/ads/TierCard";
 import { BannerSlider } from "@/components/ads/BannerSlider";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { EventBanner } from "@/components/layout/EventBanner";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
@@ -168,7 +169,8 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-screen-xl">
       {/* Announcement Bar */}
-      <AnnouncementBar eventInfo={eventInfo} />
+      <AnnouncementBar />
+      {eventInfo && <EventBanner eventInfo={eventInfo} />}
 
       {/* Hero Section with Bokeh Effect */}
       <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-16 text-center md:py-24">
@@ -252,7 +254,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vipAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="VIP" />
+                <TierCard key={ad.id} ad={ad} tier="VIP" hideBadge />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">
@@ -273,7 +275,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {premiumAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="PREMIUM" />
+                <TierCard key={ad.id} ad={ad} tier="PREMIUM" hideBadge />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">
@@ -294,7 +296,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {specialAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="SPECIAL" />
+                <TierCard key={ad.id} ad={ad} tier="SPECIAL" hideBadge />
               ))}
             </div>
             <div className="pb-3 pt-2 text-right">

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -84,6 +85,9 @@ export async function PATCH(request: NextRequest) {
       },
       update: updateData,
     });
+
+    // 메인 페이지 캐시 즉시 무효화 (이벤트 배너 반영)
+    revalidatePath("/");
 
     return NextResponse.json(config);
   } catch (error) {

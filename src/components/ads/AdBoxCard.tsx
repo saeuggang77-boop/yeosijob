@@ -52,15 +52,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
           <div className="flex items-center justify-between gap-2 py-2 px-2 sm:gap-3 sm:px-3">
             {/* Left side: title + info */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1">
-                <h3 className="truncate text-sm font-medium">{ad.title}</h3>
-                {ad.isVerified && (
-                  <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-                    <span className="text-success">✓</span>
-                  </Badge>
-                )}
-
-              </div>
+              <h3 className="truncate text-sm font-medium">{ad.title}</h3>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {ad.businessName} · {regionLabels} · {bizLabel}
               </p>
@@ -100,14 +92,7 @@ export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
               {ddayInfo.text}
             </Badge>
           )}
-          <div className="flex items-center gap-1">
-            <h3 className="truncate text-sm font-medium">{ad.title}</h3>
-            {ad.isVerified && (
-              <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0">
-                <span className="text-success">✓</span>
-              </Badge>
-            )}
-          </div>
+          <h3 className="truncate text-sm font-medium">{ad.title}</h3>
           <p className="mt-1 truncate text-xs text-muted-foreground">{ad.businessName}</p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{regionLabels} · {bizLabel}</p>
           <p className="mt-1 text-sm font-medium text-success">{ad.salaryText}</p>

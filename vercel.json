@@ -16,6 +16,10 @@
     {
       "path": "/api/cron/notify-expiry",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-old-messages",
+      "schedule": "0 3 * * *"
     }
   ],
   "redirects": [

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { confirmTossPayment } from "@/lib/toss/confirm";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { AdOptionId, AdProductId } from "@/generated/prisma/client";
+import { getActiveEvent, getBonusDays } from "@/lib/event";
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,6 +92,9 @@ export async function POST(request: NextRequest) {
     const isKakaoPay = tossResult.easyPay?.provider === "카카오페이";
     const method = isKakaoPay ? "KAKAO_PAY" : "CARD";
 
+    // 이벤트 조회
+    const event = await getActiveEvent();
+
     await prisma.$transaction(async (tx) => {
       // Payment 승인
       await tx.payment.update({
@@ -116,7 +120,8 @@ export async function POST(request: NextRequest) {
         const durationDays = (isUpgrade || isRenew)
           ? (snapshot.duration as number)
           : (payment.ad?.durationDays || 30);
-        const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        const bonusDays = (!isUpgrade && !isRenew) ? getBonusDays(durationDays, event) : 0;
+        const endDate = new Date(now.getTime() + (durationDays + bonusDays) * 24 * 60 * 60 * 1000);
 
         if (isUpgrade || isRenew) {
           // 기존 옵션 삭제
@@ -159,6 +164,7 @@ export async function POST(request: NextRequest) {
               lastJumpedAt: now,
               manualJumpUsedToday: 0,
               editCount: 0,
+              bonusDays: 0,
             },
           });
         } else {
@@ -170,6 +176,7 @@ export async function POST(request: NextRequest) {
               startDate: now,
               endDate,
               lastJumpedAt: now,
+              bonusDays,
             },
           });
         }

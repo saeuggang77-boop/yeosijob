@@ -8,6 +8,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
+import { getActiveEvent } from "@/lib/event";
 
 function isNewPost(createdAt: Date): boolean {
   return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
@@ -29,6 +30,14 @@ export const metadata = {
 };
 
 export default async function HomePage() {
+  const event = await getActiveEvent();
+  const eventInfo = event ? {
+    eventName: event.eventName,
+    bonus30: event.bonus30,
+    bonus60: event.bonus60,
+    bonus90: event.bonus90,
+    endDate: event.endDate?.toISOString() || null,
+  } : null;
 
   const baseWhere = { status: "ACTIVE" as const };
 
@@ -159,7 +168,7 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-screen-xl">
       {/* Announcement Bar */}
-      <AnnouncementBar />
+      <AnnouncementBar eventInfo={eventInfo} />
 
       {/* Hero Section with Bokeh Effect */}
       <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-16 text-center md:py-24">

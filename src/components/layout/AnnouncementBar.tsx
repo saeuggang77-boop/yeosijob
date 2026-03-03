@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Smartphone, Share, X, Plus } from "lucide-react";
+import { Smartphone, Share, Plus } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function AnnouncementBar() {
+interface AnnouncementBarProps {
+  eventInfo?: { eventName: string; endDate: string | null; bonus30: number; bonus60: number; bonus90: number } | null;
+}
+
+export function AnnouncementBar({ eventInfo }: AnnouncementBarProps = {}) {
   const [visible, setVisible] = useState(false);
-  const [mode, setMode] = useState<"promo" | "install-android" | "install-ios" | null>(null);
+  const [mode, setMode] = useState<"promo" | "install-android" | "install-ios" | "event" | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -53,9 +57,24 @@ export function AnnouncementBar() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Fallback: if no beforeinstallprompt after 2s, show promo
+    // Fallback: if no beforeinstallprompt after 2s, show event or promo
     const timeout = setTimeout(() => {
       if (!deferredPrompt) {
+        if (eventInfo) {
+          const eventDismissed = localStorage.getItem("event-bar-dismissed");
+          if (eventDismissed) {
+            const days = (Date.now() - new Date(eventDismissed).getTime()) / (1000 * 60 * 60 * 24);
+            if (days >= 7) {
+              setMode("event");
+              setVisible(true);
+              return;
+            }
+          } else {
+            setMode("event");
+            setVisible(true);
+            return;
+          }
+        }
         const promoDismissed = localStorage.getItem("announcement-dismissed");
         if (!promoDismissed) {
           setMode("promo");
@@ -85,12 +104,36 @@ export function AnnouncementBar() {
     setVisible(false);
     if (mode === "promo") {
       localStorage.setItem("announcement-dismissed", "1");
+    } else if (mode === "event") {
+      localStorage.setItem("event-bar-dismissed", new Date().toISOString());
     } else {
       localStorage.setItem("pwa-bar-dismissed", new Date().toISOString());
     }
   };
 
   if (!visible || !mode) return null;
+
+  // Event banner
+  if (mode === "event" && eventInfo) {
+    const dDay = eventInfo.endDate
+      ? Math.ceil((new Date(eventInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : null;
+    return (
+      <div className="relative bg-gradient-to-r from-primary to-accent px-4 py-2 text-center text-sm font-medium text-primary-foreground">
+        <span>
+          🎉 {eventInfo.eventName} 진행 중! 60일 등록하면 {60 + eventInfo.bonus60}일!
+          {dDay !== null && dDay > 0 && ` 종료까지 D-${dDay}`}
+        </span>
+        <button
+          onClick={dismiss}
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-black/10"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
 
   // Promo banner
   if (mode === "promo") {

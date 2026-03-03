@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getActiveEvent, getBonusDays } from "@/lib/event";
 
 export async function POST(
   _request: NextRequest,
@@ -27,7 +28,9 @@ export async function POST(
     }
 
     const now = new Date();
-    const endDate = new Date(now.getTime() + ad.durationDays * 24 * 60 * 60 * 1000);
+    const event = await getActiveEvent();
+    const bonusDays = getBonusDays(ad.durationDays, event);
+    const endDate = new Date(now.getTime() + (ad.durationDays + bonusDays) * 24 * 60 * 60 * 1000);
 
     await prisma.ad.update({
       where: { id },
@@ -36,6 +39,7 @@ export async function POST(
         startDate: now,
         endDate,
         lastJumpedAt: now,
+        bonusDays,
       },
     });
 

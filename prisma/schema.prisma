@@ -336,6 +336,9 @@ model Ad {
   bannerSubtitle String?
   bannerTemplate Int     @default(0)
 
+  // 이벤트 보너스
+  bonusDays Int @default(0)
+
   // 통계
   viewCount  Int @default(0)
   clickCount Int @default(0)
@@ -875,4 +878,21 @@ model SpamWord {
   admin User @relation("spamWordActions", fields: [createdBy], references: [id])
 
   @@map("spam_words")
+}
+
+// ── EVENT CONFIG (이벤트 설정) ──
+
+model EventConfig {
+  id            String    @id @default("singleton")
+  enabled       Boolean   @default(false)
+  eventName     String    @default("기간 추가 이벤트")
+  startDate     DateTime?
+  endDate       DateTime?
+  bonus30       Int       @default(10)
+  bonus60       Int       @default(30)
+  bonus90       Int       @default(60)
+  targetNewOnly Boolean   @default(true)
+  updatedAt     DateTime  @updatedAt
+
+  @@map("event_configs")
 }

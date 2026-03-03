@@ -23,6 +23,7 @@ interface Props {
   upgradeFrom?: string;
   freeCredits?: number;
   onCreditSubmit?: () => void;
+  eventInfo?: { bonus30: number; bonus60: number; bonus90: number; eventName: string; endDate: string | null } | null;
 }
 
 // Phase 2-16: 모든 등급 오픈 (FREE 추가)
@@ -60,6 +61,7 @@ export function Step3ProductSelector({
   upgradeFrom,
   freeCredits = 0,
   onCreditSubmit,
+  eventInfo,
 }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -288,21 +290,50 @@ export function Step3ProductSelector({
             <CardTitle className="text-lg">광고 기간</CardTitle>
           </CardHeader>
           <CardContent>
+            {eventInfo && (
+              <div className="mb-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+                <div className="flex items-center gap-2 font-semibold text-primary">
+                  <span>🎉</span>
+                  <span>{eventInfo.eventName}</span>
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  지금 등록하면 보너스 기간을 드려요!
+                </p>
+              </div>
+            )}
             <div className="flex gap-2">
-              {DURATION_OPTIONS.map((d) => (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => onUpdate({ durationDays: d.value })}
-                  className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
-                    durationDays === d.value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
+              {DURATION_OPTIONS.map((d) => {
+                const bonus = eventInfo
+                  ? d.value === 30 ? eventInfo.bonus30
+                    : d.value === 60 ? eventInfo.bonus60
+                    : d.value === 90 ? eventInfo.bonus90
+                    : 0
+                  : 0;
+
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => onUpdate({ durationDays: d.value })}
+                    className={`flex-1 rounded-md border py-3 text-center text-sm font-medium transition-colors ${
+                      durationDays === d.value
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div>
+                        {bonus > 0 ? `${d.value}일 → ${d.value + bonus}일` : d.label}
+                      </div>
+                      {bonus > 0 && (
+                        <div className="mt-0.5 text-[10px] text-primary font-semibold">
+                          +{bonus}일 무료
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -488,10 +519,23 @@ export function Step3ProductSelector({
             </div>
           ) : (
             <>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">줄광고 ({durationDays}일)</span>
-                <span>{AD_PRODUCTS.LINE.pricing[durationDays as DurationDays].toLocaleString()}원</span>
-              </div>
+              {(() => {
+                const bonus = eventInfo
+                  ? durationDays === 30 ? eventInfo.bonus30
+                    : durationDays === 60 ? eventInfo.bonus60
+                    : durationDays === 90 ? eventInfo.bonus90
+                    : 0
+                  : 0;
+
+                return (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      줄광고 ({durationDays}일{bonus > 0 ? ` + ${bonus}일` : ""})
+                    </span>
+                    <span>{AD_PRODUCTS.LINE.pricing[durationDays as DurationDays].toLocaleString()}원</span>
+                  </div>
+                );
+              })()}
               {productId !== "LINE" && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">

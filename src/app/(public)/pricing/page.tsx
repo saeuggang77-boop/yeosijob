@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth";
 import { AD_PRODUCTS, AD_OPTIONS } from "@/lib/constants/products";
+import { getActiveEvent } from "@/lib/event";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -19,7 +21,7 @@ export const metadata = {
 };
 
 export default async function PricingPage() {
-  const session = await auth();
+  const [session, event] = await Promise.all([auth(), getActiveEvent()]);
 
   const formatPrice = (amount: number): string => {
     if (amount === 0) return "0원";
@@ -73,6 +75,27 @@ export default async function PricingPage() {
         </p>
       </div>
 
+      {/* Event Banner */}
+      {event && (
+        <div className="mb-8 rounded-xl border border-primary/30 bg-primary/5 px-6 py-5 text-center">
+          <div className="flex items-center justify-center gap-2 text-lg font-bold text-primary">
+            <span>🎉</span>
+            <span>{event.eventName} 진행 중!</span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            지금 등록하면 보너스 기간을 드려요!
+            <span className="ml-2 font-medium text-foreground">
+              30일 +{event.bonus30}일 · 60일 +{event.bonus60}일 · 90일 +{event.bonus90}일
+            </span>
+          </p>
+          {event.endDate && (
+            <Badge className="mt-2">
+              종료까지 D-{Math.max(0, Math.ceil((event.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))}
+            </Badge>
+          )}
+        </div>
+      )}
+
       {/* Main Product Tiers Table */}
       <Card className="mb-12">
         <CardHeader>
@@ -90,15 +113,36 @@ export default async function PricingPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">30일</span>
-                    <span className="font-medium">{formatPrice(tier.pricing[30])}</span>
+                    <div className="text-right">
+                      <span className="font-medium">{formatPrice(tier.pricing[30])}</span>
+                      {event && event.bonus30 > 0 && tier.pricing[30] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold">
+                          30→{30 + event.bonus30}일
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">60일</span>
-                    <span className="font-medium">{formatPrice(tier.pricing[60])}</span>
+                    <div className="text-right">
+                      <span className="font-medium">{formatPrice(tier.pricing[60])}</span>
+                      {event && event.bonus60 > 0 && tier.pricing[60] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold">
+                          60→{60 + event.bonus60}일
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">90일</span>
-                    <span className="font-medium">{formatPrice(tier.pricing[90])}</span>
+                    <div className="text-right">
+                      <span className="font-medium">{formatPrice(tier.pricing[90])}</span>
+                      {event && event.bonus90 > 0 && tier.pricing[90] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold">
+                          90→{90 + event.bonus90}일
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="text-muted-foreground">자동점프/일</span>
@@ -172,9 +216,30 @@ export default async function PricingPage() {
                 {orderedTiers.map((tier) => (
                   <tr key={tier.id} className={getTierRowClass(tier.id)}>
                     <td className="p-3 font-semibold">{tier.name}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(tier.pricing[30])}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(tier.pricing[60])}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(tier.pricing[90])}</td>
+                    <td className="text-center p-3 font-medium">
+                      {formatPrice(tier.pricing[30])}
+                      {event && event.bonus30 > 0 && tier.pricing[30] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold mt-0.5">
+                          30→{30 + event.bonus30}일
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-center p-3 font-medium">
+                      {formatPrice(tier.pricing[60])}
+                      {event && event.bonus60 > 0 && tier.pricing[60] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold mt-0.5">
+                          60→{60 + event.bonus60}일
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-center p-3 font-medium">
+                      {formatPrice(tier.pricing[90])}
+                      {event && event.bonus90 > 0 && tier.pricing[90] > 0 && (
+                        <span className="block text-[10px] text-primary font-semibold mt-0.5">
+                          90→{90 + event.bonus90}일
+                        </span>
+                      )}
+                    </td>
                     <td className="text-center p-3">{formatNumber(tier.autoJumpPerDay)}</td>
                     <td className="text-center p-3">{formatNumber(tier.manualJumpPerDay)}</td>
                     <td className="text-center p-3">

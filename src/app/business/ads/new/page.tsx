@@ -19,6 +19,7 @@ export default function NewAdPage() {
   const { data: session } = useSession();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [freeCredits, setFreeCredits] = useState(0);
+  const [eventInfo, setEventInfo] = useState<{ bonus30: number; bonus60: number; bonus90: number; eventName: string; endDate: string | null } | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
     regions: [],
@@ -44,11 +45,22 @@ export default function NewAdPage() {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   useEffect(() => {
-    fetch("/api/verification")
-      .then((res) => res.json())
-      .then((data) => {
-        setIsVerified(data.isVerified ?? false);
-        setFreeCredits(data.freeAdCredits ?? 0);
+    Promise.all([
+      fetch("/api/verification").then((res) => res.json()),
+      fetch("/api/events/active").then((res) => res.json()),
+    ])
+      .then(([verifyData, eventData]) => {
+        setIsVerified(verifyData.isVerified ?? false);
+        setFreeCredits(verifyData.freeAdCredits ?? 0);
+        if (eventData.active) {
+          setEventInfo({
+            eventName: eventData.eventName,
+            bonus30: eventData.bonus30,
+            bonus60: eventData.bonus60,
+            bonus90: eventData.bonus90,
+            endDate: eventData.endDate,
+          });
+        }
       })
       .catch(() => setIsVerified(false));
   }, []);
@@ -276,6 +288,7 @@ export default function NewAdPage() {
             freeSubmitLoading={loading}
             freeCredits={freeCredits}
             onCreditSubmit={() => handleSubmit(undefined, true)}
+            eventInfo={eventInfo}
           />
         )}
         {step === 4 && formData.productId !== "FREE" && (
@@ -284,6 +297,7 @@ export default function NewAdPage() {
             onBack={handleBack}
             onSubmit={handleSubmit}
             loading={loading}
+            eventInfo={eventInfo}
           />
         )}
       </div>

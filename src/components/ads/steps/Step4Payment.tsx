@@ -19,9 +19,10 @@ interface Props {
   onBack: () => void;
   onSubmit: (paymentMethod: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") => void;
   loading: boolean;
+  eventInfo?: { bonus30: number; bonus60: number; bonus90: number; eventName: string; endDate: string | null } | null;
 }
 
-export function Step4Payment({ data, onBack, onSubmit, loading }: Props) {
+export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Props) {
   const [selectedMethod, setSelectedMethod] = useState<"CARD" | "KAKAO_PAY" | "BANK_TRANSFER">("CARD");
 
   const productId = data.productId || "LINE";
@@ -147,10 +148,36 @@ export function Step4Payment({ data, onBack, onSubmit, loading }: Props) {
                   </div>
                 );
               })}
-              <div className="flex justify-between text-muted-foreground">
-                <span>기간</span>
-                <span>{durationDays}일</span>
-              </div>
+              {(() => {
+                const bonus = eventInfo
+                  ? durationDays === 30 ? eventInfo.bonus30
+                    : durationDays === 60 ? eventInfo.bonus60
+                    : durationDays === 90 ? eventInfo.bonus90
+                    : 0
+                  : 0;
+
+                return bonus > 0 ? (
+                  <>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>기간</span>
+                      <span>{durationDays}일</span>
+                    </div>
+                    <div className="flex justify-between text-primary">
+                      <span>🎉 이벤트 보너스</span>
+                      <span>+{bonus}일</span>
+                    </div>
+                    <div className="flex justify-between font-medium">
+                      <span>총 광고 기간</span>
+                      <span>{durationDays + bonus}일</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>기간</span>
+                    <span>{durationDays}일</span>
+                  </div>
+                );
+              })()}
               <Separator />
               <div className="flex justify-between text-base font-bold">
                 <span>총 결제금액</span>

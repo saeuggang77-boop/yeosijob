@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { AdProductId, AdOptionId } from "@/generated/prisma/client";
+import { getActiveEvent, getBonusDays } from "@/lib/event";
 
 export async function POST(
   _request: NextRequest,
@@ -39,7 +40,9 @@ export async function POST(
     const durationDays = (isUpgrade || isRenew)
       ? (snapshot.duration as number)
       : (payment.ad?.durationDays || 30);
-    const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const event = await getActiveEvent();
+    const bonusDays = (!isUpgrade && !isRenew) ? getBonusDays(durationDays, event) : 0;
+    const endDate = new Date(now.getTime() + (durationDays + bonusDays) * 24 * 60 * 60 * 1000);
 
     await prisma.$transaction(async (tx) => {
       // Payment 승인
@@ -93,6 +96,7 @@ export async function POST(
               lastJumpedAt: now,
               manualJumpUsedToday: 0,
               editCount: 0,
+              bonusDays: 0,
             },
           });
         } else {
@@ -104,6 +108,7 @@ export async function POST(
               startDate: now,
               endDate,
               lastJumpedAt: now,
+              bonusDays,
             },
           });
         }
@@ -120,11 +125,14 @@ export async function POST(
 
     // #5: Null pointer 수정 - ad가 없으면 알림 생성 건너뛰기
     if (payment.ad) {
+      const periodText = bonusDays > 0
+        ? `${durationDays}일 + 보너스 ${bonusDays}일 = 총 ${durationDays + bonusDays}일`
+        : `${durationDays}일`;
       await prisma.notification.create({
         data: {
           userId: payment.ad.userId,
           title: "입금이 확인되었습니다",
-          message: `'${payment.ad.title}' 광고가 활성화되었습니다. 광고 기간: ${durationDays}일`,
+          message: `'${payment.ad.title}' 광고가 활성화되었습니다. 광고 기간: ${periodText}`,
           link: `/business/dashboard`,
         },
       });

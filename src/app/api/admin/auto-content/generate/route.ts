@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
     ];
 
     let totalGenerated = 0;
+    const generatedBefore = new Date();
     const perPersonality = Math.ceil(count / personalities.length);
 
     for (const personality of personalities) {
@@ -158,6 +159,7 @@ export async function POST(request: NextRequest) {
       message: `${totalGenerated}개의 콘텐츠가 생성되었습니다`,
       generated: totalGenerated,
       type,
+      generatedAfter: generatedBefore.toISOString(),
     });
   } catch (error) {
     console.error("Content generation error:", error);

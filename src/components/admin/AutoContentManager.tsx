@@ -145,6 +145,8 @@ export function AutoContentManager({
   const [editItem, setEditItem] = useState<{id: string; title: string; content: string; category: string} | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createForm, setCreateForm] = useState({ title: "", content: "", category: "CHAT" });
+  const [recentlyGeneratedAfter, setRecentlyGeneratedAfter] = useState<string | null>(null);
+  const [filterRecentOnly, setFilterRecentOnly] = useState(false);
 
   const refreshStats = async () => {
     try {
@@ -193,6 +195,13 @@ export function AutoContentManager({
         const data = await res.json();
         toast.success(data.message);
         await refreshStats();
+        // 방금 생성 필터: 타임스탬프 저장 + 목록 열기 + 필터 ON
+        if (data.generatedAfter) {
+          setRecentlyGeneratedAfter(data.generatedAfter);
+          setFilterRecentOnly(true);
+          setShowPoolItems(true);
+          await loadPoolItems();
+        }
       } else {
         const data = await res.json();
         toast.error(data.error || "생성에 실패했습니다");
@@ -996,6 +1005,28 @@ export function AutoContentManager({
                 )
               )}
             </Button>
+            {showPoolItems && recentlyGeneratedAfter && (
+              <Button
+                onClick={() => setFilterRecentOnly(!filterRecentOnly)}
+                variant={filterRecentOnly ? "default" : "outline"}
+                size="sm"
+                className={filterRecentOnly ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
+              >
+                방금 생성
+                <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                  {poolItems.filter(item => new Date(item.createdAt) >= new Date(recentlyGeneratedAfter)).length}
+                </Badge>
+              </Button>
+            )}
+            {showPoolItems && filterRecentOnly && (
+              <Button
+                onClick={() => setFilterRecentOnly(false)}
+                variant="outline"
+                size="sm"
+              >
+                전체 보기
+              </Button>
+            )}
             {showPoolItems && (
               <Button
                 onClick={() => setShowCreateForm(true)}
@@ -1032,8 +1063,8 @@ export function AutoContentManager({
                       />
                     </TableHead>
                     <TableHead className="text-muted-foreground">제목</TableHead>
-                    <TableHead className="text-muted-foreground">내용</TableHead>
                     <TableHead className="text-muted-foreground">카테고리</TableHead>
+                    <TableHead className="text-muted-foreground">내용</TableHead>
                     <TableHead className="text-muted-foreground">성격유형</TableHead>
                     <TableHead className="text-muted-foreground text-right">액션</TableHead>
                   </TableRow>
@@ -1046,7 +1077,10 @@ export function AutoContentManager({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    poolItems.map((item) => (
+                    (filterRecentOnly && recentlyGeneratedAfter
+                      ? poolItems.filter(item => new Date(item.createdAt) >= new Date(recentlyGeneratedAfter))
+                      : poolItems
+                    ).map((item) => (
                       <TableRow
                         key={item.id}
                         className={`border-zinc-700 cursor-pointer hover:bg-zinc-800 ${selectedPoolIds.has(item.id) ? "bg-zinc-800/50" : ""}`}
@@ -1071,6 +1105,9 @@ export function AutoContentManager({
                             ) : (
                               <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
                             )}
+                            {recentlyGeneratedAfter && new Date(item.createdAt) >= new Date(recentlyGeneratedAfter) && (
+                              <Badge className="bg-blue-600 text-white text-[10px] px-1.5 py-0 shrink-0 animate-pulse">NEW</Badge>
+                            )}
                             <span className="truncate">
                               {item.title || "제목 없음"}
                             </span>
@@ -1081,17 +1118,17 @@ export function AutoContentManager({
                             </div>
                           )}
                         </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {CATEGORY_OPTIONS.find(c => c.key === item.category)?.label || item.category}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="max-w-[300px]">
                           {expandedPoolItemId !== item.id && (
                             <div className="line-clamp-2 text-sm text-muted-foreground">
                               {item.content}
                             </div>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {CATEGORY_OPTIONS.find(c => c.key === item.category)?.label || item.category}
-                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-[#D4A853]">

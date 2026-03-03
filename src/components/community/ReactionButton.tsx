@@ -9,7 +9,7 @@ const REACTIONS = [
   { type: "EMPATHY", emoji: "😭", label: "슬픔" },
   { type: "SURPRISE", emoji: "😱", label: "헐" },
   { type: "ANGRY", emoji: "😡", label: "화남" },
-  { type: "CHEER", emoji: "💪", label: "응원" },
+  { type: "CHEER", emoji: "💪", label: "힘내" },
 ] as const;
 
 interface ReactionButtonProps {

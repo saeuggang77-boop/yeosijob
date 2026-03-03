@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const REACTIONS = [
-  { type: "LIKE", emoji: "👍", label: "좋아요" },
-  { type: "FUNNY", emoji: "🤣", label: "웃겨요" },
-  { type: "EMPATHY", emoji: "😭", label: "슬퍼요" },
+  { type: "LIKE", emoji: "👍", label: "추천" },
+  { type: "FUNNY", emoji: "🤣", label: "웃음" },
+  { type: "EMPATHY", emoji: "😭", label: "슬픔" },
   { type: "SURPRISE", emoji: "😱", label: "헐" },
-  { type: "ANGRY", emoji: "😡", label: "화나요" },
-  { type: "CHEER", emoji: "💪", label: "힘내요" },
+  { type: "ANGRY", emoji: "😡", label: "화남" },
+  { type: "CHEER", emoji: "💪", label: "응원" },
 ] as const;
 
 interface ReactionButtonProps {

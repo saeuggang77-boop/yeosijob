@@ -93,28 +93,12 @@ export function CommentSection({
         </h2>
 
         {/* 정렬 토글 */}
-        <div className="flex rounded-lg border border-border text-sm">
-          <button
-            onClick={() => setSortOrder("asc")}
-            className={`px-3 py-1.5 transition-colors ${
-              sortOrder === "asc"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            }`}
-          >
-            등록순
-          </button>
-          <button
-            onClick={() => setSortOrder("desc")}
-            className={`px-3 py-1.5 transition-colors ${
-              sortOrder === "desc"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            }`}
-          >
-            최신순
-          </button>
-        </div>
+        <button
+          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          {sortOrder === "asc" ? "등록순" : "최신순"} ↕
+        </button>
       </div>
 
       {/* Comment Form */}

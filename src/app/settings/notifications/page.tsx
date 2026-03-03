@@ -165,8 +165,8 @@ export default function NotificationSettingsPage() {
         </div>
 
         <ToggleItem
-          label="좋아요 알림"
-          desc="내 글에 좋아요가 달리면 알려드려요"
+          label="추천 알림"
+          desc="내 글에 추천이 달리면 알려드려요"
           badge="종"
           badgeType="bell"
           checked={settings.notifyLike}

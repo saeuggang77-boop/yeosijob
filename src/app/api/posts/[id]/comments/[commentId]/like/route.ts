@@ -54,8 +54,8 @@ export async function POST(
           await prisma.notification.create({
             data: {
               userId: comment.authorId,
-              title: "좋아요",
-              message: `${session.user.name || "누군가"}님이 회원님의 댓글에 좋아요를 눌렀습니다`,
+              title: "추천",
+              message: `${session.user.name || "누군가"}님이 회원님의 댓글을 추천했습니다`,
               link: `/community/${comment.postId}`,
             },
           }).catch(() => {});

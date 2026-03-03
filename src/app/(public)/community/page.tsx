@@ -269,7 +269,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     {post._count.likes > 0 && (
                       <>
                         <span>·</span>
-                        <span>♥ {post._count.likes}</span>
+                        <span>추천 {post._count.likes}</span>
                       </>
                     )}
                   </div>
@@ -285,7 +285,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                     <th className="px-4 py-3 text-left text-sm font-semibold">번호</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">제목</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold">작성자</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold">좋아요</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold">추천</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">조회수</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold">작성일</th>
                     {isAdmin && <th className="px-4 py-3 text-center text-sm font-semibold w-16">관리</th>}
@@ -351,7 +351,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-muted-foreground">
                         {post._count.likes > 0 ? (
-                          <span>♥ {post._count.likes}</span>
+                          <span>👍 {post._count.likes}</span>
                         ) : (
                           <span>0</span>
                         )}

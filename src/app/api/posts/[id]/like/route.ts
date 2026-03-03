@@ -102,7 +102,7 @@ export async function POST(
             await prisma.notification.create({
               data: {
                 userId: post.authorId,
-                title: "좋아요",
+                title: "추천",
                 message: `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 반응했습니다`,
                 link: `/community/${id}`,
               },

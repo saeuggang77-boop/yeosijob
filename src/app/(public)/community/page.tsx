@@ -48,7 +48,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const category = params.category || "";
   const query = params.q || "";
   const sort = params.sort || "latest";
-  const limit = 20;
+  const limit = 15;
 
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";

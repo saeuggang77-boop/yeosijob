@@ -1,23 +1,33 @@
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || '여시잡';
-  const options = {
-    body: data.body || '새로운 알림이 있습니다',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: { url: data.url || '/' },
-    vibrate: [200, 100, 200],
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  if (!event.data) return;
+
+  try {
+    var data = event.data.json();
+    var options = {
+      body: data.body || '',
+      icon: '/icon-192x192.png',
+      badge: '/icon-192x192.png',
+      data: { url: data.url || '/' },
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || '여시알바', options)
+    );
+  } catch (e) {
+    console.error('Push event error:', e);
+  }
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  const url = event.notification.data?.url || '/';
+
+  var url = event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if (client.url.indexOf(self.location.origin) !== -1 && 'focus' in client) {
           client.navigate(url);
           return client.focus();
         }

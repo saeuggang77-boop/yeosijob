@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { PushSubscriptionManager } from "@/components/push/PushSubscriptionManager";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: "📊" },
@@ -50,6 +51,7 @@ export default async function AdminLayout({
           {children}
         </div>
       </main>
+      <PushSubscriptionManager />
     </div>
   );
 }

@@ -103,6 +103,7 @@ export default async function AutoContentPage() {
         <AutoContentManager
           initialConfig={{
             enabled: config.enabled,
+            autoCommentEnabled: config.autoCommentEnabled,
             postsPerDay: config.postsPerDay,
             commentsPerPost: config.commentsPerPost,
             commentsPerPostMin: config.commentsPerPostMin,

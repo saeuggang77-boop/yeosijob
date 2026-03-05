@@ -40,6 +40,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const {
       enabled,
+      autoCommentEnabled,
       postsPerDay,
       commentsPerPost,
       commentsPerPostMin,
@@ -57,6 +58,7 @@ export async function PUT(request: NextRequest) {
     // seoKeywords 업데이트 시 usage도 정리
     const updateData: {
       enabled?: boolean;
+      autoCommentEnabled?: boolean;
       postsPerDay?: number;
       commentsPerPost?: number;
       commentsPerPostMin?: number;
@@ -72,6 +74,7 @@ export async function PUT(request: NextRequest) {
       seoKeywordUsage?: Record<string, number>;
     } = {
       ...(typeof enabled === "boolean" && { enabled }),
+      ...(typeof autoCommentEnabled === "boolean" && { autoCommentEnabled }),
       ...(typeof postsPerDay === "number" && { postsPerDay }),
       ...(typeof commentsPerPost === "number" && { commentsPerPost }),
       ...(typeof commentsPerPostMin === "number" && { commentsPerPostMin }),
@@ -105,6 +108,7 @@ export async function PUT(request: NextRequest) {
       create: {
         id: "singleton",
         enabled: enabled ?? false,
+        autoCommentEnabled: autoCommentEnabled ?? true,
         postsPerDay: postsPerDay ?? 8,
         commentsPerPost: commentsPerPost ?? 3,
         commentsPerPostMin: commentsPerPostMin ?? 2,

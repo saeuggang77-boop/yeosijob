@@ -34,6 +34,7 @@ import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, 
 
 interface Config {
   enabled: boolean;
+  autoCommentEnabled: boolean;
   postsPerDay: number;
   commentsPerPost: number;
   commentsPerPostMin: number;
@@ -653,6 +654,21 @@ export function AutoContentManager({
               checked={config.enabled}
               onCheckedChange={(checked) =>
                 setConfig({ ...config, enabled: checked })
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base font-medium">자동 댓글 활성화</Label>
+              <p className="text-sm text-muted-foreground">
+                OFF 시 게시글만 발행되고 댓글/답글은 생성되지 않습니다
+              </p>
+            </div>
+            <Switch
+              checked={config.autoCommentEnabled}
+              onCheckedChange={(checked) =>
+                setConfig({ ...config, autoCommentEnabled: checked })
               }
             />
           </div>

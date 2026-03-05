@@ -729,6 +729,7 @@ model ContentPool {
 model AutoContentConfig {
   id                 String   @id @default("singleton")
   enabled            Boolean  @default(false)
+  autoCommentEnabled Boolean  @default(true)
   postsPerDay        Int      @default(8)
   commentsPerPost    Int      @default(3)
   commentsPerPostMin Int      @default(2)

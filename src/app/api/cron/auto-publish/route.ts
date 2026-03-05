@@ -116,6 +116,24 @@ export async function GET(request: NextRequest) {
     }
 
     // === 2. 대화 스레드 발행 (댓글+답글 통합) ===
+    if (!config.autoCommentEnabled) {
+      return NextResponse.json({
+        message: "Auto-publish completed (comments disabled)",
+        published,
+        tikitakaReplies: 0,
+        realPostReplies: 0,
+        randomLikes: { posts: 0, comments: 0 },
+        kstHour,
+        config: {
+          enabled: config.enabled,
+          autoCommentEnabled: false,
+          activeHours: `${config.activeStartHour}:00 ~ ${config.activeEndHour}:00`,
+          postsPerDay: config.postsPerDay,
+        },
+        todayCounts,
+      });
+    }
+
     const avgConversation = Math.round(((config.commentsPerPostMin ?? 2) + (config.commentsPerPostMax ?? 10)) / 2);
     const dailyConversationTarget = getDailyTarget(config.postsPerDay * avgConversation, 1);
     const remainingConversation = Math.max(0, dailyConversationTarget - (todayCounts.comments + todayCounts.replies));

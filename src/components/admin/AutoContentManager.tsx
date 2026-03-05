@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, ExternalLink } from "lucide-react";
+import { Loader2, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, ExternalLink, Bell, BellOff } from "lucide-react";
 
 interface Config {
   enabled: boolean;
@@ -148,6 +148,90 @@ export function AutoContentManager({
   const [createForm, setCreateForm] = useState({ title: "", content: "", category: "CHAT" });
   const [recentlyGeneratedAfter, setRecentlyGeneratedAfter] = useState<string | null>(null);
   const [filterRecentOnly, setFilterRecentOnly] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  // 브라우저 Push 구독 상태 확인
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    setPushSupported(true);
+
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (!reg) return;
+      reg.pushManager.getSubscription().then((sub) => {
+        setPushSubscribed(!!sub);
+      });
+    });
+  }, []);
+
+  const handlePushToggle = async (enable: boolean) => {
+    setPushLoading(true);
+    try {
+      if (enable) {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          toast.error("알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.");
+          setPushLoading(false);
+          return;
+        }
+        const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!publicKey) {
+          toast.error("VAPID 키가 설정되지 않았습니다");
+          setPushLoading(false);
+          return;
+        }
+        const padding = "=".repeat((4 - (publicKey.length % 4)) % 4);
+        const b64 = (publicKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const raw = atob(b64);
+        const arr = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: arr,
+        });
+        const p256dh = sub.getKey("p256dh");
+        const auth = sub.getKey("auth");
+        const toB64 = (buf: ArrayBuffer | null) => {
+          if (!buf) return "";
+          const bytes = new Uint8Array(buf);
+          let bin = "";
+          for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+          return btoa(bin);
+        };
+        const res = await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            endpoint: sub.endpoint,
+            keys: { p256dh: toB64(p256dh), auth: toB64(auth) },
+          }),
+        });
+        if (res.ok) {
+          setPushSubscribed(true);
+          toast.success("웹 푸시 알림이 활성화되었습니다");
+        } else {
+          toast.error("푸시 구독 저장에 실패했습니다");
+        }
+      } else {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) await sub.unsubscribe();
+        }
+        setPushSubscribed(false);
+        toast.success("웹 푸시 알림이 비활성화되었습니다");
+      }
+    } catch (error) {
+      console.error("Push toggle error:", error);
+      toast.error("푸시 알림 설정 중 오류가 발생했습니다");
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const refreshStats = async () => {
     try {
@@ -672,6 +756,27 @@ export function AutoContentManager({
               }
             />
           </div>
+
+          {pushSupported && (
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-medium flex items-center gap-2">
+                  {pushSubscribed ? <Bell className="size-4 text-[#D4A853]" /> : <BellOff className="size-4 text-muted-foreground" />}
+                  웹 푸시 알림
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {pushSubscribed
+                    ? "이 브라우저에서 원고 부족 등 알림을 수신합니다"
+                    : "활성화하면 원고 부족 등 알림을 이 브라우저에서 받습니다"}
+                </p>
+              </div>
+              <Switch
+                checked={pushSubscribed}
+                onCheckedChange={handlePushToggle}
+                disabled={pushLoading}
+              />
+            </div>
+          )}
 
           <div className="rounded-md bg-zinc-900 border border-zinc-700 p-3 text-xs text-muted-foreground space-y-1">
             <p>게시글마다 총 대화 수(댓글+글쓴이 답글)가 최소~최대 범위 내에서 랜덤 결정됩니다.</p>

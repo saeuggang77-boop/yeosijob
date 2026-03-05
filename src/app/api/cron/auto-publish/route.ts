@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyCronAuth } from "@/lib/utils/cron-auth";
+import { sendPushNotification } from "@/lib/push-notification";
 import {
   isWithinActiveHours,
   getActiveHoursCount,
@@ -442,12 +443,66 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // === 6. 원고 부족 알림 (POST 원고 20개 이하 → 관리자 알림) ===
+    let poolAlert = false;
+    const remainingPool = await prisma.contentPool.count({
+      where: { type: "POST", isUsed: false },
+    });
+
+    if (remainingPool <= 20) {
+      // KST 자정 기준 오늘 이미 알림 보냈는지 체크
+      const kstOffset = 9 * 60 * 60 * 1000;
+      const kstNowDate = new Date(now.getTime() + kstOffset);
+      const todayStart = new Date(
+        Date.UTC(kstNowDate.getUTCFullYear(), kstNowDate.getUTCMonth(), kstNowDate.getUTCDate()) - kstOffset
+      );
+
+      const alreadySent = await prisma.notification.findFirst({
+        where: {
+          title: "원고 부족 알림",
+          createdAt: { gte: todayStart },
+        },
+      });
+
+      if (!alreadySent) {
+        const admins = await prisma.user.findMany({
+          where: { role: "ADMIN" },
+          select: { id: true },
+        });
+
+        if (admins.length > 0) {
+          // 인앱 알림
+          await prisma.notification.createMany({
+            data: admins.map((admin) => ({
+              userId: admin.id,
+              title: "원고 부족 알림",
+              message: `게시글 원고가 ${remainingPool}개 남았습니다. 추가 생성이 필요합니다.`,
+              link: "/admin/auto-content",
+            })),
+          });
+
+          // 웹 푸시
+          for (const admin of admins) {
+            sendPushNotification(admin.id, {
+              title: "원고 부족 알림",
+              body: `게시글 원고가 ${remainingPool}개 남았습니다. 추가 생성이 필요합니다.`,
+              url: "/admin/auto-content",
+            }).catch(() => {});
+          }
+
+          poolAlert = true;
+        }
+      }
+    }
+
     return NextResponse.json({
       message: "Auto-publish completed",
       published,
       tikitakaReplies,
       realPostReplies,
       randomLikes,
+      poolAlert,
+      remainingPool,
       kstHour,
       config: {
         enabled: config.enabled,

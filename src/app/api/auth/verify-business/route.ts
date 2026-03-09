@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Rate limiting (분당 3회)
     const rateLimitKey = `verify-business:${session.user.id}`;
-    const rateLimitResult = checkRateLimit(rateLimitKey, 3, 60 * 1000);
+    const rateLimitResult = await checkRateLimit(rateLimitKey, 3, 60 * 1000);
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

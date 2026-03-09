@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting
     const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
                request.headers.get("x-real-ip") || "unknown";
-    const rateLimitResult = checkRateLimit(`reset-password:${ip}`, 5, 60 * 1000);
+    const rateLimitResult = await checkRateLimit(`reset-password:${ip}`, 5, 60 * 1000);
     if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },

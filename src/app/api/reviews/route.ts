@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { success } = checkRateLimit(`review:${session.user.id}`, 5, 60_000);
+    const { success } = await checkRateLimit(`review:${session.user.id}`, 5, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }

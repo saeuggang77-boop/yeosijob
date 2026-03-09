@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { success } = checkRateLimit(`scrap:${session.user.id}`, 20, 60_000);
+    const { success } = await checkRateLimit(`scrap:${session.user.id}`, 20, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }

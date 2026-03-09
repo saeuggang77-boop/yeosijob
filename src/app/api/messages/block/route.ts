@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { success } = checkRateLimit(`block:${session.user.id}`, 10, 60_000);
+  const { success } = await checkRateLimit(`block:${session.user.id}`, 10, 60_000);
   if (!success) {
     return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
   }

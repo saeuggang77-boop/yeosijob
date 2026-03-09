@@ -89,7 +89,7 @@ export async function POST(
       return NextResponse.json({ error: msg }, { status: 403 });
     }
 
-    const { success } = checkRateLimit(`comment:${session.user.id}`, 10, 60_000);
+    const { success } = await checkRateLimit(`comment:${session.user.id}`, 10, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }

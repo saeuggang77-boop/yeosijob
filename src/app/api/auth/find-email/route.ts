@@ -5,7 +5,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 export async function POST(req: Request) {
   // Rate limit: IP 기준 1분에 3회
   const ip = req.headers.get("x-forwarded-for") || "unknown";
-  const { success } = checkRateLimit(`find-email:${ip}`, 3, 60_000);
+  const { success } = await checkRateLimit(`find-email:${ip}`, 3, 60_000);
   if (!success) {
     return NextResponse.json(
       { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },

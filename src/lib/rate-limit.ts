@@ -1,31 +1,64 @@
-// NOTE: 서버리스 환경에서는 인스턴스별 독립 동작. 완전한 보호를 위해 Redis 전환 필요
-const rateLimit = new Map<string, { count: number; resetAt: number }>();
+import { Redis } from "@upstash/redis";
 
-export function checkRateLimit(
+let redis: Redis | null = null;
+
+function getRedis(): Redis | null {
+  if (redis) return redis;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  redis = new Redis({ url, token });
+  return redis;
+}
+
+// 폴백: 메모리 기반 (로컬 개발용, Upstash 미설정 시)
+const memoryRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimitMemory(
   key: string,
-  limit: number = 5,
-  windowMs: number = 60 * 1000 // 1 minute
+  limit: number,
+  windowMs: number
 ): { success: boolean; remaining: number } {
   const now = Date.now();
-
-  // Lazy cleanup: 호출 시마다 만료된 항목 정리
-  for (const [k, entry] of rateLimit) {
-    if (now > entry.resetAt) {
-      rateLimit.delete(k);
-    }
+  for (const [k, entry] of memoryRateLimit) {
+    if (now > entry.resetAt) memoryRateLimit.delete(k);
   }
-
-  const entry = rateLimit.get(key);
-
+  const entry = memoryRateLimit.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimit.set(key, { count: 1, resetAt: now + windowMs });
+    memoryRateLimit.set(key, { count: 1, resetAt: now + windowMs });
     return { success: true, remaining: limit - 1 };
   }
-
-  if (entry.count >= limit) {
-    return { success: false, remaining: 0 };
-  }
-
+  if (entry.count >= limit) return { success: false, remaining: 0 };
   entry.count++;
   return { success: true, remaining: limit - entry.count };
+}
+
+export async function checkRateLimit(
+  key: string,
+  limit: number = 5,
+  windowMs: number = 60 * 1000
+): Promise<{ success: boolean; remaining: number }> {
+  const client = getRedis();
+
+  if (!client) {
+    return checkRateLimitMemory(key, limit, windowMs);
+  }
+
+  try {
+    const windowSec = Math.ceil(windowMs / 1000);
+    const redisKey = `rl:${key}`;
+
+    const count = await client.incr(redisKey);
+    if (count === 1) {
+      await client.expire(redisKey, windowSec);
+    }
+
+    return {
+      success: count <= limit,
+      remaining: Math.max(0, limit - count),
+    };
+  } catch {
+    // Redis 실패 시 메모리 폴백
+    return checkRateLimitMemory(key, limit, windowMs);
+  }
 }

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // #29: Rate limiting (분당 5회)
-    const { success: rateLimitOk } = checkRateLimit(`payment-confirm:${session.user.id}`, 5, 60_000);
+    const { success: rateLimitOk } = await checkRateLimit(`payment-confirm:${session.user.id}`, 5, 60_000);
     if (!rateLimitOk) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }

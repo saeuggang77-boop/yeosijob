@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    const rateLimitResult = checkRateLimit(`change-password:${session.user.id}`, 5, 60 * 1000);
+    const rateLimitResult = await checkRateLimit(`change-password:${session.user.id}`, 5, 60 * 1000);
     if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },

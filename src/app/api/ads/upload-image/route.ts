@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
-    const { success } = checkRateLimit(`ad-upload:${session.user.id}`, 20, 60_000);
+    const { success } = await checkRateLimit(`ad-upload:${session.user.id}`, 20, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }

@@ -240,9 +240,9 @@ export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Pro
                   : "border-border hover:border-primary/50"
               }`}
             >
-              <p className="font-medium">무통장 입금</p>
+              <p className="font-medium">무통장 입금 (가상계좌)</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                주문 완료 후 입금 안내 확인 / 48시간 이내 미입금 시 자동 취소
+                가상계좌가 자동 발급되며, 입금 확인 후 즉시 광고가 게재됩니다
               </p>
             </button>
           </CardContent>

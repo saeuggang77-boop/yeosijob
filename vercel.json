@@ -20,6 +20,18 @@
     {
       "path": "/api/cron/cleanup-old-messages",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/expire-ads",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/expire-pending",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/reset-manual-jump",
+      "schedule": "0 15 * * *"
     }
   ],
   "redirects": [

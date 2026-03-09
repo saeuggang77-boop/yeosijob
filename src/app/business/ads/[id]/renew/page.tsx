@@ -41,7 +41,7 @@ export default function RenewAdPage() {
     orderId: string;
     amount: number;
     orderName: string;
-    method: "CARD" | "KAKAO_PAY";
+    method: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER";
   } | null>(null);
 
   // Load current ad info
@@ -80,17 +80,14 @@ export default function RenewAdPage() {
         return;
       }
 
-      if (paymentMethod === "BANK_TRANSFER") {
-        router.push(`/business/ads/${result.adId}/payment?orderId=${result.orderId}`);
-      } else {
-        setPaymentInfo({
-          orderId: result.orderId,
-          amount: result.amount,
-          orderName: result.orderName,
-          method: paymentMethod as "CARD" | "KAKAO_PAY",
-        });
-        setShowPayment(true);
-      }
+      // 모든 유료 결제는 TossPaymentWidget으로 처리
+      setPaymentInfo({
+        orderId: result.orderId,
+        amount: result.amount,
+        orderName: result.orderName,
+        method: paymentMethod as "CARD" | "KAKAO_PAY" | "BANK_TRANSFER",
+      });
+      setShowPayment(true);
     } catch {
       setError("서버 오류가 발생했습니다");
     } finally {

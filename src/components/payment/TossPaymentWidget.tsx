@@ -11,7 +11,7 @@ interface Props {
   amount: number;
   customerName: string;
   customerEmail: string;
-  method: "CARD" | "KAKAO_PAY";
+  method: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER";
   successUrl?: string;
   failUrl?: string;
   onError?: (message: string) => void;
@@ -54,7 +54,21 @@ export function TossPaymentWidget({
     const resolvedFailUrl = failUrl || `${window.location.origin}/business/ads/new/fail`;
 
     try {
-      if (method === "KAKAO_PAY") {
+      if (method === "BANK_TRANSFER") {
+        await payment.requestPayment({
+          method: "VIRTUAL_ACCOUNT",
+          amount: { currency: "KRW", value: amount },
+          orderId,
+          orderName,
+          customerName,
+          customerEmail,
+          successUrl: resolvedSuccessUrl,
+          failUrl: resolvedFailUrl,
+          virtualAccount: {
+            validHours: 48,
+          },
+        });
+      } else if (method === "KAKAO_PAY") {
         await payment.requestPayment({
           method: "CARD",
           amount: { currency: "KRW", value: amount },
@@ -91,9 +105,11 @@ export function TossPaymentWidget({
 
   return (
     <Button className="h-12 w-full text-base" onClick={handlePayment}>
-      {method === "KAKAO_PAY"
-        ? `카카오페이 ${amount.toLocaleString()}원 결제`
-        : `카드 ${amount.toLocaleString()}원 결제`}
+      {method === "BANK_TRANSFER"
+        ? `가상계좌 ${amount.toLocaleString()}원 발급`
+        : method === "KAKAO_PAY"
+          ? `카카오페이 ${amount.toLocaleString()}원 결제`
+          : `카드 ${amount.toLocaleString()}원 결제`}
     </Button>
   );
 }

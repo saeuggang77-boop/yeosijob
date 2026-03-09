@@ -88,6 +88,33 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
+    // 가상계좌 결제인 경우: 입금 대기 상태로 처리
+    if (tossResult.virtualAccount) {
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          method: "BANK_TRANSFER",
+          tossPaymentKey: paymentKey,
+          bankName: tossResult.virtualAccount.bank,
+          accountNumber: tossResult.virtualAccount.accountNumber,
+          depositorName: tossResult.virtualAccount.customerName,
+          // status는 PENDING 유지 (입금 확인 후 webhook에서 APPROVED로 변경)
+        },
+      });
+
+      return NextResponse.json({
+        message: "가상계좌가 발급되었습니다",
+        adId: payment.adId,
+        orderId,
+        virtualAccount: {
+          bank: tossResult.virtualAccount.bank,
+          accountNumber: tossResult.virtualAccount.accountNumber,
+          customerName: tossResult.virtualAccount.customerName,
+          dueDate: tossResult.virtualAccount.dueDate,
+        },
+      });
+    }
+
     // 결제 방법 판별
     const isKakaoPay = tossResult.easyPay?.provider === "카카오페이";
     const method = isKakaoPay ? "KAKAO_PAY" : "CARD";

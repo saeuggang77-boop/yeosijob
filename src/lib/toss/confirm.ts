@@ -23,6 +23,14 @@ interface TossPaymentResponse {
   receipt?: {
     url: string;
   };
+  virtualAccount?: {
+    accountNumber: string;
+    bank: string;
+    customerName: string;
+    dueDate: string;
+    expired: boolean;
+    bankCode: string;
+  };
 }
 
 export async function confirmTossPayment(

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 interface DailyMetric {
   date: string;
   views: number;
-  clicks: number;
 }
 
 interface Stats {
@@ -16,14 +15,11 @@ interface Stats {
     id: string;
     title: string;
     viewCount: number;
-    clickCount: number;
   };
   daily: DailyMetric[];
   summary: {
     totalViews: number;
-    totalClicks: number;
     avgViews: number;
-    avgClicks: number;
   };
 }
 
@@ -73,29 +69,16 @@ export function StatsClient({
       </div>
 
       {/* 요약 카드 */}
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
-              총 조회수 (기간)
+              조회수 (기간)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
               {initialStats.summary.totalViews.toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              총 클릭수 (기간)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {initialStats.summary.totalClicks.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -112,19 +95,6 @@ export function StatsClient({
             </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              일평균 클릭수
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {initialStats.summary.avgClicks.toFixed(1)}
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* 전체 누적 통계 */}
@@ -132,17 +102,11 @@ export function StatsClient({
         <CardHeader>
           <CardTitle className="text-lg">전체 누적 통계</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
+        <CardContent>
           <div className="flex justify-between">
             <span className="text-muted-foreground">총 조회수</span>
             <span className="font-semibold">
               {initialStats.ad.viewCount.toLocaleString()}회
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">총 클릭수</span>
-            <span className="font-semibold">
-              {initialStats.ad.clickCount.toLocaleString()}회
             </span>
           </div>
         </CardContent>
@@ -209,9 +173,6 @@ export function StatsClient({
                     <th className="pb-2 text-right font-medium text-muted-foreground">
                       조회수
                     </th>
-                    <th className="pb-2 text-right font-medium text-muted-foreground">
-                      클릭수
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,9 +183,6 @@ export function StatsClient({
                       </td>
                       <td className="py-2 text-right">
                         {metric.views.toLocaleString()}
-                      </td>
-                      <td className="py-2 text-right">
-                        {metric.clicks.toLocaleString()}
                       </td>
                     </tr>
                   ))}

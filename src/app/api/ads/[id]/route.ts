@@ -45,11 +45,21 @@ export async function GET(
     );
   }
 
-  // 조회수 증가
-  await prisma.ad.update({
-    where: { id },
-    data: { viewCount: { increment: 1 } },
-  });
+  // 조회수 증가 + 일별 메트릭 기록
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  Promise.all([
+    prisma.ad.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    }),
+    prisma.adDailyMetric.upsert({
+      where: { adId_date: { adId: id, date: today } },
+      update: { views: { increment: 1 } },
+      create: { adId: id, date: today, views: 1, clicks: 0 },
+    }),
+  ]).catch(() => {});
 
   return NextResponse.json(ad);
 }

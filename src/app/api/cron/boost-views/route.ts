@@ -51,10 +51,20 @@ export async function GET(request: NextRequest) {
       const increment = Math.floor(Math.random() * (max - min + 1)) + min;
 
       if (increment > 0) {
-        await prisma.ad.update({
-          where: { id: ad.id },
-          data: { viewCount: { increment } },
-        });
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        await Promise.all([
+          prisma.ad.update({
+            where: { id: ad.id },
+            data: { viewCount: { increment } },
+          }),
+          prisma.adDailyMetric.upsert({
+            where: { adId_date: { adId: ad.id, date: today } },
+            update: { views: { increment } },
+            create: { adId: ad.id, date: today, views: increment, clicks: 0 },
+          }),
+        ]);
         boosted++;
       }
     }

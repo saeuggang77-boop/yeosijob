@@ -64,7 +64,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 8. 국세청 API로 실제 상태 확인
+    // 8. 중복 사업자번호 체크
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        businessNumber: bizNum,
+        isVerifiedBiz: true,
+        id: { not: session.user.id },
+      },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "이미 다른 계정에서 인증된 사업자등록번호입니다. 기존 계정이 있다면 비밀번호 찾기를 이용해주세요." },
+        { status: 400 }
+      );
+    }
+
+    // 9. 국세청 API로 실제 상태 확인
     const verifyResult = await verifyBusinessNumber(bizNum);
 
     if (!verifyResult.valid) {
@@ -74,7 +91,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 9. 성공 시 DB 업데이트
+    // 10. 성공 시 DB 업데이트
     await prisma.user.update({
       where: { id: session.user.id },
       data: {

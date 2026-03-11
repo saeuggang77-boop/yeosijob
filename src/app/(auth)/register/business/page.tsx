@@ -99,11 +99,11 @@ export default function RegisterBusinessPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">담당자명</Label>
+            <Label htmlFor="name">닉네임</Label>
             <Input
               id="name"
               name="name"
-              placeholder="홍길동"
+              placeholder="활동할 닉네임"
               required
               minLength={2}
             />

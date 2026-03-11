@@ -27,7 +27,6 @@ export default async function AdStatsPage({ params, searchParams }: PageProps) {
       id: true,
       title: true,
       viewCount: true,
-      clickCount: true,
       userId: true,
     },
   });
@@ -69,29 +68,22 @@ export default async function AdStatsPage({ params, searchParams }: PageProps) {
 
   // 요약 통계 계산
   const totalViews = dailyMetrics.reduce((sum, m) => sum + m.views, 0);
-  const totalClicks = dailyMetrics.reduce((sum, m) => sum + m.clicks, 0);
   const avgViews =
     dailyMetrics.length > 0 ? totalViews / dailyMetrics.length : 0;
-  const avgClicks =
-    dailyMetrics.length > 0 ? totalClicks / dailyMetrics.length : 0;
 
   const stats = {
     ad: {
       id: ad.id,
       title: ad.title,
       viewCount: ad.viewCount,
-      clickCount: ad.clickCount,
     },
     daily: dailyMetrics.map((m) => ({
       date: m.date.toISOString().split("T")[0],
       views: m.views,
-      clicks: m.clicks,
     })),
     summary: {
       totalViews,
-      totalClicks,
       avgViews: Math.round(avgViews * 10) / 10,
-      avgClicks: Math.round(avgClicks * 10) / 10,
     },
   };
 

@@ -90,16 +90,26 @@ export async function POST(request: NextRequest) {
 
     // 가상계좌 결제인 경우: 입금 대기 상태로 처리
     if (tossResult.virtualAccount) {
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          method: "BANK_TRANSFER",
-          tossPaymentKey: paymentKey,
-          bankName: tossResult.virtualAccount.bank,
-          accountNumber: tossResult.virtualAccount.accountNumber,
-          depositorName: tossResult.virtualAccount.customerName,
-          // status는 PENDING 유지 (입금 확인 후 webhook에서 APPROVED로 변경)
-        },
+      await prisma.$transaction(async (tx) => {
+        await tx.payment.update({
+          where: { id: payment.id },
+          data: {
+            method: "BANK_TRANSFER",
+            tossPaymentKey: paymentKey,
+            bankName: tossResult.virtualAccount!.bank,
+            accountNumber: tossResult.virtualAccount!.accountNumber,
+            depositorName: tossResult.virtualAccount!.customerName,
+            // status는 PENDING 유지 (입금 확인 후 webhook에서 APPROVED로 변경)
+          },
+        });
+
+        // Ad 상태를 PENDING_DEPOSIT로 변경 (renew/upgrade 시에도 입금대기 표시)
+        if (payment.adId) {
+          await tx.ad.update({
+            where: { id: payment.adId },
+            data: { status: "PENDING_DEPOSIT" },
+          });
+        }
       });
 
       return NextResponse.json({

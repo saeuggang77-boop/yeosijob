@@ -110,6 +110,9 @@ export default async function JobDetailPage({ params }: PageProps) {
           user: { select: { name: true } },
         },
       },
+      options: {
+        select: { optionId: true, value: true },
+      },
       _count: {
         select: { reviews: { where: { isHidden: false } } },
       },

@@ -56,8 +56,11 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   const isAdmin = session?.user?.role === "ADMIN";
 
   const where: Record<string, unknown> = {};
-  // Exclude deleted posts
+  // Exclude deleted and hidden posts
   where.deletedAt = null;
+  if (!isAdmin) {
+    where.isHidden = false;
+  }
   if (category && ["CHAT", "BEAUTY", "QNA", "WORK"].includes(category)) {
     where.category = category;
   }

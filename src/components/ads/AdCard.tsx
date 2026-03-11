@@ -110,6 +110,12 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
             {productId === "PREMIUM" && (
               <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[12px] font-bold text-primary">PREMIUM</span>
             )}
+            {productId === "SPECIAL" && (
+              <span className="shrink-0 rounded bg-special/20 px-1.5 py-0.5 text-[12px] font-bold text-special">SPECIAL</span>
+            )}
+            {productId === "RECOMMEND" && (
+              <span className="shrink-0 rounded bg-recommend/20 px-1.5 py-0.5 text-[12px] font-bold text-recommend">추천</span>
+            )}
             <h3
               className={`truncate text-[14px] ${
                 hasBold || emphasized ? "font-bold" : "font-medium"

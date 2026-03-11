@@ -43,7 +43,7 @@ export default function RegisterPage() {
           <div className="flex-1">
             <div className="text-lg font-semibold">업소 사장님</div>
             <div className="text-sm text-muted-foreground">
-              광고를 등록하고 인재를 찾아보세요
+              광고 등록 · 인재 검색 · 제휴 입점
             </div>
           </div>
           <div className="text-xl text-muted-foreground">›</div>

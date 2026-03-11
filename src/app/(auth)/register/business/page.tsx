@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,7 +88,7 @@ export default function RegisterBusinessPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold"><h1>업소 회원가입</h1></CardTitle>
         <CardDescription>
-          광고를 등록하고 인재를 찾아보세요
+          광고 등록 · 인재 검색 · 제휴 입점
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -97,6 +98,17 @@ export default function RegisterBusinessPage() {
               {error}
             </div>
           )}
+
+          <SocialLoginButtons mode="register" role="BUSINESS" />
+
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">또는 이메일로 가입</span>
+            </div>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="name">닉네임</Label>

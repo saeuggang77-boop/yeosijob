@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,8 +86,7 @@ export default function RegisterJobseekerPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold"><h1>구직자 회원가입</h1></CardTitle>
         <CardDescription>
-          무료로 가입하고 일자리를 찾아보세요<br />
-          <span className="text-xs">카카오 로그인으로도 간편하게 가입할 수 있습니다</span>
+          무료로 가입하고 일자리를 찾아보세요
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -96,6 +96,18 @@ export default function RegisterJobseekerPage() {
               {error}
             </div>
           )}
+
+          <SocialLoginButtons mode="register" role="JOBSEEKER" />
+
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">또는 이메일로 가입</span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">닉네임</Label>
             <Input

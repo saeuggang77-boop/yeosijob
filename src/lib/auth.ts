@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import KakaoProvider from "next-auth/providers/kakao";
 import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
 
@@ -68,12 +69,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (!existingUser) {
+          // 쿠키에서 역할 확인 (회원가입 페이지에서만 설정됨)
+          let registerRole: string | undefined;
+          try {
+            const cookieStore = await cookies();
+            registerRole = cookieStore.get("register-role")?.value;
+            // 쿠키 삭제
+            cookieStore.delete("register-role");
+          } catch {
+            // cookies() 접근 실패 시 무시
+          }
+
+          if (!registerRole) {
+            // 로그인 페이지에서 온 신규 유저 → 가입 차단, 로그인 페이지로 리다이렉트
+            return "/login?error=register-first";
+          }
+
+          const role = registerRole === "BUSINESS" ? "BUSINESS" : "JOBSEEKER";
+
           const newUser = await prisma.user.create({
             data: {
               email: user.email,
               name: user.name || defaultNames[account.provider] || "소셜 사용자",
               image: user.image,
-              role: "JOBSEEKER",
+              role,
               emailVerified: new Date(),
             },
           });

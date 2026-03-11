@@ -81,6 +81,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 8-2. 블랙리스트 체크
+    const blacklisted = await prisma.businessBlacklist.findUnique({
+      where: { businessNumber: bizNum },
+      select: { reason: true },
+    });
+
+    if (blacklisted) {
+      return NextResponse.json(
+        { error: "해당 사업자등록번호는 이용이 제한되었습니다. 문의사항은 고객센터로 연락해주세요." },
+        { status: 403 }
+      );
+    }
+
     // 9. 국세청 API로 실제 상태 확인
     const verifyResult = await verifyBusinessNumber(bizNum);
 

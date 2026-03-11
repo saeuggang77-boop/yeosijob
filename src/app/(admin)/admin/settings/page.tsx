@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle } from "lucide-react";
+import ChangePasswordSection from "@/components/ChangePasswordSection";
 
 export default async function AdminSettingsPage() {
   const session = await auth();
@@ -146,6 +147,11 @@ export default async function AdminSettingsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* 비밀번호 변경 */}
+      <div className="max-w-md">
+        <ChangePasswordSection />
       </div>
     </div>
   );

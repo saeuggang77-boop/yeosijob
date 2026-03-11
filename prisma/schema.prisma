@@ -244,8 +244,9 @@ model User {
   blockedByUsers     MessageBlock[]     @relation("blockedMessages")
   postLikes          PostLike[]
   commentLikes       CommentLike[]
-  banActions         BannedUser[]   @relation("banActions")
-  spamWordActions    SpamWord[]     @relation("spamWordActions")
+  banActions         BannedUser[]          @relation("banActions")
+  spamWordActions    SpamWord[]            @relation("spamWordActions")
+  blacklistActions   BusinessBlacklist[]   @relation("blacklistActions")
   adApplications     AdApplication[]
 
   // 알림 설정
@@ -868,6 +869,21 @@ model BannedUser {
   @@index([email])
   @@index([phone])
   @@map("banned_users")
+}
+
+// ── BUSINESS BLACKLIST (사업자번호 블랙리스트) ──
+
+model BusinessBlacklist {
+  id             String   @id @default(cuid())
+  businessNumber String   @unique
+  reason         String
+  blockedBy      String
+  blockedAt      DateTime @default(now())
+
+  admin User @relation("blacklistActions", fields: [blockedBy], references: [id])
+
+  @@index([businessNumber])
+  @@map("business_blacklists")
 }
 
 // ── SPAM WORD (스팸 단어) ──

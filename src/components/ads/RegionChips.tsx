@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { REGION_LIST } from "@/lib/constants/regions";
+import { AD_REGION_LIST } from "@/lib/constants/regions";
 
 export function RegionChips({ current }: { current?: string }) {
   const router = useRouter();
@@ -34,7 +34,7 @@ export function RegionChips({ current }: { current?: string }) {
       >
         전체
       </button>
-      {REGION_LIST.map((r) => (
+      {AD_REGION_LIST.map((r) => (
         <button
           key={r.value}
           onClick={() => handleClick(r.value)}

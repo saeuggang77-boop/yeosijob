@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { REGION_LIST } from "@/lib/constants/regions";
+import { AD_REGION_LIST } from "@/lib/constants/regions";
 
 export function RegionFilter({ current }: { current?: string }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function RegionFilter({ current }: { current?: string }) {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">전체 지역</SelectItem>
-        {REGION_LIST.map((r) => (
+        {AD_REGION_LIST.map((r) => (
           <SelectItem key={r.value} value={r.value}>
             {r.label}
           </SelectItem>

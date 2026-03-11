@@ -1,4 +1,5 @@
 export const REGIONS = {
+  NATIONWIDE: { label: "전국", shortLabel: "전국" },
   SEOUL: { label: "서울", shortLabel: "서울" },
   GYEONGGI: { label: "경기", shortLabel: "경기" },
   INCHEON: { label: "인천", shortLabel: "인천" },
@@ -24,3 +25,6 @@ export const REGION_LIST = Object.entries(REGIONS).map(([key, value]) => ({
   value: key as RegionKey,
   label: value.label,
 }));
+
+// 구인 광고/이력서용 (전국 제외)
+export const AD_REGION_LIST = REGION_LIST.filter((r) => r.value !== "NATIONWIDE");

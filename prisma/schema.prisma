@@ -133,6 +133,7 @@ enum PartnerCategory {
 }
 
 enum Region {
+  NATIONWIDE
   SEOUL
   GYEONGGI
   INCHEON

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { REGION_LIST } from "@/lib/constants/regions";
+import { AD_REGION_LIST } from "@/lib/constants/regions";
 import {
   AD_PRODUCTS,
   AD_OPTIONS,
@@ -360,7 +360,7 @@ export function Step3ProductSelector({
             ) : (
               <>
                 <div className="flex flex-wrap gap-2">
-                  {REGION_LIST.map((r) => {
+                  {AD_REGION_LIST.map((r) => {
                     const selected = regions.includes(r.value);
                     return (
                       <button

@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { REGIONS } from "@/lib/constants/regions";
+import { REGIONS, AD_REGION_LIST } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
@@ -80,7 +80,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL">전체</SelectItem>
-          {Object.entries(REGIONS).map(([key, { label }]) => (
+          {AD_REGION_LIST.map(({ value: key, label }) => (
             <SelectItem key={key} value={key}>
               {label}
             </SelectItem>

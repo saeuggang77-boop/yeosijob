@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 차단 추가 + 횟수 증가 + 제재를 하나의 트랜잭션으로 처리
+    // 차단 추가 + 고유 차단자 수 기반 제재 (같은 사람 재차단 시 카운트 증가 안 함)
     const { block, blockCount } = await prisma.$transaction(async (tx) => {
       const block = await tx.messageBlock.create({
         data: {
@@ -101,19 +101,19 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const updatedUser = await tx.user.update({
+      // 실제 고유 차단자 수를 카운트 (같은 사람 재차단 시 중복 증가 방지)
+      const uniqueBlockerCount = await tx.messageBlock.count({
+        where: { blockedId },
+      });
+
+      await tx.user.update({
         where: { id: blockedId },
         data: {
-          messageBlockCount: {
-            increment: 1,
-          },
-        },
-        select: {
-          messageBlockCount: true,
+          messageBlockCount: uniqueBlockerCount,
         },
       });
 
-      const blockCount = updatedUser.messageBlockCount;
+      const blockCount = uniqueBlockerCount;
 
       // 누적 횟수에 따른 자동 제재
       if (blockCount === 3) {
@@ -196,12 +196,25 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // 차단 삭제
-    await prisma.messageBlock.deleteMany({
-      where: {
-        blockerId: userId,
-        blockedId,
-      },
+    // 차단 삭제 + 고유 차단자 수 재계산
+    await prisma.$transaction(async (tx) => {
+      await tx.messageBlock.deleteMany({
+        where: {
+          blockerId: userId,
+          blockedId,
+        },
+      });
+
+      const uniqueBlockerCount = await tx.messageBlock.count({
+        where: { blockedId },
+      });
+
+      await tx.user.update({
+        where: { id: blockedId },
+        data: {
+          messageBlockCount: uniqueBlockerCount,
+        },
+      });
     });
 
     return NextResponse.json({ success: true });

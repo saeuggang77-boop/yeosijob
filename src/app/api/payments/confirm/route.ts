@@ -3,8 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { confirmTossPayment } from "@/lib/toss/confirm";
 import { checkRateLimit } from "@/lib/rate-limit";
-import type { AdOptionId, AdProductId } from "@/generated/prisma/client";
-import { getActiveEvent, getBonusDays } from "@/lib/event";
+import { activateAd, sendPaymentNotification } from "@/lib/payment/activate-ad";
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,11 +138,8 @@ export async function POST(request: NextRequest) {
     const isKakaoPay = tossResult.easyPay?.provider === "카카오페이";
     const method = isKakaoPay ? "KAKAO_PAY" : "CARD";
 
-    // 이벤트 조회
-    const event = await getActiveEvent();
-
-    await prisma.$transaction(async (tx) => {
-      // Payment 승인
+    const activationResult = await prisma.$transaction(async (tx) => {
+      // Payment 승인 (카드 정보 포함)
       await tx.payment.update({
         where: { id: payment.id },
         data: {
@@ -157,86 +153,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Ad 활성화 또는 업그레이드/연장
-      if (payment.adId) {
-        const snapshot = payment.itemSnapshot as Record<string, unknown>;
-        const isUpgrade = snapshot?.type === "upgrade";
-        const isRenew = snapshot?.type === "renew";
-
-        // 업그레이드/연장: snapshot.duration 사용, 일반: 기존 ad.durationDays 사용
-        const durationDays = (isUpgrade || isRenew)
-          ? (snapshot.duration as number)
-          : (payment.ad?.durationDays || 30);
-        const bonusDays = (!isUpgrade && !isRenew) ? getBonusDays(durationDays, event) : 0;
-        const endDate = new Date(now.getTime() + (durationDays + bonusDays) * 24 * 60 * 60 * 1000);
-
-        if (isUpgrade || isRenew) {
-          // 기존 옵션 삭제
-          await tx.adOption.deleteMany({
-            where: { adId: payment.adId },
-          });
-
-          // 새 옵션 생성
-          if (snapshot.options && Array.isArray(snapshot.options)) {
-            for (const opt of snapshot.options as Array<{ id: string; value: string }>) {
-              await tx.adOption.create({
-                data: {
-                  adId: payment.adId,
-                  optionId: opt.id as AdOptionId,
-                  value: opt.value,
-                  durationDays: snapshot.duration as number,
-                  startDate: now,
-                  endDate,
-                },
-              });
-            }
-          }
-
-          const product = snapshot.product as { id: AdProductId };
-          const newFeatures = snapshot.newFeatures as { autoJumpPerDay: number; manualJumpPerDay: number; maxEdits: number };
-
-          // 광고 업그레이드/연장
-          await tx.ad.update({
-            where: { id: payment.adId },
-            data: {
-              status: "ACTIVE",
-              productId: product.id,
-              durationDays: snapshot.duration as number,
-              totalAmount: isRenew ? amount : { increment: amount },
-              autoJumpPerDay: newFeatures.autoJumpPerDay,
-              manualJumpPerDay: newFeatures.manualJumpPerDay,
-              maxEdits: newFeatures.maxEdits,
-              startDate: now,
-              endDate,
-              lastJumpedAt: now,
-              manualJumpUsedToday: 0,
-              editCount: 0,
-              bonusDays: 0,
-            },
-          });
-        } else {
-          // 일반 광고 활성화
-          await tx.ad.update({
-            where: { id: payment.adId },
-            data: {
-              status: "ACTIVE",
-              startDate: now,
-              endDate,
-              lastJumpedAt: now,
-              bonusDays,
-            },
-          });
-        }
-
-        // FREE가 아닌 유료 광고만 누적일수 갱신
-        if (payment.ad && payment.ad.productId !== "FREE") {
-          await tx.user.update({
-            where: { id: payment.ad.userId },
-            data: { totalPaidAdDays: { increment: durationDays } },
-          });
-        }
-      }
+      // 광고 활성화 (공통 함수)
+      return activateAd(tx, payment, now);
     });
+
+    // 결제 완료 알림
+    if (activationResult) {
+      await sendPaymentNotification(payment, "결제가 완료되었습니다", activationResult);
+    }
 
     return NextResponse.json({
       message: "결제가 완료되었습니다",

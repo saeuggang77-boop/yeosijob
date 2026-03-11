@@ -169,7 +169,8 @@ export default async function CommunityPage({ searchParams }: PageProps) {
           const params = new URLSearchParams();
           if (tab.key) params.set("category", tab.key);
           if (query) params.set("q", query);
-          if (isBest) params.set("sort", sort);
+          // "전체"는 베스트 필터도 해제, 개별 카테고리는 베스트 유지
+          if (tab.key && isBest) params.set("sort", sort);
           const href = `/community${params.toString() ? `?${params.toString()}` : ""}`;
 
           return (

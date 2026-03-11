@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,8 +16,26 @@ import {
 } from "@/components/ui/select";
 import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
+import { AdImageUploader } from "@/components/ads/AdImageUploader";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+
+declare global {
+  interface Window {
+    daum: {
+      Postcode: new (options: {
+        oncomplete: (data: {
+          address: string;
+          roadAddress: string;
+          jibunAddress: string;
+        }) => void;
+        onclose?: (state: string) => void;
+        width: string;
+        height: string;
+      }) => { embed: (element: HTMLElement) => void };
+    };
+  }
+}
 
 interface PartnerData {
   id: string;
@@ -29,6 +47,7 @@ interface PartnerData {
   highlight: string | null;
   tags: string[];
   thumbnailUrl: string | null;
+  detailImages: string[];
   contactPhone: string | null;
   contactKakao: string | null;
   websiteUrl: string | null;
@@ -38,6 +57,20 @@ interface PartnerData {
   isProfileComplete: boolean;
 }
 
+function formatPhone(value: string): string {
+  const nums = value.replace(/[^0-9]/g, "");
+  if (nums.startsWith("02")) {
+    if (nums.length <= 2) return nums;
+    if (nums.length <= 5) return `${nums.slice(0, 2)}-${nums.slice(2)}`;
+    if (nums.length <= 9)
+      return `${nums.slice(0, 2)}-${nums.slice(2, 5)}-${nums.slice(5)}`;
+    return `${nums.slice(0, 2)}-${nums.slice(2, 6)}-${nums.slice(6, 10)}`;
+  }
+  if (nums.length <= 3) return nums;
+  if (nums.length <= 7) return `${nums.slice(0, 3)}-${nums.slice(3)}`;
+  return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7, 11)}`;
+}
+
 export default function BusinessPartnerEditPage() {
   const router = useRouter();
   const params = useParams();
@@ -45,20 +78,59 @@ export default function BusinessPartnerEditPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPostcode, setShowPostcode] = useState(false);
+  const postcodeRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState({
     name: "",
+    highlight: "",
     category: "",
     region: "",
     address: "",
     description: "",
-    highlight: "",
-    tags: "",
     thumbnailUrl: "",
+    detailImages: [] as string[],
     contactPhone: "",
     contactKakao: "",
     websiteUrl: "",
     businessHours: "",
   });
+
+  // Load Daum Postcode script
+  useEffect(() => {
+    if (window.daum?.Postcode) return;
+    const existing = document.getElementById("daum-postcode-script");
+    if (existing) return;
+    const script = document.createElement("script");
+    script.id = "daum-postcode-script";
+    script.src =
+      "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  const openPostcode = useCallback(() => {
+    if (!window.daum?.Postcode) {
+      toast.error("주소 검색을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    setShowPostcode(true);
+    setTimeout(() => {
+      if (!postcodeRef.current) return;
+      new window.daum.Postcode({
+        oncomplete: (result) => {
+          const addr = result.roadAddress || result.jibunAddress;
+          setFormData((prev) => ({ ...prev, address: addr }));
+          setShowPostcode(false);
+        },
+        onclose: () => {
+          setShowPostcode(false);
+        },
+        width: "100%",
+        height: "100%",
+      }).embed(postcodeRef.current);
+    }, 100);
+  }, []);
 
   useEffect(() => {
     const fetchPartner = async () => {
@@ -75,14 +147,14 @@ export default function BusinessPartnerEditPage() {
         const p: PartnerData = data.partner;
         setFormData({
           name: p.name === "미등록 업체" ? "" : p.name,
+          highlight: p.highlight || "",
           category: p.category,
           region: p.region,
           address: p.address || "",
           description: p.description,
-          highlight: p.highlight || "",
-          tags: p.tags.join(", "),
           thumbnailUrl: p.thumbnailUrl || "",
-          contactPhone: p.contactPhone || "",
+          detailImages: p.detailImages || [],
+          contactPhone: p.contactPhone ? formatPhone(p.contactPhone) : "",
           contactKakao: p.contactKakao || "",
           websiteUrl: p.websiteUrl || "",
           businessHours: p.businessHours || "",
@@ -113,10 +185,6 @@ export default function BusinessPartnerEditPage() {
       toast.error("지역을 선택해주세요");
       return;
     }
-    if (!formData.description.trim()) {
-      toast.error("업체 소개를 입력해주세요");
-      return;
-    }
 
     setSaving(true);
     try {
@@ -125,7 +193,7 @@ export default function BusinessPartnerEditPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
+          contactPhone: formData.contactPhone.replace(/-/g, ""),
         }),
       });
 
@@ -138,8 +206,10 @@ export default function BusinessPartnerEditPage() {
       toast.success("업체 정보가 저장되었습니다");
       router.push("/business/partner");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "저장 중 오류가 발생했습니다");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "저장 중 오류가 발생했습니다";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -163,27 +233,55 @@ export default function BusinessPartnerEditPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        {/* 기본 정보 */}
         <Card>
           <CardHeader>
             <CardTitle>기본 정보</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="name">업체명 *</Label>
+              <Label htmlFor="name">
+                업체명 <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="예: 강남 뷰티클리닉"
               />
             </div>
 
             <div>
-              <Label htmlFor="category">업종 *</Label>
+              <Label htmlFor="highlight">광고 제목</Label>
+              <Input
+                id="highlight"
+                value={formData.highlight}
+                onChange={(e) => {
+                  if (e.target.value.length <= 30) {
+                    setFormData({ ...formData, highlight: e.target.value });
+                  }
+                }}
+                placeholder="예: 업계종사자 특별할인 20%"
+                maxLength={30}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formData.highlight.length}/30자 · 리스트에서 업체명 아래에
+                표시됩니다
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="category">
+                업종 <span className="text-destructive">*</span>
+              </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger id="category">
                   <SelectValue placeholder="업종 선택" />
@@ -199,10 +297,14 @@ export default function BusinessPartnerEditPage() {
             </div>
 
             <div>
-              <Label htmlFor="region">지역 *</Label>
+              <Label htmlFor="region">
+                지역 <span className="text-destructive">*</span>
+              </Label>
               <Select
                 value={formData.region}
-                onValueChange={(value) => setFormData({ ...formData, region: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, region: value })
+                }
               >
                 <SelectTrigger id="region">
                   <SelectValue placeholder="지역 선택" />
@@ -219,48 +321,98 @@ export default function BusinessPartnerEditPage() {
 
             <div>
               <Label htmlFor="address">주소</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="예: 서울시 강남구 역삼동 123"
+              <div className="flex gap-2">
+                <Input
+                  id="address"
+                  value={formData.address}
+                  readOnly
+                  placeholder="주소 검색을 클릭하세요"
+                  className="flex-1 cursor-pointer bg-muted/50"
+                  onClick={openPostcode}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={openPostcode}
+                  className="shrink-0"
+                >
+                  주소 검색
+                </Button>
+              </div>
+              {showPostcode && (
+                <div className="relative mt-2 overflow-hidden rounded-md border">
+                  <div ref={postcodeRef} className="h-[400px] w-full" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPostcode(false)}
+                    className="absolute right-2 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white hover:bg-black/80"
+                  >
+                    닫기
+                  </button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 이미지 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>이미지</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <Label>대표 이미지</Label>
+              <p className="mb-2 text-xs text-muted-foreground">
+                제휴업체 목록 카드에 표시됩니다 · 권장: 800×600px (4:3 비율)
+              </p>
+              <AdImageUploader
+                images={formData.thumbnailUrl ? [formData.thumbnailUrl] : []}
+                onChange={(imgs) =>
+                  setFormData({ ...formData, thumbnailUrl: imgs[0] || "" })
+                }
+                maxImages={1}
               />
             </div>
 
             <div>
-              <Label htmlFor="description">업체 소개 *</Label>
-              <Textarea
-                id="description"
-                required
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="업체 소개를 입력하세요"
-                rows={4}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="highlight">한줄 소개</Label>
-              <Input
-                id="highlight"
-                value={formData.highlight}
-                onChange={(e) => setFormData({ ...formData, highlight: e.target.value })}
-                placeholder="예: 업계종사자 특별할인 20%"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tags">태그 (쉼표로 구분)</Label>
-              <Input
-                id="tags"
-                value={formData.tags}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                placeholder="예: 할인, 쿠폰, 이벤트"
+              <Label>상세 이미지</Label>
+              <p className="mb-2 text-xs text-muted-foreground">
+                업체 상세 페이지에 표시됩니다 · 권장: 가로 1080px 이상 · 최대
+                10장
+              </p>
+              <AdImageUploader
+                images={formData.detailImages}
+                onChange={(imgs) =>
+                  setFormData({ ...formData, detailImages: imgs })
+                }
+                maxImages={10}
               />
             </div>
           </CardContent>
         </Card>
 
+        {/* 업체 소개 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>업체 소개</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              placeholder="업체 소개를 입력하세요 (선택사항)"
+              rows={4}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              상세 이미지가 있으면 소개글은 선택사항입니다
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* 연락처 */}
         <Card>
           <CardHeader>
             <CardTitle>연락처</CardTitle>
@@ -271,8 +423,13 @@ export default function BusinessPartnerEditPage() {
               <Input
                 id="contactPhone"
                 value={formData.contactPhone}
-                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                placeholder="예: 02-1234-5678"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    contactPhone: formatPhone(e.target.value),
+                  })
+                }
+                placeholder="예: 010-1234-5678"
               />
             </div>
 
@@ -281,7 +438,9 @@ export default function BusinessPartnerEditPage() {
               <Input
                 id="contactKakao"
                 value={formData.contactKakao}
-                onChange={(e) => setFormData({ ...formData, contactKakao: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, contactKakao: e.target.value })
+                }
                 placeholder="예: http://pf.kakao.com/..."
               />
             </div>
@@ -290,9 +449,10 @@ export default function BusinessPartnerEditPage() {
               <Label htmlFor="websiteUrl">홈페이지</Label>
               <Input
                 id="websiteUrl"
-                type="url"
                 value={formData.websiteUrl}
-                onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, websiteUrl: e.target.value })
+                }
                 placeholder="https://example.com"
               />
             </div>
@@ -302,30 +462,11 @@ export default function BusinessPartnerEditPage() {
               <Input
                 id="businessHours"
                 value={formData.businessHours}
-                onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, businessHours: e.target.value })
+                }
                 placeholder="예: 평일 09:00-18:00"
               />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>이미지</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="thumbnailUrl">대표 이미지 URL</Label>
-              <Input
-                id="thumbnailUrl"
-                type="url"
-                value={formData.thumbnailUrl}
-                onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                제휴업체 목록에 표시될 대표 이미지입니다
-              </p>
             </div>
           </CardContent>
         </Card>

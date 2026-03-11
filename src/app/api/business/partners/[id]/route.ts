@@ -9,7 +9,6 @@ const ALLOWED_FIELDS = [
   "address",
   "description",
   "highlight",
-  "tags",
   "thumbnailUrl",
   "detailImages",
   "contactPhone",
@@ -111,7 +110,7 @@ export async function PUT(
     const region = updateData.region as string;
     const description = (updateData.description as string) || "";
 
-    if (name && name !== "미등록 업체" && category && region && description) {
+    if (name && name !== "미등록 업체" && category && region) {
       updateData.isProfileComplete = true;
     }
 

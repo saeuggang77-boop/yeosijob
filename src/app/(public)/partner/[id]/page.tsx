@@ -28,7 +28,6 @@ export default async function PartnerDetailPage({ params }: PageProps) {
       address: true,
       description: true,
       highlight: true,
-      tags: true,
       thumbnailUrl: true,
       detailImages: true,
       contactPhone: true,
@@ -147,15 +146,6 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           <p className="whitespace-pre-line text-sm text-muted-foreground">
             {partner.description}
           </p>
-          {partner.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {partner.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
 

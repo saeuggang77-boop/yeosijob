@@ -45,7 +45,6 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
       highlight: true,
       thumbnailUrl: true,
       grade: true,
-      tags: true,
       viewCount: true,
     },
   });

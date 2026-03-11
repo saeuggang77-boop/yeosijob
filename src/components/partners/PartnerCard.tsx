@@ -16,7 +16,6 @@ interface PartnerCardProps {
     highlight: string | null;
     thumbnailUrl: string | null;
     grade: PartnerGrade;
-    tags: string[];
     viewCount: number;
   };
 }
@@ -119,18 +118,8 @@ export function PartnerCard({ partner }: PartnerCardProps) {
             {partner.description}
           </p>
 
-          {/* Tags + View count */}
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <div className="flex flex-wrap gap-1 min-w-0">
-              {partner.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="shrink-0 rounded bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
+          {/* View count */}
+          <div className="mt-2 flex items-center justify-end">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Eye className="h-3 w-3" />
               {partner.viewCount.toLocaleString()}

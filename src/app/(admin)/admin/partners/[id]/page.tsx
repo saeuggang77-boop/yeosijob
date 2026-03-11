@@ -96,18 +96,8 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
             </div>
             {partner.highlight && (
               <div className="col-span-2">
-                <span className="text-muted-foreground">하이라이트:</span>{" "}
+                <span className="text-muted-foreground">광고 제목:</span>{" "}
                 <span>{partner.highlight}</span>
-              </div>
-            )}
-            {partner.tags.length > 0 && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">태그:</span>{" "}
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {partner.tags.map((tag) => (
-                    <Badge key={tag} variant="outline">{tag}</Badge>
-                  ))}
-                </div>
               </div>
             )}
           </div>

@@ -59,10 +59,13 @@ export function TossPaymentWidget({
 
         widgetsRef.current = widgets;
         setReady(true);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Toss Widget init error:", err);
         if (!cancelled) {
-          onErrorRef.current?.("결제 모듈 로드에 실패했습니다");
+          const msg = err instanceof Error
+            ? err.message
+            : (err as { message?: string })?.message || "결제 모듈 로드에 실패했습니다";
+          onErrorRef.current?.(msg);
         }
       }
     }

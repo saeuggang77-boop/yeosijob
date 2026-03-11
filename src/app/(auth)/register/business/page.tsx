@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +61,20 @@ export default function RegisterBusinessPage() {
         return;
       }
 
-      router.push("/login?registered=true");
+      // 자동 로그인
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        router.push("/login?registered=true");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
     } catch {
       setError("회원가입 중 오류가 발생했습니다");
     } finally {
@@ -112,7 +126,11 @@ export default function RegisterBusinessPage() {
               placeholder="01012345678"
               required
               pattern="01[016789]\d{7,8}"
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
             />
+            <p className="text-xs text-muted-foreground">숫자만 입력 (&apos;-&apos; 자동 제거)</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">비밀번호</Label>

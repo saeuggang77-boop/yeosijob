@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   _request: Request,
@@ -154,5 +155,62 @@ export async function PUT(
   } catch (error) {
     console.error("Ad update error:", error);
     return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session || session.user.role !== "BUSINESS") {
+      return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
+    }
+
+    const { success: rateLimitOk } = await checkRateLimit(`ad-delete:${session.user.id}`, 5, 60_000);
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
+    }
+
+    const { id } = await params;
+
+    const ad = await prisma.ad.findUnique({
+      where: { id },
+      select: { id: true, userId: true, status: true, productId: true },
+    });
+
+    if (!ad) {
+      return NextResponse.json({ error: "광고를 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    if (ad.userId !== session.user.id) {
+      return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
+    }
+
+    // 유료 ACTIVE 광고 → CANCELLED 상태 변경 (기간 환불 없음)
+    if (ad.status === "ACTIVE" && ad.productId !== "FREE") {
+      await prisma.ad.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+      });
+      return NextResponse.json({ message: "광고가 내려졌습니다", action: "cancelled" });
+    }
+
+    // 그 외 (무료, 만료, 취소, 반려, 임시저장, 결제대기 등) → DB 삭제
+    // Payment는 adId가 optional이므로 연결만 해제
+    await prisma.payment.updateMany({
+      where: { adId: id },
+      data: { adId: null },
+    });
+
+    await prisma.ad.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "광고가 삭제되었습니다", action: "deleted" });
+  } catch (error) {
+    console.error("Ad delete error:", error);
+    return NextResponse.json({ error: "삭제에 실패했습니다" }, { status: 500 });
   }
 }

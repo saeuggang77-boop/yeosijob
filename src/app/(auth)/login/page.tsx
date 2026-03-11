@@ -137,13 +137,9 @@ export default function LoginPage() {
             Google 로그인
           </button>
 
-          <div className="flex gap-2 text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             <Link href="/register" className="hover:underline">
-              구직자 회원가입
-            </Link>
-            <span>|</span>
-            <Link href="/register/business" className="hover:underline">
-              업소 회원가입
+              회원가입
             </Link>
           </div>
         </CardFooter>

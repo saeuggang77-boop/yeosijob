@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { JumpButton } from "@/components/dashboard/JumpButton";
 import { VerificationCard } from "@/components/dashboard/VerificationCard";
+import { DeleteAdButton } from "@/components/dashboard/DeleteAdButton";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   ACTIVE: { label: "게재중", variant: "default" },
@@ -51,7 +52,8 @@ export default async function DashboardPage() {
 
   const activeCount = ads.filter((a) => a.status === "ACTIVE").length;
   const totalViews = ads.reduce((sum, a) => sum + a.viewCount, 0);
-  const hasFreeAd = ads.some((a) => a.status === "ACTIVE" && a.productId === "FREE");
+  const freeAd = ads.find((a) => a.status === "ACTIVE" && a.productId === "FREE");
+  const hasFreeAd = !!freeAd;
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-6">
@@ -75,7 +77,7 @@ export default async function DashboardPage() {
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <p className="font-medium">내 무료 광고가 리스트 최하단에 있습니다</p>
           <p className="mt-1 text-sm text-muted-foreground">줄광고로 업그레이드하면 자동점프로 상위 노출됩니다</p>
-          <Link href="/business/ads/new">
+          <Link href={`/business/ads/${freeAd!.id}/upgrade`}>
             <Button size="sm" className="mt-2">업그레이드하기</Button>
           </Link>
         </div>
@@ -179,6 +181,10 @@ export default async function DashboardPage() {
                             수정
                           </Button>
                         </Link>
+                        <DeleteAdButton
+                          adId={ad.id}
+                          isPaidActive={ad.productId !== "FREE"}
+                        />
                       </div>
                     )}
                     {ad.status === "EXPIRED" && ad.productId !== "FREE" && (
@@ -193,6 +199,12 @@ export default async function DashboardPage() {
                             통계
                           </Button>
                         </Link>
+                        <DeleteAdButton adId={ad.id} isPaidActive={false} />
+                      </div>
+                    )}
+                    {ad.status !== "ACTIVE" && !(ad.status === "EXPIRED" && ad.productId !== "FREE") && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 border-t pt-2">
+                        <DeleteAdButton adId={ad.id} isPaidActive={false} />
                       </div>
                     )}
                   </CardContent>

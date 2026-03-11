@@ -80,7 +80,7 @@ export function Header() {
                 {!session && (
                   <>
                     {navLink("/login", "로그인")}
-                    {navLink("/register/business", "회원가입")}
+                    {navLink("/register", "회원가입")}
                   </>
                 )}
                 {session && (
@@ -201,7 +201,7 @@ export function Header() {
                   로그인
                 </Button>
               </Link>
-              <Link href="/register/business">
+              <Link href="/register">
                 <Button size="sm" className="hidden md:inline-flex">회원가입</Button>
               </Link>
             </>

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,7 +6,6 @@ import {
   registerBusinessSchema,
 } from "@/lib/validators/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -110,17 +108,8 @@ export async function POST(request: Request) {
         },
       });
 
-      // Send verification email (non-blocking)
-      const token = crypto.randomUUID();
-      await prisma.verificationToken.create({
-        data: { identifier: email, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
-      });
-      sendVerificationEmail(email, token).catch((err) => {
-        console.error("Email send failed:", err);
-      });
-
       return NextResponse.json(
-        { message: "회원가입이 완료되었습니다. 이메일 인증 링크를 발송했습니다.", userId: user.id },
+        { message: "회원가입이 완료되었습니다.", userId: user.id },
         { status: 201 }
       );
     } else {
@@ -182,17 +171,8 @@ export async function POST(request: Request) {
         },
       });
 
-      // Send verification email (non-blocking)
-      const token = crypto.randomUUID();
-      await prisma.verificationToken.create({
-        data: { identifier: email, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
-      });
-      sendVerificationEmail(email, token).catch((err) => {
-        console.error("Email send failed:", err);
-      });
-
       return NextResponse.json(
-        { message: "회원가입이 완료되었습니다. 이메일 인증 링크를 발송했습니다.", userId: user.id },
+        { message: "회원가입이 완료되었습니다.", userId: user.id },
         { status: 201 }
       );
     }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { confirmTossPayment } from "@/lib/toss/confirm";
 
@@ -71,6 +72,8 @@ export async function POST(
         },
       });
     }
+
+    revalidatePath("/partner");
 
     return NextResponse.json({
       success: true,

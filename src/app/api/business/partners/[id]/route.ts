@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -131,6 +132,10 @@ export async function PUT(
       where: { id },
       data: updateData,
     });
+
+    // ISR 캐시 무효화 - 공개 리스트/상세 페이지 즉시 반영
+    revalidatePath("/partner");
+    revalidatePath(`/partner/${id}`);
 
     return NextResponse.json({ partner });
   } catch (error) {

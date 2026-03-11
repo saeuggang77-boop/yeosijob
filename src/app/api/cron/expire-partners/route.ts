@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { verifyCronAuth } from "@/lib/utils/cron-auth";
 
@@ -41,6 +42,11 @@ export async function GET(request: NextRequest) {
         where: { id: p.id },
         data: { startDate: now, endDate },
       });
+    }
+
+    // 변경사항이 있으면 캐시 무효화
+    if (expireResult.count > 0 || pendingPartners.length > 0) {
+      revalidatePath("/partner");
     }
 
     return NextResponse.json({

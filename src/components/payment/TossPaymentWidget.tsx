@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import { loadTossPayments } from "@tosspayments/payment-sdk";
 import { TOSS_CLIENT_KEY } from "@/lib/toss/client";
 import { Button } from "@/components/ui/button";
 
@@ -26,63 +26,40 @@ export function TossPaymentWidget({
   failUrl,
   onError,
 }: Props) {
-  const widgetsRef = useRef<Awaited<ReturnType<Awaited<ReturnType<typeof loadTossPayments>>["widgets"]>> | null>(null);
+  const tossRef = useRef<Awaited<ReturnType<typeof loadTossPayments>> | null>(null);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
   const [ready, setReady] = useState(false);
 
-  const customerKey = customerEmail || `guest_${orderId}`;
-
   useEffect(() => {
     let cancelled = false;
 
-    async function init() {
-      try {
-        const toss = await loadTossPayments(TOSS_CLIENT_KEY);
-        const widgets = toss.widgets({ customerKey });
-        await widgets.setAmount({ currency: "KRW", value: amount });
-
-        if (cancelled) return;
-
-        await Promise.all([
-          widgets.renderPaymentMethods({
-            selector: "#toss-payment-method",
-            variantKey: "DEFAULT",
-          }),
-          widgets.renderAgreement({
-            selector: "#toss-agreement",
-            variantKey: "AGREEMENT",
-          }),
-        ]);
-
-        if (cancelled) return;
-
-        widgetsRef.current = widgets;
-        setReady(true);
-      } catch (err: unknown) {
-        console.error("Toss Widget init error:", err);
+    loadTossPayments(TOSS_CLIENT_KEY)
+      .then((tp) => {
+        if (!cancelled) {
+          tossRef.current = tp;
+          setReady(true);
+        }
+      })
+      .catch((err) => {
+        console.error("Toss SDK load error:", err);
         if (!cancelled) {
           const msg = err instanceof Error
             ? err.message
             : (err as { message?: string })?.message || "결제 모듈 로드에 실패했습니다";
           onErrorRef.current?.(msg);
         }
-      }
-    }
-
-    init();
+      });
 
     return () => {
       cancelled = true;
     };
-    // customerKey and amount are stable per mount; re-mount if they change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerKey, amount]);
+  }, []);
 
-  async function handlePayment() {
+  async function handlePayment(method: "카드" | "가상계좌") {
     try {
-      const widgets = widgetsRef.current;
-      if (!widgets) {
+      const toss = tossRef.current;
+      if (!toss) {
         onError?.("결제 모듈이 준비되지 않았습니다. 페이지를 새로고침해주세요.");
         return;
       }
@@ -90,13 +67,15 @@ export function TossPaymentWidget({
       const resolvedSuccessUrl = successUrl || `${window.location.origin}/business/ads/new/success`;
       const resolvedFailUrl = failUrl || `${window.location.origin}/business/ads/new/fail`;
 
-      await widgets.requestPayment({
+      await toss.requestPayment(method, {
+        amount,
         orderId,
         orderName,
         customerName: customerName || "고객",
         customerEmail: customerEmail || undefined,
         successUrl: resolvedSuccessUrl,
         failUrl: resolvedFailUrl,
+        ...(method === "가상계좌" ? { validHours: 48 } : {}),
       });
     } catch (error: unknown) {
       const code = (error as { code?: string })?.code || "";
@@ -113,17 +92,23 @@ export function TossPaymentWidget({
   }
 
   return (
-    <div className="space-y-4">
-      <div id="toss-payment-method" className="w-full" />
-      <div id="toss-agreement" className="w-full" />
+    <div className="space-y-3">
       <Button
         className="h-12 w-full text-base"
-        onClick={handlePayment}
+        onClick={() => handlePayment("카드")}
         disabled={!ready}
       >
         {ready
-          ? `${amount.toLocaleString()}원 결제하기`
+          ? `카드 ${amount.toLocaleString()}원 결제`
           : "결제 모듈 로딩 중..."}
+      </Button>
+      <Button
+        variant="outline"
+        className="h-12 w-full text-base"
+        onClick={() => handlePayment("가상계좌")}
+        disabled={!ready}
+      >
+        가상계좌 {amount.toLocaleString()}원 발급
       </Button>
     </div>
   );

@@ -114,7 +114,7 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
           여시잡과 함께 성장하세요
         </p>
         <Link
-          href="https://open.kakao.com/o/shSmQkqg"
+          href="https://pf.kakao.com/_zEqYG/chat"
           target="_blank"
           rel="noopener noreferrer"
         >

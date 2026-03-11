@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userEmail, grade } = body;
+    const { userEmail, grade, isFree } = body;
 
     // Validate required fields (관리자는 이메일 + 등급만 필수)
     if (!userEmail || !grade) {
@@ -65,12 +65,33 @@ export async function POST(request: NextRequest) {
 
     // 등급별 가격 자동 설정
     const GRADE_PRICES: Record<string, number> = { A: 3_000_000, B: 2_000_000, C: 1_000_000, D: 500_000 };
-    const monthlyPrice = GRADE_PRICES[grade] || 500_000;
+    const monthlyPrice = isFree ? 0 : (GRADE_PRICES[grade] || 500_000);
 
-    // Generate payment token
+    if (isFree) {
+      // 무료 입점: 결제 없이 바로 ACTIVE, 프로필 완성 대기
+      const now = new Date();
+      const partner = await prisma.partner.create({
+        data: {
+          userId: resolvedUserId,
+          name: "미등록 업체",
+          category: "OTHER",
+          region: "SEOUL",
+          description: "",
+          grade,
+          monthlyPrice: 0,
+          status: "ACTIVE",
+          durationDays: 30,
+          startDate: now,
+          endDate: null,
+          isProfileComplete: false,
+        },
+      });
+      return NextResponse.json({ partner });
+    }
+
+    // 유료: 결제 링크 생성
     const paymentToken = crypto.randomUUID();
 
-    // Create partner (업체 정보는 업체가 직접 입력)
     const partner = await prisma.partner.create({
       data: {
         userId: resolvedUserId,
@@ -86,8 +107,6 @@ export async function POST(request: NextRequest) {
         isProfileComplete: false,
       },
     });
-
-    // Payment는 결제 페이지에서 생성 (중복 방지)
 
     return NextResponse.json({ partner, paymentToken });
   } catch (error) {

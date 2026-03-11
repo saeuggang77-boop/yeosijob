@@ -23,14 +23,12 @@ export async function PATCH(
     const now = new Date();
     const updateData: Record<string, unknown> = { status };
 
-    // ACTIVE로 변경 시 기간 설정
+    // ACTIVE로 변경 시 startDate만 기록 (프로필 완성 또는 3일 후 자동 시작)
     if (status === "ACTIVE") {
       const partner = await prisma.partner.findUnique({ where: { id } });
       if (partner && !partner.startDate) {
-        const endDate = new Date(now);
-        endDate.setDate(endDate.getDate() + partner.durationDays);
         updateData.startDate = now;
-        updateData.endDate = endDate;
+        updateData.endDate = null;
       }
     }
 

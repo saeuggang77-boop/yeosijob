@@ -27,6 +27,19 @@ export default async function BusinessPartnerPage() {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
+  const getAutoStartRemaining = (startDate: Date) => {
+    const autoStart = new Date(startDate);
+    autoStart.setDate(autoStart.getDate() + 3);
+    const now = new Date();
+    const diff = autoStart.getTime() - now.getTime();
+    const hours = Math.ceil(diff / (1000 * 60 * 60));
+    if (hours <= 0) return "곧 자동 시작";
+    const days = Math.floor(hours / 24);
+    const remainHours = hours % 24;
+    if (days > 0) return `${days}일 ${remainHours}시간 남음`;
+    return `${remainHours}시간 남음`;
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold">제휴업체 관리</h1>
@@ -94,6 +107,21 @@ export default async function BusinessPartnerPage() {
                       <span className="text-muted-foreground">월 금액:</span>{" "}
                       {partner.monthlyPrice.toLocaleString()}원
                     </p>
+                    {partner.status === "ACTIVE" && !partner.endDate && partner.startDate && (
+                      <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
+                        <p className="text-sm font-medium text-blue-400">
+                          ⏸ 기간 대기 중
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          업체 정보를 입력하면 그때부터 {partner.durationDays}일이 시작됩니다.
+                          <br />
+                          미입력 시 자동 시작까지{" "}
+                          <span className="font-semibold text-blue-300">
+                            {getAutoStartRemaining(partner.startDate)}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                     {partner.startDate && partner.endDate && (
                       <>
                         <p>

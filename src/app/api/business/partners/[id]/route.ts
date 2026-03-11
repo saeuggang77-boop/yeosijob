@@ -112,6 +112,19 @@ export async function PUT(
 
     if (name && name !== "미등록 업체" && category && region) {
       updateData.isProfileComplete = true;
+
+      // 프로필 완성 시 기간 시작 (endDate가 아직 없는 경우에만)
+      const current = await prisma.partner.findUnique({
+        where: { id },
+        select: { endDate: true, durationDays: true, status: true },
+      });
+      if (current && current.status === "ACTIVE" && !current.endDate) {
+        const now = new Date();
+        const end = new Date(now);
+        end.setDate(end.getDate() + current.durationDays);
+        updateData.startDate = now;
+        updateData.endDate = end;
+      }
     }
 
     const partner = await prisma.partner.update({

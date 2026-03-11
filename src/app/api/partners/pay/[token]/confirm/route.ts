@@ -51,21 +51,26 @@ export async function POST(
     // Update partner status and dates
     const partner = payment.partner!;
     const now = new Date();
-    // For renewals: extend from current endDate if still in the future
-    const baseDate = partner.status === "ACTIVE" && partner.endDate && partner.endDate > now
-      ? partner.endDate
-      : now;
-    const newEndDate = new Date(baseDate);
-    newEndDate.setDate(newEndDate.getDate() + partner.durationDays);
 
-    await prisma.partner.update({
-      where: { id: payment.partnerId! },
-      data: {
-        status: "ACTIVE",
-        startDate: partner.startDate || now,
-        endDate: newEndDate,
-      },
-    });
+    // 연장 결제: 기존 endDate가 유효하면 연장
+    if (partner.status === "ACTIVE" && partner.endDate && partner.endDate > now) {
+      const newEndDate = new Date(partner.endDate);
+      newEndDate.setDate(newEndDate.getDate() + partner.durationDays);
+      await prisma.partner.update({
+        where: { id: payment.partnerId! },
+        data: { endDate: newEndDate },
+      });
+    } else {
+      // 신규 결제: startDate 기록 (3일 자동시작 기준), endDate는 프로필 완성 시 설정
+      await prisma.partner.update({
+        where: { id: payment.partnerId! },
+        data: {
+          status: "ACTIVE",
+          startDate: now,
+          endDate: null,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

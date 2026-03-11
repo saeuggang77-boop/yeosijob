@@ -307,6 +307,7 @@ export default async function ResumeDetailPage({ params }: PageProps) {
                 resumeId={id}
                 initialContacted={isContacted}
                 size="default"
+                variant="detail"
               />
             )}
           </CardHeader>

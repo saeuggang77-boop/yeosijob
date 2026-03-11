@@ -110,6 +110,28 @@ enum BusinessType {
   OTHER
 }
 
+enum PartnerStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PartnerGrade {
+  A
+  B
+  C
+  D
+}
+
+enum PartnerCategory {
+  PLASTIC_SURGERY
+  BEAUTY
+  RENTAL
+  FINANCE
+  OTHER
+}
+
 enum Region {
   SEOUL
   GYEONGGI
@@ -249,6 +271,7 @@ model User {
   spamWordActions    SpamWord[]            @relation("spamWordActions")
   blacklistActions   BusinessBlacklist[]   @relation("blacklistActions")
   adApplications     AdApplication[]
+  partners           Partner[]          @relation("partners")
 
   // 알림 설정
   notifyMessage   Boolean @default(true)
@@ -393,9 +416,10 @@ model AdOption {
 // ── PAYMENT ──
 
 model Payment {
-  id     String  @id @default(cuid())
-  userId String
-  adId   String?
+  id        String  @id @default(cuid())
+  userId    String
+  adId      String?
+  partnerId String?
 
   orderId String        @unique
   amount  Int
@@ -430,12 +454,14 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  ad   Ad?  @relation(fields: [adId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  ad      Ad?      @relation(fields: [adId], references: [id])
+  partner Partner? @relation("partnerPayments", fields: [partnerId], references: [id])
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([partnerId])
   @@map("payments")
 }
 
@@ -929,6 +955,63 @@ model EventConfig {
   updatedAt     DateTime  @updatedAt
 
   @@map("event_configs")
+}
+
+// ── PARTNER (제휴업체) ──
+
+model Partner {
+  id     String @id @default(cuid())
+  userId String
+
+  // 업체 정보
+  name         String
+  category     PartnerCategory
+  region       Region
+  address      String?
+  description  String          @db.Text
+  highlight    String?
+  tags         String[]
+
+  // 이미지
+  thumbnailUrl String?
+  detailImages String[]
+
+  // 연락처
+  contactPhone  String?
+  contactKakao  String?
+  websiteUrl    String?
+  businessHours String?
+
+  // 등급/금액 (관리자 설정)
+  grade        PartnerGrade
+  monthlyPrice Int
+
+  // 기간
+  durationDays Int       @default(30)
+  startDate    DateTime?
+  endDate      DateTime?
+
+  // 상태
+  status PartnerStatus @default(PENDING_PAYMENT)
+
+  // 결제 토큰 (결제 링크용)
+  paymentToken String? @unique
+
+  // 통계
+  viewCount  Int @default(0)
+  clickCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation("partners", fields: [userId], references: [id])
+  payments Payment[] @relation("partnerPayments")
+
+  @@index([status, grade])
+  @@index([status, category])
+  @@index([userId])
+  @@index([paymentToken])
+  @@map("partners")
 }
 
 // ── AD APPLICATION (광고 지원) ──

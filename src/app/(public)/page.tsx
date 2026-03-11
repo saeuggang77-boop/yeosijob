@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { AdBoxCard } from "@/components/ads/AdBoxCard";
@@ -10,7 +11,9 @@ import { CommunitySection } from "@/components/community/CommunitySection";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
+import { PARTNER_CATEGORIES, PARTNER_GRADES } from "@/lib/constants/partners";
 import { getActiveEvent } from "@/lib/event";
+import type { PartnerGrade, PartnerCategory, Region } from "@/generated/prisma/client";
 
 function isNewPost(createdAt: Date): boolean {
   return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
@@ -86,6 +89,7 @@ export default async function HomePage() {
     postsQNA,
     postsWORK,
     hotPost,
+    partnerAds,
   ] = await Promise.all([
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "BANNER" },
@@ -180,8 +184,35 @@ export default async function HomePage() {
         _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
       },
     }),
+    // 제휴업체 (메인 노출: A/B/C 등급만)
+    prisma.partner.findMany({
+      where: { status: "ACTIVE", grade: { in: ["A", "B", "C"] } },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        region: true,
+        description: true,
+        highlight: true,
+        thumbnailUrl: true,
+        grade: true,
+        tags: true,
+        viewCount: true,
+      },
+    }),
   ]);
 
+
+  // 제휴업체 같은 등급 내 랜덤 셔플
+  const gradeOrder: PartnerGrade[] = ["A", "B", "C"];
+  const shuffledPartners = gradeOrder.flatMap((g) => {
+    const group = partnerAds.filter((p) => p.grade === g);
+    for (let i = group.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [group[i], group[j]] = [group[j], group[i]];
+    }
+    return group;
+  });
 
   return (
     <div className="mx-auto max-w-screen-xl">
@@ -318,6 +349,116 @@ export default async function HomePage() {
             </div>
             <div className="pb-3 pt-2 text-right">
               <Link href="/jobs?productId=SPECIAL" className="text-sm text-special hover:underline">더보기 →</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* PARTNER Section - 스페셜 스타일 3열 카드 */}
+      {shuffledPartners.length > 0 && (
+        <section className="border-b">
+          <div className="px-4 py-4">
+            <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
+              <span className="rounded border border-primary/40 bg-primary/10 px-3 py-1 text-sm text-primary">
+                제휴업체
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {shuffledPartners.map((partner) => {
+                const gradeInfo = PARTNER_GRADES[partner.grade];
+                const catInfo = PARTNER_CATEGORIES[partner.category];
+                const regionLabel = REGIONS[partner.region]?.shortLabel || partner.region;
+                const isA = partner.grade === "A";
+                const isB = partner.grade === "B";
+
+                return (
+                  <Link
+                    key={partner.id}
+                    href={`/partner/${partner.id}`}
+                    className={`flex overflow-hidden rounded-xl border transition-colors hover:border-primary ${
+                      isA
+                        ? "border-[#D4A853]/40 bg-gradient-to-r from-[#1a1510] to-card"
+                        : isB
+                          ? "border-[#9CA3AF]/30 bg-card"
+                          : "border-border bg-card"
+                    }`}
+                  >
+                    {/* Thumbnail */}
+                    <div className="relative h-auto w-[140px] shrink-0 overflow-hidden bg-muted md:w-[180px]">
+                      {partner.thumbnailUrl ? (
+                        <Image
+                          src={partner.thumbnailUrl}
+                          alt={partner.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full min-h-[130px] items-center justify-center text-4xl">
+                          {catInfo?.emoji || "🏢"}
+                        </div>
+                      )}
+                      <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
+                        <span>{catInfo?.emoji}</span>
+                        <span>{catInfo?.label}</span>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-6">
+                        <span className={`text-sm font-bold ${isA ? "text-[#D4A853]" : "text-white"}`}>
+                          {partner.name}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex flex-1 flex-col justify-center gap-1 p-3">
+                      <p className="text-sm font-bold">{partner.name}</p>
+                      <p className="line-clamp-2 text-xs text-muted-foreground">
+                        {partner.description.slice(0, 60)}
+                      </p>
+                      {partner.highlight && (
+                        <p className="text-xs font-semibold" style={{ color: gradeInfo?.color }}>
+                          {partner.highlight}
+                        </p>
+                      )}
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span
+                          className="rounded px-1.5 py-0.5 text-[10px] font-bold"
+                          style={{
+                            background: isA
+                              ? "linear-gradient(135deg, #D4A853, #b8902e)"
+                              : isB
+                                ? "#9CA3AF"
+                                : "#78716C",
+                            color: isA || isB ? "#000" : "#fff",
+                          }}
+                        >
+                          {partner.grade}
+                        </span>
+                        <span
+                          className="rounded border px-1.5 py-0.5 text-[10px]"
+                          style={{
+                            borderColor: `${catInfo?.color}40`,
+                            color: catInfo?.color,
+                            background: `${catInfo?.color}15`,
+                          }}
+                        >
+                          {catInfo?.label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {regionLabel}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          조회 {partner.viewCount}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="pb-3 pt-2 text-right">
+              <Link href="/partner" className="text-sm text-primary hover:underline">
+                더보기 →
+              </Link>
             </div>
           </div>
         </section>

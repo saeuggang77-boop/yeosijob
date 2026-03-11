@@ -54,6 +54,7 @@ export function Header() {
                 {navLink("/jobs", "채용정보")}
                 {navLink("/resumes", "인재정보")}
                 {navLink("/community", "커뮤니티")}
+                {navLink("/partner", "제휴업체")}
                 {navLink("/pricing", "광고안내")}
                 {navLink("/notice", "공지사항")}
               </nav>
@@ -125,6 +126,11 @@ export function Header() {
           <Link href="/community">
             <Button variant="ghost" size="sm">
               커뮤니티
+            </Button>
+          </Link>
+          <Link href="/partner">
+            <Button variant="ghost" size="sm">
+              제휴업체
             </Button>
           </Link>
           <Link href="/pricing">

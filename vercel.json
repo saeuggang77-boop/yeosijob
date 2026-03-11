@@ -32,6 +32,10 @@
     {
       "path": "/api/cron/reset-manual-jump",
       "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/expire-partners",
+      "schedule": "0 * * * *"
     }
   ],
   "redirects": [

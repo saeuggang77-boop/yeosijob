@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/business/dashboard", label: "광고 관리", icon: "📋" },
   { href: "/business/ads/new", label: "광고 등록", icon: "➕" },
   { href: "/business/resumes", label: "인재 정보", icon: "👥" },
+  { href: "/business/partner", label: "제휴업체", icon: "🤝" },
 ];
 
 export default async function BusinessLayout({

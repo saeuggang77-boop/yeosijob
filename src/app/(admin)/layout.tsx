@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: "📊" },
   { href: "/admin/ads", label: "광고 관리", icon: "📢" },
   { href: "/admin/payments", label: "결제 관리", icon: "💳" },
+  { href: "/admin/partners", label: "제휴업체", icon: "🤝" },
   { href: "/admin/users", label: "회원 관리", icon: "👥" },
   { href: "/admin/resumes", label: "이력서", icon: "📄" },
   { href: "/admin/reviews", label: "후기 관리", icon: "⭐" },

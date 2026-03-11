@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
-
+import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils/format";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
 import type { Region, BusinessType } from "@/generated/prisma/client";
@@ -33,14 +33,14 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   const ddayInfo = productId !== "FREE" ? calculateDday(ad.endDate) : null;
 
   const highlightColors: Record<string, string> = {
-    yellow: "bg-yellow-50",
-    pink: "bg-pink-50",
-    blue: "bg-blue-50",
-    green: "bg-green-50",
-    purple: "bg-purple-50",
-    orange: "bg-orange-50",
-    red: "bg-red-50",
-    cyan: "bg-cyan-50",
+    yellow: "bg-yellow-500/[0.08] border-l-[3px] border-l-yellow-500/70",
+    pink: "bg-pink-500/[0.08] border-l-[3px] border-l-pink-500/70",
+    blue: "bg-blue-500/[0.08] border-l-[3px] border-l-blue-500/70",
+    green: "bg-green-500/[0.08] border-l-[3px] border-l-green-500/70",
+    purple: "bg-purple-500/[0.08] border-l-[3px] border-l-purple-500/70",
+    orange: "bg-orange-500/[0.08] border-l-[3px] border-l-orange-500/70",
+    red: "bg-red-500/[0.08] border-l-[3px] border-l-red-500/70",
+    cyan: "bg-cyan-500/[0.08] border-l-[3px] border-l-cyan-500/70",
   };
 
   const iconEmojis: Record<string, string> = {
@@ -83,7 +83,12 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   return (
     <Link href={`/jobs/${ad.id}`} className="block">
       <div
-        className={`flex items-center gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-muted/50 ${bgClass} ${productStyles} ${emphasized ? "border-l-[3px] border-l-primary" : ""}`}
+        className={cn(
+          "flex items-center gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-muted/50",
+          productStyles,
+          bgClass,
+          emphasized && !bgClass && "border-l-[3px] border-l-primary"
+        )}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

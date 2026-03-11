@@ -299,8 +299,31 @@ export default async function JobDetailPage({ params }: PageProps) {
           <span>채용 상세</span>
         </div>
 
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <h1 className="text-2xl font-bold">{ad.title}</h1>
+        <div className={`mt-3 flex items-start justify-between gap-3 ${
+          (() => {
+            const hlValue = ad.options?.find((o: { optionId: string }) => o.optionId === "HIGHLIGHT")?.value;
+            const hlMap: Record<string, string> = {
+              yellow: "rounded-lg p-3 bg-yellow-500/[0.08]",
+              pink: "rounded-lg p-3 bg-pink-500/[0.08]",
+              blue: "rounded-lg p-3 bg-blue-500/[0.08]",
+              green: "rounded-lg p-3 bg-green-500/[0.08]",
+              purple: "rounded-lg p-3 bg-purple-500/[0.08]",
+              orange: "rounded-lg p-3 bg-orange-500/[0.08]",
+              red: "rounded-lg p-3 bg-red-500/[0.08]",
+              cyan: "rounded-lg p-3 bg-cyan-500/[0.08]",
+            };
+            return hlValue ? hlMap[hlValue] || "" : "";
+          })()
+        }`}>
+          <div className="flex items-center gap-2">
+            {(() => {
+              const iconValue = ad.options?.find((o: { optionId: string }) => o.optionId === "ICON")?.value;
+              if (!iconValue) return null;
+              const iconMap: Record<string, string> = {"1":"🔥","2":"💎","3":"⭐","4":"🎯","5":"💰","6":"👑","7":"🎀","8":"✨","9":"🌟","10":"💜"};
+              return <span className="text-2xl">{iconMap[iconValue] || "🔹"}</span>;
+            })()}
+            <h1 className="text-2xl font-bold">{ad.title}</h1>
+          </div>
           <div className="flex shrink-0 items-center gap-1">
             <ShareButton
               title={`${ad.title} - ${ad.businessName}`}

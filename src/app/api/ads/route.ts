@@ -307,16 +307,6 @@ export async function POST(request: NextRequest) {
 
     // 트랜잭션으로 Ad + Payment 생성 (FREE는 Payment 생성 안 함)
     const result = await prisma.$transaction(async (tx) => {
-      // #18: 배너 슬롯 체크를 트랜잭션 안으로 이동
-      if (productId === "BANNER") {
-        const activeCount = await tx.ad.count({
-          where: { productId: "BANNER", status: "ACTIVE" },
-        });
-        if (activeCount >= 12) {
-          throw new Error("노블레스는 현재 만석입니다");
-        }
-      }
-
       const ad = await tx.ad.create({
         data: {
           userId: session.user.id,

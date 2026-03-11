@@ -227,6 +227,7 @@ model User {
   jumpLogs           JumpLog[]
   notifications      Notification[]
   resumeViews        ResumeViewLog[]    @relation("resumeViews")
+  resumeContacts     ResumeContact[]    @relation("resumeContacts")
   posts              Post[]
   comments           Comment[]
   notices            Notice[]
@@ -495,6 +496,7 @@ model Resume {
   updatedAt DateTime        @updatedAt
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   viewLogs  ResumeViewLog[]
+  contacts  ResumeContact[]
 
   @@index([region])
   @@index([isPublic, lastBumpedAt(sort: Desc)])
@@ -580,6 +582,19 @@ model ResumeViewLog {
   @@index([userId, viewedAt])
   @@index([resumeId])
   @@map("resume_view_logs")
+}
+
+model ResumeContact {
+  id        String   @id @default(cuid())
+  userId    String
+  resumeId  String
+  createdAt DateTime @default(now())
+  user      User     @relation("resumeContacts", fields: [userId], references: [id])
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resumeId])
+  @@index([userId])
+  @@map("resume_contacts")
 }
 
 // ── COMMUNITY (자유수다 게시판) ──

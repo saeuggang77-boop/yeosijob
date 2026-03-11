@@ -53,16 +53,6 @@ export async function POST(
 
     // 결제 수단은 위젯에서 선택하므로 서버에서는 placeholder로 저장 (confirm에서 실제 method로 갱신)
 
-    // BANNER 슬롯 확인
-    if (ad.productId === "BANNER") {
-      const bannerCount = await prisma.ad.count({
-        where: { productId: "BANNER", status: "ACTIVE" },
-      });
-      if (bannerCount >= (AD_PRODUCTS.BANNER.maxSlots || 12)) {
-        return NextResponse.json({ error: "노블레스 슬롯이 모두 찼습니다" }, { status: 400 });
-      }
-    }
-
     const duration = durationDays as DurationDays;
 
     // 가격 계산

@@ -10,6 +10,7 @@ import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS, SALARY_TYPES } from "@/lib/constants/resume";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 import { ResumeFilter } from "@/components/resumes/ResumeFilter";
+import { ContactToggleButton } from "@/components/resumes/ContactToggleButton";
 import { timeAgo, formatPrice } from "@/lib/utils/format";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
@@ -19,6 +20,7 @@ interface PageProps {
     businessType?: string;
     experience?: string;
     ageRange?: string;
+    contacted?: string;
     page?: string;
   }>;
 }
@@ -71,6 +73,14 @@ export default async function ResumesPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
 
+  // Fetch contacted resume IDs for this business user
+  const contactedResumeIds = session?.user?.id
+    ? (await prisma.resumeContact.findMany({
+        where: { userId: session.user.id },
+        select: { resumeId: true },
+      })).map((c) => c.resumeId)
+    : [];
+
   // Smart default filtering based on first active ad
   let defaultRegion: Region | undefined;
   let defaultBusinessType: BusinessType | undefined;
@@ -84,6 +94,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
   const businessType = params.businessType as BusinessType | undefined;
   const experience = params.experience;
   const ageRange = params.ageRange;
+  const contactedFilter = params.contacted || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
@@ -107,6 +118,10 @@ export default async function ResumesPage({ searchParams }: PageProps) {
     where.age = { gte: 30, lte: 39 };
   } else if (ageRange === "40") {
     where.age = { gte: 40 };
+  }
+
+  if (contactedFilter === "uncontacted") {
+    where.id = { notIn: contactedResumeIds };
   }
 
   const [resumes, total] = await Promise.all([
@@ -197,18 +212,26 @@ export default async function ResumesPage({ searchParams }: PageProps) {
               resume.bodyType === "GLAMOUR" ? "글래머" :
               resume.bodyType === "HEALTHY" ? "건강미" : "";
 
+            const isContacted = contactedResumeIds.includes(resume.id);
+
             return (
               <Link key={resume.id} href={`/business/resumes/${resume.id}`}>
-                <Card className="transition-shadow hover:shadow-md">
+                <Card className={`transition-shadow hover:shadow-md ${isContacted ? "opacity-60" : ""}`}>
                   <CardContent className="py-4">
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="text-base font-bold">
                           {resume.title || "제목 없음"}
                         </h3>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {timeAgo(resume.updatedAt)}
-                        </span>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <ContactToggleButton
+                            resumeId={resume.id}
+                            initialContacted={isContacted}
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {timeAgo(resume.updatedAt)}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 text-sm">

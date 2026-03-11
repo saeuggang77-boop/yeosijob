@@ -28,6 +28,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
   const businessType = searchParams.get("businessType") || "ALL";
   const experience = searchParams.get("experience") || "ALL";
   const ageRange = searchParams.get("ageRange") || "ALL";
+  const contacted = searchParams.get("contacted") || "";
 
   // Show suggestion banner when smart filter info is available and no filters applied
   const showSmartBanner = hasSmartFilter && !searchParams.get("region") && !searchParams.get("businessType");
@@ -135,6 +136,16 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
           <SelectItem value="40">40대 이상</SelectItem>
         </SelectContent>
       </Select>
+
+      {/* Contacted Filter */}
+      <Button
+        variant={contacted === "uncontacted" ? "default" : "outline"}
+        size="sm"
+        onClick={() => handleFilterChange("contacted", contacted === "uncontacted" ? "ALL" : "uncontacted")}
+        className="h-10"
+      >
+        미연락만
+      </Button>
       </div>
     </div>
   );

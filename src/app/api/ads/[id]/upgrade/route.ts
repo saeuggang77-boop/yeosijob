@@ -73,23 +73,6 @@ export async function POST(
       );
     }
 
-    // BANNER 슬롯 제한 확인
-    if (newProductId === "BANNER") {
-      const bannerCount = await prisma.ad.count({
-        where: {
-          productId: "BANNER",
-          status: "ACTIVE",
-        },
-      });
-
-      if (bannerCount >= (AD_PRODUCTS.BANNER.maxSlots || 12)) {
-        return NextResponse.json(
-          { error: "노블레스 슬롯이 모두 찼습니다 (12건 한정)" },
-          { status: 400 }
-        );
-      }
-    }
-
     // 기간 유효성 확인
     if (![30, 60, 90].includes(durationDays)) {
       return NextResponse.json(

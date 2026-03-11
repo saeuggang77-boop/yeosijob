@@ -11,6 +11,7 @@ import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS, SALARY_TYPES } from "@/lib/constants/resume";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 import { formatPhone, formatPrice } from "@/lib/utils/format";
+import { ContactToggleButton } from "@/components/resumes/ContactToggleButton";
 import type { BusinessType } from "@/generated/prisma/client";
 
 interface PageProps {
@@ -94,6 +95,13 @@ export default async function ResumeDetailPage({ params }: PageProps) {
   // Determine if contact info can be viewed
   const limitExceeded = hasActiveAd && !isUnlimited && !alreadyViewedToday && viewedResumeIds.length >= dailyLimit;
   const canViewContact = hasActiveAd && !limitExceeded;
+
+  // Check if this resume is contacted
+  const isContacted = session?.user?.id
+    ? !!(await prisma.resumeContact.findUnique({
+        where: { userId_resumeId: { userId: session.user.id, resumeId: id } },
+      }))
+    : false;
 
   // Log view if allowed
   if (canViewContact && !alreadyViewedToday) {
@@ -292,8 +300,15 @@ export default async function ResumeDetailPage({ params }: PageProps) {
 
         {/* Contact */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>연락처</CardTitle>
+            {canViewContact && (
+              <ContactToggleButton
+                resumeId={id}
+                initialContacted={isContacted}
+                size="default"
+              />
+            )}
           </CardHeader>
           <CardContent>
             {canViewContact ? (

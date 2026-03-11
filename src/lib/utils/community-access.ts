@@ -27,6 +27,7 @@ export async function getCommunityAccess(
   }
 
   if (session.user.role === "BUSINESS") {
+    // 1. 유료 광고 (추천 이상) 확인
     const activeAds = await prisma.ad.findMany({
       where: { userId: session.user.id, status: "ACTIVE" },
       select: { productId: true },
@@ -41,6 +42,16 @@ export async function getCommunityAccess(
       if (bestRank <= 6) {
         return { level: "read_only", reason: null };
       }
+    }
+
+    // 2. ACTIVE 제휴업체 확인 (유료 서비스 이용 중)
+    const activePartner = await prisma.partner.findFirst({
+      where: { userId: session.user.id, status: "ACTIVE" },
+      select: { id: true },
+    });
+
+    if (activePartner) {
+      return { level: "read_only", reason: null };
     }
 
     return { level: "blur", reason: "low_tier_business" };

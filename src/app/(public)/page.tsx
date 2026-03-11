@@ -243,7 +243,7 @@ export default async function HomePage() {
                 className="h-9 flex-1 border-r border-border/50 bg-transparent px-3 text-xs text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:px-4 sm:text-sm"
               >
                 <option value="">지역 전체</option>
-                {Object.entries(REGIONS).map(([key, val]) => (
+                {Object.entries(REGIONS).filter(([k]) => k !== "NATIONWIDE").map(([key, val]) => (
                   <option key={key} value={key}>{val.label}</option>
                 ))}
               </select>

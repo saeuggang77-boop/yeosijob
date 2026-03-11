@@ -115,7 +115,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
 
       {/* Filters */}
       <JobsFilter
-        regions={REGIONS}
+        regions={Object.fromEntries(Object.entries(REGIONS).filter(([k]) => k !== "NATIONWIDE"))}
         businessTypes={BUSINESS_TYPES}
         currentRegion={region}
         currentBusinessType={businessType}

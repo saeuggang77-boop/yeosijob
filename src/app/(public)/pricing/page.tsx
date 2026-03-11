@@ -337,15 +337,21 @@ export default async function PricingPage() {
                 </tr>
               </thead>
               <tbody>
-                {orderedAddOns.map((option) => (
-                  <tr key={option.id} className="border-b hover:bg-muted/5 transition-colors">
-                    <td className="p-3 font-semibold">{option.name}</td>
+                {orderedAddOns.map((option) => {
+                  const isComingSoon = option.id === "KAKAO_ALERT";
+                  return (
+                  <tr key={option.id} className={`border-b hover:bg-muted/5 transition-colors ${isComingSoon ? "opacity-50" : ""}`}>
+                    <td className="p-3 font-semibold">
+                      {option.name}
+                      {isComingSoon && <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">준비중</span>}
+                    </td>
                     <td className="p-3 text-sm text-muted-foreground">{option.description}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(option.pricing[30])}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(option.pricing[60])}</td>
-                    <td className="text-center p-3 font-medium">{formatPrice(option.pricing[90])}</td>
+                    <td className="text-center p-3 font-medium">{isComingSoon ? "-" : formatPrice(option.pricing[30])}</td>
+                    <td className="text-center p-3 font-medium">{isComingSoon ? "-" : formatPrice(option.pricing[60])}</td>
+                    <td className="text-center p-3 font-medium">{isComingSoon ? "-" : formatPrice(option.pricing[90])}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

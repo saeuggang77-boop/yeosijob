@@ -18,8 +18,8 @@ export const revalidate = 60;
 export default async function PartnerDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const partner = await prisma.partner.findUnique({
-    where: { id },
+  const partner = await prisma.partner.findFirst({
+    where: { id, status: "ACTIVE", isProfileComplete: true },
     select: {
       id: true,
       name: true,
@@ -46,7 +46,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
   // Increment view count
   await prisma.partner.update({
-    where: { id },
+    where: { id: partner.id },
     data: { viewCount: { increment: 1 } },
   });
 

@@ -29,10 +29,11 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const category = sp.category || "";
 
-  // Fetch ACTIVE partners
+  // Fetch ACTIVE + profile complete partners only
   const partners = await prisma.partner.findMany({
     where: {
       status: "ACTIVE",
+      isProfileComplete: true,
       ...(category ? { category: category as any } : {}),
     },
     select: {

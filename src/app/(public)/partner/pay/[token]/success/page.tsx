@@ -78,16 +78,16 @@ export default function PartnerPaymentSuccessPage({ params }: Props) {
               <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
               <h2 className="mt-4 text-xl font-bold">{message}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                제휴업체로 등록되었습니다
+                이제 업체 정보를 입력하면 제휴업체 페이지에 노출됩니다
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 {partnerId && (
-                  <Link href={`/partner/${partnerId}`}>
-                    <Button>업체 페이지 보기</Button>
+                  <Link href={`/business/partner/${partnerId}/edit`}>
+                    <Button>업체 정보 입력하기</Button>
                   </Link>
                 )}
-                <Link href="/partner">
-                  <Button variant="outline">제휴업체 목록</Button>
+                <Link href="/business/partner">
+                  <Button variant="outline">제휴업체 관리</Button>
                 </Link>
               </div>
             </div>
@@ -99,8 +99,8 @@ export default function PartnerPaymentSuccessPage({ params }: Props) {
               <h2 className="mt-4 text-xl font-bold">결제 실패</h2>
               <p className="mt-2 text-sm text-muted-foreground">{message}</p>
               <div className="mt-6">
-                <Link href="/partner">
-                  <Button variant="outline">제휴업체 목록으로</Button>
+                <Link href="/business/partner">
+                  <Button variant="outline">제휴업체 관리로</Button>
                 </Link>
               </div>
             </div>

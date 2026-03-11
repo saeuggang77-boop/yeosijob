@@ -9,12 +9,6 @@ interface PageProps {
   params: Promise<{ token: string }>;
 }
 
-function generateOrderId(): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `PARTNER-${timestamp}-${random}`;
-}
-
 export default async function PartnerPaymentPage({ params }: PageProps) {
   const { token } = await params;
 
@@ -28,6 +22,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
       durationDays: true,
       status: true,
       userId: true,
+      isProfileComplete: true,
       user: {
         select: {
           name: true,
@@ -41,30 +36,44 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
     notFound();
   }
 
-  // If already paid (ACTIVE), redirect to partner detail
+  // If already paid (ACTIVE), redirect to partner management
   if (partner.status === "ACTIVE") {
-    redirect(`/partner/${partner.id}`);
+    redirect("/business/partner");
   }
 
   const gradeInfo = PARTNER_GRADES[partner.grade];
-  const orderId = generateOrderId();
 
-  // Create Payment record server-side
-  await prisma.payment.create({
-    data: {
-      orderId,
-      userId: partner.userId,
+  // 기존 PENDING Payment 재사용 또는 새로 생성
+  let payment = await prisma.payment.findFirst({
+    where: {
       partnerId: partner.id,
-      amount: partner.monthlyPrice,
-      method: "CARD", // Will be updated on confirmation
       status: "PENDING",
-      itemSnapshot: {
-        partnerName: partner.name,
-        grade: partner.grade,
-        durationDays: partner.durationDays,
-      },
     },
+    select: { orderId: true },
   });
+
+  if (!payment) {
+    const orderId = `PARTNER-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    payment = await prisma.payment.create({
+      data: {
+        orderId,
+        userId: partner.userId,
+        partnerId: partner.id,
+        amount: partner.monthlyPrice,
+        method: "CARD",
+        status: "PENDING",
+        itemSnapshot: {
+          type: "partner",
+          partnerId: partner.id,
+          grade: partner.grade,
+        },
+      },
+      select: { orderId: true },
+    });
+  }
+
+  const orderId = payment.orderId;
+  const orderName = `여시잡 제휴업체 ${gradeInfo.label} 입점`;
 
   const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/success`;
   const failUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/fail`;
@@ -78,10 +87,6 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
           <CardTitle>결제 정보</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">업체명</span>
-            <span className="font-medium">{partner.name}</span>
-          </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">등급</span>
             <Badge style={{ backgroundColor: gradeInfo.color }} className="text-white border-0">
@@ -108,7 +113,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
         <CardContent>
           <TossPaymentWidget
             orderId={orderId}
-            orderName={`${partner.name} - ${gradeInfo.label} 입점`}
+            orderName={orderName}
             amount={partner.monthlyPrice}
             customerName={partner.user.name || "고객"}
             customerEmail={partner.user.email || ""}
@@ -119,7 +124,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
       </Card>
 
       <div className="mt-4 rounded-lg bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-        결제 완료 후 즉시 제휴업체로 등록됩니다
+        결제 완료 후 업체 정보를 입력하시면 제휴업체 페이지에 노출됩니다
       </div>
     </div>
   );

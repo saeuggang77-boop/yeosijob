@@ -70,6 +70,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "결제가 완료되었습니다",
+      partnerId: payment.partnerId,
     });
   } catch (error) {
     console.error("Partner payment confirmation error:", error);

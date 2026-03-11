@@ -43,94 +43,51 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const {
-      userId,
-      userEmail,
-      name,
-      category,
-      region,
-      description,
-      grade,
-      monthlyPrice,
-      address,
-      highlight,
-      tags,
-      thumbnailUrl,
-      detailImages,
-      contactPhone,
-      contactKakao,
-      websiteUrl,
-      businessHours,
-    } = body;
+    const { userEmail, grade } = body;
 
-    // Resolve userId from email if not provided directly
-    let resolvedUserId = userId;
-    if (!resolvedUserId && userEmail) {
-      const user = await prisma.user.findUnique({
-        where: { email: userEmail },
-        select: { id: true, role: true },
-      });
-      if (!user) {
-        return NextResponse.json({ error: "해당 이메일의 사용자를 찾을 수 없습니다" }, { status: 404 });
-      }
-      if (user.role !== "BUSINESS" && user.role !== "ADMIN") {
-        return NextResponse.json({ error: "사업자 계정만 제휴업체를 등록할 수 있습니다" }, { status: 400 });
-      }
-      resolvedUserId = user.id;
+    // Validate required fields (관리자는 이메일 + 등급만 필수)
+    if (!userEmail || !grade) {
+      return NextResponse.json({ error: "이메일과 등급은 필수입니다" }, { status: 400 });
     }
 
-    // Validate required fields
-    if (!resolvedUserId || !name || !category || !region || !description || !grade || !monthlyPrice) {
-      return NextResponse.json({ error: "필수 필드가 누락되었습니다" }, { status: 400 });
+    // Resolve userId from email
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true, role: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "해당 이메일의 사용자를 찾을 수 없습니다" }, { status: 404 });
     }
+    if (user.role !== "BUSINESS" && user.role !== "ADMIN") {
+      return NextResponse.json({ error: "사업자 계정만 제휴업체를 등록할 수 있습니다" }, { status: 400 });
+    }
+    const resolvedUserId = user.id;
+
+    // 등급별 가격 자동 설정
+    const GRADE_PRICES: Record<string, number> = { A: 3_000_000, B: 2_000_000, C: 1_000_000, D: 500_000 };
+    const monthlyPrice = GRADE_PRICES[grade] || 500_000;
 
     // Generate payment token
     const paymentToken = crypto.randomUUID();
 
-    // Create partner
+    // Create partner (업체 정보는 업체가 직접 입력)
     const partner = await prisma.partner.create({
       data: {
         userId: resolvedUserId,
-        name,
-        category,
-        region,
-        description,
+        name: "미등록 업체",
+        category: "OTHER",
+        region: "SEOUL",
+        description: "",
         grade,
         monthlyPrice,
-        address,
-        highlight,
-        tags,
-        thumbnailUrl,
-        detailImages,
-        contactPhone,
-        contactKakao,
-        websiteUrl,
-        businessHours,
         status: "PENDING_PAYMENT",
         durationDays: 30,
         paymentToken,
+        isProfileComplete: false,
       },
     });
 
-    // Create payment record
-    const orderId = `PARTNER-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    await prisma.payment.create({
-      data: {
-        orderId,
-        userId: resolvedUserId,
-        amount: monthlyPrice,
-        method: "CARD",
-        status: "PENDING",
-        itemSnapshot: {
-          type: "partner",
-          partnerId: partner.id,
-          name: partner.name,
-          grade: partner.grade,
-          category: partner.category,
-        },
-        partnerId: partner.id,
-      },
-    });
+    // Payment는 결제 페이지에서 생성 (중복 방지)
 
     return NextResponse.json({ partner, paymentToken });
   } catch (error) {

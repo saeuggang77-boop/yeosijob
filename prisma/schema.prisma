@@ -997,6 +997,9 @@ model Partner {
   // 결제 토큰 (결제 링크용)
   paymentToken String? @unique
 
+  // 프로필 완성 여부 (업체가 직접 정보 입력 후 true)
+  isProfileComplete Boolean @default(false)
+
   // 통계
   viewCount  Int @default(0)
   clickCount Int @default(0)

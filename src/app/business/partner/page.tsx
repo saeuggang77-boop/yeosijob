@@ -34,8 +34,27 @@ export default async function BusinessPartnerPage() {
       <div className="mt-6 space-y-4">
         {partners.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              제휴업체가 없습니다
+            <CardContent className="py-12 text-center">
+              <div className="text-5xl mb-4">🤝</div>
+              <p className="text-lg font-semibold">등록된 제휴업체가 없습니다</p>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                여시잡과 함께 성장하세요<br />
+                카카오톡으로 입점 문의를 해주시면 빠르게 안내해드립니다
+              </p>
+              <a
+                href="https://pf.kakao.com/_zEqYG/chat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#FEE500] px-6 py-3 text-sm font-semibold text-[#3C1E1E] transition-opacity hover:opacity-85"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
+                  <path d="M12 3C6.48 3 2 6.58 2 10.9c0 2.78 1.86 5.22 4.66 6.6l-.86 3.18c-.05.2.17.36.34.25l3.77-2.5c.67.1 1.36.16 2.09.16 5.52 0 10-3.58 10-7.99S17.52 3 12 3z"/>
+                </svg>
+                입점 문의하기
+              </a>
+              <Link href="/partner" className="mt-4 block text-sm text-primary hover:underline">
+                제휴업체 페이지 보기 →
+              </Link>
             </CardContent>
           </Card>
         ) : (
@@ -94,8 +113,33 @@ export default async function BusinessPartnerPage() {
                     )}
                   </div>
 
+                  {/* 프로필 미완성 안내 */}
+                  {!partner.isProfileComplete && partner.status === "ACTIVE" && (
+                    <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
+                      <p className="text-sm font-medium text-yellow-500">
+                        업체 정보를 입력해주세요
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        정보를 입력해야 제휴업체 페이지에 노출됩니다
+                      </p>
+                      <Button size="sm" className="mt-2" asChild>
+                        <Link href={`/business/partner/${partner.id}/edit`}>
+                          정보 입력하기
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Actions based on status */}
                   <div className="flex flex-wrap gap-2">
+                    {partner.status === "ACTIVE" && partner.isProfileComplete && (
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/business/partner/${partner.id}/edit`}>
+                          정보 수정
+                        </Link>
+                      </Button>
+                    )}
+
                     {partner.status === "ACTIVE" && remainingDays !== null && remainingDays < 30 && (
                       <PartnerRenewButton partnerId={partner.id} label="연장" />
                     )}

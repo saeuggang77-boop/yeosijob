@@ -46,7 +46,6 @@ export default function UpgradeAdPage() {
     orderId: string;
     amount: number;
     orderName: string;
-    method: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER";
   } | null>(null);
 
   // Load current ad info
@@ -70,17 +69,14 @@ export default function UpgradeAdPage() {
     setFormData(prev => ({ ...prev, ...data }));
   }
 
-  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
+  async function handleSubmit() {
     setError("");
     setLoading(true);
     try {
       const res = await fetch(`/api/ads/${id}/upgrade`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          paymentMethod,
-        }),
+        body: JSON.stringify(formData),
       });
 
       const result = await res.json();
@@ -94,7 +90,6 @@ export default function UpgradeAdPage() {
         orderId: result.orderId,
         amount: result.amount,
         orderName: result.orderName,
-        method: paymentMethod as "CARD" | "KAKAO_PAY" | "BANK_TRANSFER",
       });
       setShowPayment(true);
     } catch {
@@ -142,7 +137,6 @@ export default function UpgradeAdPage() {
             amount={paymentInfo.amount}
             customerName={adInfo.businessName}
             customerEmail={session?.user?.email || ""}
-            method={paymentInfo.method}
             successUrl={`${window.location.origin}/business/ads/new/success?upgrade=true`}
             failUrl={`${window.location.origin}/business/ads/new/fail`}
             onError={(msg) => {

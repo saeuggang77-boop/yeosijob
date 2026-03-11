@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -17,13 +16,12 @@ import type { AdFormData } from "@/lib/validators/ad";
 interface Props {
   data: Partial<AdFormData>;
   onBack: () => void;
-  onSubmit: (paymentMethod: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") => void;
+  onSubmit: () => void;
   loading: boolean;
   eventInfo?: { bonus30: number; bonus60: number; bonus90: number; eventName: string; endDate: string | null } | null;
 }
 
 export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Props) {
-  const [selectedMethod, setSelectedMethod] = useState<"CARD" | "KAKAO_PAY" | "BANK_TRANSFER">("CARD");
 
   const productId = data.productId || "LINE";
   const durationDays = data.durationDays ?? 30;
@@ -191,60 +189,11 @@ export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Pro
         </CardContent>
       </Card>
 
-      {/* 결제 수단 - FREE일 때는 숨김 */}
+      {/* FREE 아닌 경우 결제 안내 */}
       {!isFreeProduct && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">결제 수단</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* 카드결제 */}
-            <button
-              type="button"
-              onClick={() => setSelectedMethod("CARD")}
-              className={`w-full rounded-lg border p-4 text-left transition-all ${
-                selectedMethod === "CARD"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              <p className="font-medium">카드결제</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                신용/체크카드로 즉시 결제
-              </p>
-            </button>
-
-            {/* 카카오페이 */}
-            <button
-              type="button"
-              onClick={() => setSelectedMethod("KAKAO_PAY")}
-              className={`w-full rounded-lg border p-4 text-left transition-all ${
-                selectedMethod === "KAKAO_PAY"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              <p className="font-medium">카카오페이</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                카카오페이로 간편 결제
-              </p>
-            </button>
-
-            {/* 무통장 입금 */}
-            <button
-              type="button"
-              onClick={() => setSelectedMethod("BANK_TRANSFER")}
-              className={`w-full rounded-lg border p-4 text-left transition-all ${
-                selectedMethod === "BANK_TRANSFER"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              <p className="font-medium">무통장 입금 (가상계좌)</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                가상계좌가 자동 발급되며, 입금 확인 후 즉시 광고가 게재됩니다
-              </p>
-            </button>
+          <CardContent className="py-4 text-center text-sm text-muted-foreground">
+            다음 단계에서 결제 수단을 선택할 수 있습니다
           </CardContent>
         </Card>
       )}
@@ -273,16 +222,14 @@ export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Pro
           </Button>
           <Button
             className="flex-1"
-            onClick={() => onSubmit(isFreeProduct ? "CARD" : selectedMethod)}
+            onClick={() => onSubmit()}
             disabled={loading}
           >
             {loading
               ? "처리 중..."
               : isFreeProduct
                 ? "무료 광고 등록하기"
-                : selectedMethod === "BANK_TRANSFER"
-                  ? `${totalPrice.toLocaleString()}원 주문하기`
-                  : `${totalPrice.toLocaleString()}원 결제하기`}
+                : `${totalPrice.toLocaleString()}원 결제하기`}
           </Button>
         </div>
       </div>

@@ -118,7 +118,6 @@ export async function POST(request: NextRequest) {
       productId,
       options = [],
       optionValues = {},
-      paymentMethod,
       useCredit,
       bannerColor,
     bannerTitle,
@@ -275,13 +274,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ adId: ad.id, useCredit: true });
     }
 
-    // 결제 수단 검증 (FREE 제외)
-    if (!isFreeProduct) {
-      const validMethods = ["CARD", "BANK_TRANSFER", "KAKAO_PAY"];
-      if (!paymentMethod || !validMethods.includes(paymentMethod)) {
-        return NextResponse.json({ error: "올바른 결제 수단을 선택해주세요" }, { status: 400 });
-      }
-    }
+    // 결제 수단은 위젯에서 선택하므로 서버에서는 placeholder로 저장 (confirm에서 실제 method로 갱신)
 
     // 지역 수 확인 (BANNER는 전국 노출이므로 skip)
     if (productId !== "BANNER" && regions.length > product.maxRegions) {
@@ -378,7 +371,7 @@ export async function POST(request: NextRequest) {
           adId: ad.id,
           orderId,
           amount: totalAmount,
-          method: (paymentMethod || "BANK_TRANSFER") as PaymentMethod,
+          method: "CARD" as PaymentMethod,
           status: "PENDING",
           itemSnapshot: {
             product: { id: productId, name: product.name },

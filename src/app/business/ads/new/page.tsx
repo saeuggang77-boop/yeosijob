@@ -40,7 +40,6 @@ export default function NewAdPage() {
     orderId: string;
     amount: number;
     orderName: string;
-    method: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER";
   } | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
 
@@ -128,7 +127,7 @@ export default function NewAdPage() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER", useCreditFlag?: boolean) {
+  async function handleSubmit(useCreditFlag?: boolean) {
     setError("");
     setLoading(true);
     try {
@@ -136,7 +135,6 @@ export default function NewAdPage() {
 
       const payload = {
         ...formData,
-        paymentMethod: isFreeProduct ? undefined : paymentMethod,
         useCredit: useCreditFlag || false,
       };
 
@@ -164,7 +162,6 @@ export default function NewAdPage() {
         orderId: result.orderId,
         amount: result.amount,
         orderName: result.orderName,
-        method: paymentMethod as "CARD" | "KAKAO_PAY" | "BANK_TRANSFER",
       });
       setShowPayment(true);
     } catch (err) {
@@ -192,7 +189,6 @@ export default function NewAdPage() {
             amount={paymentInfo.amount}
             customerName={formData.businessName || ""}
             customerEmail={session?.user?.email || ""}
-            method={paymentInfo.method}
             onError={(msg) => {
               setError(msg);
               setShowPayment(false);
@@ -282,7 +278,7 @@ export default function NewAdPage() {
             onFreeSubmit={() => handleSubmit()}
             freeSubmitLoading={loading}
             freeCredits={freeCredits}
-            onCreditSubmit={() => handleSubmit(undefined, true)}
+            onCreditSubmit={() => handleSubmit(true)}
             eventInfo={eventInfo}
           />
         )}

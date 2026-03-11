@@ -41,7 +41,6 @@ export default function RenewAdPage() {
     orderId: string;
     amount: number;
     orderName: string;
-    method: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER";
   } | null>(null);
 
   // Load current ad info
@@ -59,7 +58,7 @@ export default function RenewAdPage() {
       .finally(() => setLoadingAd(false));
   }, [id]);
 
-  async function handleSubmit(paymentMethod?: "CARD" | "KAKAO_PAY" | "BANK_TRANSFER") {
+  async function handleSubmit() {
     setError("");
     setLoading(true);
     try {
@@ -70,7 +69,6 @@ export default function RenewAdPage() {
           durationDays,
           options: selectedOptions,
           optionValues,
-          paymentMethod,
         }),
       });
 
@@ -85,7 +83,6 @@ export default function RenewAdPage() {
         orderId: result.orderId,
         amount: result.amount,
         orderName: result.orderName,
-        method: paymentMethod as "CARD" | "KAKAO_PAY" | "BANK_TRANSFER",
       });
       setShowPayment(true);
     } catch {
@@ -155,7 +152,6 @@ export default function RenewAdPage() {
             amount={paymentInfo.amount}
             customerName={adInfo.businessName}
             customerEmail={session?.user?.email || ""}
-            method={paymentInfo.method}
             successUrl={`${window.location.origin}/business/ads/new/success?renew=true`}
             failUrl={`${window.location.origin}/business/ads/new/fail`}
             onError={(msg) => {

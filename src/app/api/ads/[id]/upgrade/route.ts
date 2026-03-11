@@ -27,7 +27,6 @@ export async function POST(
       durationDays,
       options,
       optionValues,
-      paymentMethod,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       regions,
     } = await request.json();
@@ -99,13 +98,7 @@ export async function POST(
       );
     }
 
-    // 결제 방법 확인
-    if (!paymentMethod || !["CARD", "BANK_TRANSFER", "KAKAO_PAY"].includes(paymentMethod)) {
-      return NextResponse.json(
-        { error: "유효한 결제 방법을 선택해주세요" },
-        { status: 400 }
-      );
-    }
+    // 결제 수단은 위젯에서 선택하므로 서버에서는 placeholder로 저장 (confirm에서 실제 method로 갱신)
 
     const duration = durationDays as DurationDays;
 
@@ -173,7 +166,7 @@ export async function POST(
         adId: ad.id,
         orderId,
         amount: totalAmount,
-        method: paymentMethod as PaymentMethod,
+        method: "CARD" as PaymentMethod,
         status: "PENDING",
         itemSnapshot,
       },

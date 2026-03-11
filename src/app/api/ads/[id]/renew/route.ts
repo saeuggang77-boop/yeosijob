@@ -22,7 +22,7 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { durationDays, options, optionValues, paymentMethod } = await request.json();
+    const { durationDays, options, optionValues } = await request.json();
 
     const ad = await prisma.ad.findUnique({ where: { id } });
 
@@ -51,9 +51,7 @@ export async function POST(
       return NextResponse.json({ error: "기간은 30, 60, 90일만 선택 가능합니다" }, { status: 400 });
     }
 
-    if (!paymentMethod || !["CARD", "BANK_TRANSFER", "KAKAO_PAY"].includes(paymentMethod)) {
-      return NextResponse.json({ error: "유효한 결제 방법을 선택해주세요" }, { status: 400 });
-    }
+    // 결제 수단은 위젯에서 선택하므로 서버에서는 placeholder로 저장 (confirm에서 실제 method로 갱신)
 
     // BANNER 슬롯 확인
     if (ad.productId === "BANNER") {
@@ -120,7 +118,7 @@ export async function POST(
         adId: ad.id,
         orderId,
         amount: totalAmount,
-        method: paymentMethod as PaymentMethod,
+        method: "CARD" as PaymentMethod,
         status: "PENDING",
         itemSnapshot,
       },

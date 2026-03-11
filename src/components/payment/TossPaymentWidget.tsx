@@ -29,6 +29,8 @@ export function TossPaymentWidget({
   onError,
 }: Props) {
   const tossRef = useRef<Awaited<ReturnType<typeof loadTossPayments>> | null>(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     loadTossPayments(TOSS_CLIENT_KEY)
@@ -37,31 +39,32 @@ export function TossPaymentWidget({
       })
       .catch((err) => {
         console.error("Toss SDK load error:", err);
-        onError?.("결제 모듈 로드에 실패했습니다");
+        onErrorRef.current?.("결제 모듈 로드에 실패했습니다");
       });
-  }, [onError]);
+  }, []);
 
   async function handlePayment() {
-    const toss = tossRef.current;
-    if (!toss) {
-      onError?.("결제 모듈이 준비되지 않았습니다");
-      return;
-    }
-
-    const payment = toss.payment({ customerKey: customerEmail });
-
-    const resolvedSuccessUrl = successUrl || `${window.location.origin}/business/ads/new/success`;
-    const resolvedFailUrl = failUrl || `${window.location.origin}/business/ads/new/fail`;
-
     try {
+      const toss = tossRef.current;
+      if (!toss) {
+        onError?.("결제 모듈이 준비되지 않았습니다. 페이지를 새로고침해주세요.");
+        return;
+      }
+
+      const customerKey = customerEmail || `guest_${orderId}`;
+      const payment = toss.payment({ customerKey });
+
+      const resolvedSuccessUrl = successUrl || `${window.location.origin}/business/ads/new/success`;
+      const resolvedFailUrl = failUrl || `${window.location.origin}/business/ads/new/fail`;
+
       if (method === "BANK_TRANSFER") {
         await payment.requestPayment({
           method: "VIRTUAL_ACCOUNT",
           amount: { currency: "KRW", value: amount },
           orderId,
           orderName,
-          customerName,
-          customerEmail,
+          customerName: customerName || "고객",
+          customerEmail: customerEmail || undefined,
           successUrl: resolvedSuccessUrl,
           failUrl: resolvedFailUrl,
           virtualAccount: {
@@ -74,8 +77,8 @@ export function TossPaymentWidget({
           amount: { currency: "KRW", value: amount },
           orderId,
           orderName,
-          customerName,
-          customerEmail,
+          customerName: customerName || "고객",
+          customerEmail: customerEmail || undefined,
           successUrl: resolvedSuccessUrl,
           failUrl: resolvedFailUrl,
           card: {
@@ -89,8 +92,8 @@ export function TossPaymentWidget({
           amount: { currency: "KRW", value: amount },
           orderId,
           orderName,
-          customerName,
-          customerEmail,
+          customerName: customerName || "고객",
+          customerEmail: customerEmail || undefined,
           successUrl: resolvedSuccessUrl,
           failUrl: resolvedFailUrl,
         });

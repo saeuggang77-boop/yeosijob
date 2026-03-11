@@ -52,11 +52,12 @@ export async function GET(request: NextRequest) {
 
         // 중복 알림 방지: 24시간 이내 동일 알림이 있는지 확인
         const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const notificationLink = daysLeft === 0 ? `/business/ads/${ad.id}/renew` : `/business/ads/${ad.id}`;
         const existingNotification = await prisma.notification.findFirst({
           where: {
             userId: ad.userId,
             title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
-            link: `/business/ads/${ad.id}`,
+            link: notificationLink,
             createdAt: {
               gte: twentyFourHoursAgo,
             },
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
               userId: ad.userId,
               title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
               message: notificationMessage,
-              link: `/business/ads/${ad.id}`,
+              link: daysLeft === 0 ? `/business/ads/${ad.id}/renew` : `/business/ads/${ad.id}`,
             },
           });
 

@@ -33,14 +33,14 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   const ddayInfo = productId !== "FREE" ? calculateDday(ad.endDate) : null;
 
   const highlightColors: Record<string, string> = {
-    yellow: "bg-yellow-500/[0.08] border-l-[3px] border-l-yellow-500/70",
-    pink: "bg-pink-500/[0.08] border-l-[3px] border-l-pink-500/70",
-    blue: "bg-blue-500/[0.08] border-l-[3px] border-l-blue-500/70",
-    green: "bg-green-500/[0.08] border-l-[3px] border-l-green-500/70",
-    purple: "bg-purple-500/[0.08] border-l-[3px] border-l-purple-500/70",
-    orange: "bg-orange-500/[0.08] border-l-[3px] border-l-orange-500/70",
-    red: "bg-red-500/[0.08] border-l-[3px] border-l-red-500/70",
-    cyan: "bg-cyan-500/[0.08] border-l-[3px] border-l-cyan-500/70",
+    yellow: "bg-yellow-500/[0.08]",
+    pink: "bg-pink-500/[0.08]",
+    blue: "bg-blue-500/[0.08]",
+    green: "bg-green-500/[0.08]",
+    purple: "bg-purple-500/[0.08]",
+    orange: "bg-orange-500/[0.08]",
+    red: "bg-red-500/[0.08]",
+    cyan: "bg-cyan-500/[0.08]",
   };
 
   const iconEmojis: Record<string, string> = {
@@ -58,6 +58,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
 
   function getProductStyles(productId?: string) {
     switch (productId) {
+      case "BANNER": return "border-l-[3px] border-l-primary bg-gradient-to-r from-primary/15 via-primary/5 to-transparent";
       case "VIP": return "border-l-[3px] border-l-primary bg-gradient-to-r from-primary/10 to-transparent";
       case "PREMIUM": return "border-l-[3px] border-l-primary/50";
       case "SPECIAL": return "border-l-[3px] border-l-special";
@@ -87,7 +88,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
           "flex items-center gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-muted/50",
           productStyles,
           bgClass,
-          emphasized && !bgClass && "border-l-[3px] border-l-primary"
+          emphasized && "border-l-[3px] border-l-primary"
         )}
       >
         <div className="min-w-0 flex-1">
@@ -99,6 +100,9 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
             )}
             {productId === "URGENT" && (
               <span className="shrink-0 animate-pulse-urgent rounded bg-urgent px-1.5 py-0.5 text-[12px] font-bold text-white">급구</span>
+            )}
+            {productId === "BANNER" && (
+              <span className="shrink-0 rounded bg-gradient-to-br from-primary via-amber to-primary px-1.5 py-0.5 text-[11px] font-extrabold text-primary-foreground shadow-sm">노블레스</span>
             )}
             {productId === "VIP" && (
               <span className="shrink-0 rounded bg-gradient-to-r from-primary to-amber px-1.5 py-0.5 text-[12px] font-bold text-primary-foreground">VIP</span>

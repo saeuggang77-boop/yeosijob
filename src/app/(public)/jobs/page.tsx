@@ -100,7 +100,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
   let pageTitle = "전체 채용정보";
   if (productId) {
     const tierNames: Record<string, string> = {
-      VIP: "VIP", PREMIUM: "프리미엄", SPECIAL: "스페셜",
+      BANNER: "노블레스", VIP: "VIP", PREMIUM: "프리미엄", SPECIAL: "스페셜",
       URGENT: "급구", RECOMMEND: "추천", LINE: "줄광고",
     };
     pageTitle = `${tierNames[productId] || productId} 채용정보`;

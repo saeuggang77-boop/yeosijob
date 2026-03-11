@@ -13,13 +13,25 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // 48시간 초과 미입금 광고 조회
+    // 미입금 광고 조회 (가상계좌: 7일, 그 외: 48시간)
     const expiredAds = await prisma.ad.findMany({
       where: {
         status: "PENDING_DEPOSIT",
-        createdAt: { lt: cutoff },
+        OR: [
+          // 가상계좌 결제: 7일 초과
+          {
+            createdAt: { lt: cutoff7d },
+            payments: { some: { method: "BANK_TRANSFER", status: "PENDING" } },
+          },
+          // 그 외 결제: 48시간 초과
+          {
+            createdAt: { lt: cutoff48h },
+            payments: { none: { method: "BANK_TRANSFER", status: "PENDING" } },
+          },
+        ],
       },
       select: { id: true },
     });

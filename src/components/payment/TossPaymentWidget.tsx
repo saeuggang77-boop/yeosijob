@@ -95,11 +95,17 @@ export function TossPaymentWidget({
           failUrl: resolvedFailUrl,
         });
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("USER_CANCEL")) return;
-        onError?.(error.message);
-      }
+    } catch (error: unknown) {
+      const code = (error as { code?: string })?.code || "";
+      const message =
+        error instanceof Error
+          ? error.message
+          : (error as { message?: string })?.message || "결제 요청 중 오류가 발생했습니다";
+
+      if (code === "USER_CANCEL" || message.includes("USER_CANCEL")) return;
+
+      console.error("Toss payment error:", error);
+      onError?.(message);
     }
   }
 

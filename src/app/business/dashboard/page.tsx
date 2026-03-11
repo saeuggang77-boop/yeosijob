@@ -150,26 +150,19 @@ export default async function DashboardPage() {
                           <p className="mt-1 text-sm text-muted-foreground">
                             조회 {ad.viewCount.toLocaleString()}회 ·{" "}
                             {ad.productId === "FREE" ? "무료" : `${ad.totalAmount.toLocaleString()}원`}
-                            {ad.productId === "FREE" && " · 유료 전용"}
                           </p>
                         </div>
                       </div>
                     </Link>
                     {ad.status === "ACTIVE" && (
                       <div className="mt-2 flex flex-wrap items-center gap-2 border-t pt-2">
-                        {ad.productId === "FREE" ? (
-                          <Button size="sm" variant="outline" className="text-xs" disabled>
-                            수동점프 (유료 전용)
-                          </Button>
-                        ) : (
-                          ad.manualJumpPerDay > 0 && (
-                            <JumpButton
-                              adId={ad.id}
-                              manualJumpPerDay={ad.manualJumpPerDay}
-                              manualJumpUsedToday={ad.manualJumpUsedToday}
-                              lastManualJumpAt={ad.lastManualJumpAt?.toISOString() ?? null}
-                            />
-                          )
+                        {ad.manualJumpPerDay > 0 && (
+                          <JumpButton
+                            adId={ad.id}
+                            manualJumpPerDay={ad.manualJumpPerDay}
+                            manualJumpUsedToday={ad.manualJumpUsedToday}
+                            lastManualJumpAt={ad.lastManualJumpAt?.toISOString() ?? null}
+                          />
                         )}
                         <Link href={`/business/ads/${ad.id}/stats`}>
                           <Button size="sm" variant="outline" className="text-xs">

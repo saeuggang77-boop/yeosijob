@@ -1,4 +1,4 @@
-import { TOSS_API_URL, TOSS_SECRET_KEY } from "./client";
+import { TOSS_API_URL, TOSS_SECRET_KEY, assertTossKeys } from "./client";
 
 interface ConfirmPaymentParams {
   paymentKey: string;
@@ -36,6 +36,7 @@ interface TossPaymentResponse {
 export async function confirmTossPayment(
   params: ConfirmPaymentParams
 ): Promise<TossPaymentResponse> {
+  assertTossKeys();
   const { paymentKey, orderId, amount } = params;
 
   const auth = Buffer.from(`${TOSS_SECRET_KEY}:`).toString("base64");

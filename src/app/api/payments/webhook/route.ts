@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { TOSS_API_URL, TOSS_SECRET_KEY } from "@/lib/toss/client";
+import { TOSS_API_URL, TOSS_SECRET_KEY, assertTossKeys } from "@/lib/toss/client";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getActiveEvent, getBonusDays } from "@/lib/event";
 import type { AdOptionId, AdProductId } from "@/generated/prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: IP 기준 분당 30회 (웹훅 남용 방지)
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success: rateLimitOk } = await checkRateLimit(`webhook:${ip}`, 30, 60_000);
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const body = await request.json();
     const { eventType, data } = body;
 
@@ -20,7 +28,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    // Early idempotency: DB에서 먼저 확인하여 불필요한 Toss API 호출 방지
+    const payment = await prisma.payment.findUnique({
+      where: { tossPaymentKey: paymentKey },
+      include: { ad: true },
+    });
+
+    if (!payment) {
+      console.error(`Webhook: payment not found for paymentKey ${paymentKey}`);
+      return NextResponse.json({ ok: true });
+    }
+
+    // Already processed - Toss API 호출 없이 바로 반환
+    if (payment.status === "APPROVED") {
+      return NextResponse.json({ ok: true });
+    }
+
+    // orderId 일치 확인
+    if (payment.orderId !== orderId) {
+      console.error(`Webhook: orderId mismatch. DB=${payment.orderId}, webhook=${orderId}`);
+      return NextResponse.json({ error: "orderId mismatch" }, { status: 400 });
+    }
+
     // Verify with Toss API
+    assertTossKeys();
     const auth = Buffer.from(`${TOSS_SECRET_KEY}:`).toString("base64");
     const tossRes = await fetch(`${TOSS_API_URL}/payments/${paymentKey}`, {
       headers: { Authorization: `Basic ${auth}` },
@@ -37,20 +68,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true }); // Not yet done
     }
 
-    // Find payment by tossPaymentKey
-    const payment = await prisma.payment.findUnique({
-      where: { tossPaymentKey: paymentKey },
-      include: { ad: true },
-    });
-
-    if (!payment) {
-      console.error(`Webhook: payment not found for paymentKey ${paymentKey}`);
-      return NextResponse.json({ ok: true });
-    }
-
-    // Already processed
-    if (payment.status === "APPROVED") {
-      return NextResponse.json({ ok: true });
+    // Toss 응답 금액 검증
+    if (tossPayment.totalAmount !== payment.amount) {
+      console.error(`Webhook: amount mismatch. toss=${tossPayment.totalAmount}, db=${payment.amount}`);
+      return NextResponse.json({ error: "amount mismatch" }, { status: 400 });
     }
 
     const now = new Date();

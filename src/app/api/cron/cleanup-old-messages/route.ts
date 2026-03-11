@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { verifyCronAuth } from "@/lib/utils/cron-auth";
 
 /**
- * 30일 지난 읽은 알림/쪽지 정리 cron - 매일 실행
- * - 읽은(isRead: true) 알림 중 30일 경과 삭제
- * - 읽은(isRead: true) 쪽지 중 30일 경과 삭제
+ * 90일 지난 읽은 알림/쪽지 정리 cron - 매일 실행
+ * - 읽은(isRead: true) 알림 중 90일 경과 삭제
+ * - 읽은(isRead: true) 쪽지 중 90일 경과 삭제
  * - 안 읽은 것은 절대 삭제 안 함
  */
 export async function GET(request: NextRequest) {
@@ -14,23 +14,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 30일 전 날짜 계산
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // 90일 전 날짜 계산
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    // 읽은 알림 중 30일 경과한 것 삭제
+    // 읽은 알림 중 90일 경과한 것 삭제
     const deletedNotifications = await prisma.notification.deleteMany({
       where: {
         isRead: true,
-        createdAt: { lt: thirtyDaysAgo },
+        createdAt: { lt: ninetyDaysAgo },
       },
     });
 
-    // 읽은 쪽지 중 30일 경과한 것 삭제
+    // 읽은 쪽지 중 90일 경과한 것 삭제
     const deletedMessages = await prisma.message.deleteMany({
       where: {
         isRead: true,
-        createdAt: { lt: thirtyDaysAgo },
+        createdAt: { lt: ninetyDaysAgo },
       },
     });
 

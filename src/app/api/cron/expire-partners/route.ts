@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       endDate.setDate(endDate.getDate() + p.durationDays);
       await prisma.partner.update({
         where: { id: p.id },
-        data: { startDate: now, endDate },
+        data: { endDate },
       });
     }
 

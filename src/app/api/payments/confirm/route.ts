@@ -73,7 +73,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Toss API 승인 요청
-    const tossResult = await confirmTossPayment({ paymentKey, orderId, amount });
+    let tossResult;
+    try {
+      tossResult = await confirmTossPayment({ paymentKey, orderId, amount });
+    } catch (error) {
+      // Toss API 실패 시 lock 해제 (재시도 가능하게)
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: { tossPaymentKey: null },
+      });
+      throw error;
+    }
 
     // #3: Toss 결제 금액 재검증
     if (tossResult.totalAmount !== payment.amount) {

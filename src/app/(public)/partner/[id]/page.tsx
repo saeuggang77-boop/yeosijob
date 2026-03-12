@@ -10,7 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from "lucide-react";
 import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
-import { formatDate } from "@/lib/utils/format";
+import { formatDate, formatPhone } from "@/lib/utils/format";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -190,7 +190,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
                 href={`tel:${partner.contactPhone}`}
                 className="text-sm font-medium hover:underline"
               >
-                {partner.contactPhone}
+                {formatPhone(partner.contactPhone)}
               </a>
             </div>
           )}

@@ -10,6 +10,9 @@ interface NavItem {
   href: string;
   label: string;
   icon: string;
+  sublabel?: string;
+  sectionLabel?: string;
+  dividerBefore?: boolean;
 }
 
 interface SidebarProps {
@@ -84,6 +87,14 @@ export function Sidebar({
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.href}>
+                {item.dividerBefore && (
+                  <div className="my-2 h-px bg-border mx-1" />
+                )}
+                {item.sectionLabel && (
+                  <div className="px-3 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                    {item.sectionLabel}
+                  </div>
+                )}
                 <Link
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
@@ -94,7 +105,14 @@ export function Sidebar({
                   }`}
                 >
                   <span className="text-base">{item.icon}</span>
-                  {item.label}
+                  <span>
+                    {item.label}
+                    {item.sublabel && (
+                      <span className="block text-[11px] font-normal text-muted-foreground/50">
+                        {item.sublabel}
+                      </span>
+                    )}
+                  </span>
                 </Link>
               </li>
             ))}

@@ -56,9 +56,9 @@ export function PartnerCard({ partner }: PartnerCardProps) {
   const style = gradeStyles[partner.grade];
 
   return (
-    <Link href={`/partner/${partner.id}`} className="block">
+    <Link href={`/partner/${partner.id}`} className="block h-full">
       <div
-        className={`flex gap-4 rounded-lg p-4 transition-all duration-200 ${style.card} ${style.borderColor}`}
+        className={`flex h-full gap-4 rounded-lg p-4 transition-all duration-200 ${style.card} ${style.borderColor}`}
       >
         {/* Thumbnail */}
         <div className="h-[120px] w-[180px] shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -78,7 +78,7 @@ export function PartnerCard({ partner }: PartnerCardProps) {
         </div>
 
         {/* Info */}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex flex-col">
           {/* Header: name + badges */}
           <div className="flex items-center gap-2 min-w-0">
             <h3 className={`min-w-0 truncate text-lg font-bold ${style.nameColor}`}>
@@ -114,7 +114,7 @@ export function PartnerCard({ partner }: PartnerCardProps) {
           )}
 
           {/* Description (1 line) */}
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          <p className="mt-1 flex-1 line-clamp-2 text-sm text-muted-foreground">
             {partner.description}
           </p>
 

@@ -19,6 +19,7 @@ export default function NewAdPage() {
   const { data: session } = useSession();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [freeCredits, setFreeCredits] = useState(0);
+  const [hasPartner, setHasPartner] = useState(false);
   const [eventInfo, setEventInfo] = useState<{ bonus30: number; bonus60: number; bonus90: number; eventName: string; endDate: string | null } | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<AdFormData>>({
@@ -51,6 +52,7 @@ export default function NewAdPage() {
       .then(([verifyData, eventData]) => {
         setIsVerified(verifyData.isVerified ?? false);
         setFreeCredits(verifyData.freeAdCredits ?? 0);
+        setHasPartner(verifyData.hasPartner ?? false);
         if (eventData.active) {
           setEventInfo({
             eventName: eventData.eventName,
@@ -204,7 +206,22 @@ export default function NewAdPage() {
 
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
-      <h1 className="text-2xl font-bold">광고 등록</h1>
+      <h1 className="text-2xl font-bold">구인광고 등록</h1>
+
+      {/* 제휴업체 안내 배너 */}
+      {hasPartner && (
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <span className="text-xl">💡</span>
+          <p className="text-sm text-muted-foreground">
+            이 페이지는 <strong className="text-foreground">유흥업소 구인광고</strong> 등록입니다.
+            제휴업체 광고는{" "}
+            <Link href="/business/partner" className="font-medium text-primary hover:underline">
+              내 업체 관리
+            </Link>
+            에서 등록해주세요.
+          </p>
+        </div>
+      )}
 
       {/* 스텝 인디케이터 */}
       <div className="mt-6 flex items-center gap-1">

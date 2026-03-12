@@ -4,11 +4,26 @@ export function stripHtml(input: string): string {
 }
 
 export function formatPhone(phone: string): string {
-  if (phone.length === 11) {
-    return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+  const cleaned = phone.replace(/[^0-9]/g, "");
+  // 휴대폰 11자리: 010-1234-5678
+  if (cleaned.length === 11) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
   }
-  if (phone.length === 10) {
-    return `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`;
+  // 서울 10자리: 02-1234-5678
+  if (cleaned.length === 10 && cleaned.startsWith("02")) {
+    return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+  }
+  // 지방 10자리: 051-802-3313
+  if (cleaned.length === 10) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+  // 서울 9자리: 02-123-5678
+  if (cleaned.length === 9 && cleaned.startsWith("02")) {
+    return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}-${cleaned.slice(5)}`;
+  }
+  // 대표번호 8자리: 1588-1234
+  if (cleaned.length === 8 && !cleaned.startsWith("0")) {
+    return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
   }
   return phone;
 }

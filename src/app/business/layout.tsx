@@ -4,10 +4,10 @@ import { Sidebar } from "@/components/layout/Sidebar";
 
 const NAV_ITEMS = [
   { href: "/jobs", label: "채용정보", icon: "🏠" },
-  { href: "/business/dashboard", label: "광고 관리", icon: "📋" },
-  { href: "/business/ads/new", label: "광고 등록", icon: "➕" },
+  { href: "/business/dashboard", label: "광고 관리", icon: "📋", dividerBefore: true, sectionLabel: "구인광고" },
+  { href: "/business/ads/new", label: "구인광고 등록", icon: "➕", sublabel: "유흥업소 채용공고" },
   { href: "/business/resumes", label: "인재 정보", icon: "👥" },
-  { href: "/business/partner", label: "제휴업체", icon: "🤝" },
+  { href: "/business/partner", label: "내 업체 관리", icon: "🤝", dividerBefore: true, sectionLabel: "제휴업체", sublabel: "성형·미용·렌탈·금융" },
 ];
 
 export default async function BusinessLayout({

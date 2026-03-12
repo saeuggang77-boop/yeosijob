@@ -75,15 +75,21 @@ export async function GET() {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { businessNumber: true, isVerifiedBiz: true, freeAdCredits: true },
-    });
+    const [user, partnerCount] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { businessNumber: true, isVerifiedBiz: true, freeAdCredits: true },
+      }),
+      prisma.partner.count({
+        where: { userId: session.user.id },
+      }),
+    ]);
 
     return NextResponse.json({
       businessNumber: user?.businessNumber || null,
       isVerified: user?.isVerifiedBiz || false,
       freeAdCredits: user?.freeAdCredits || 0,
+      hasPartner: partnerCount > 0,
     });
   } catch (error) {
     console.error("Verification check error:", error);

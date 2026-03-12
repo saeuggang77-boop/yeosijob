@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from "lucide-react";
 import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
+import { KakaoMap } from "@/components/map/KakaoMap";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 
 interface PageProps {
@@ -198,7 +199,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-muted-foreground" />
               <a
-                href={partner.contactKakao}
+                href={partner.contactKakao.match(/^https?:\/\//) ? partner.contactKakao : `https://${partner.contactKakao}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-medium hover:underline"
@@ -211,7 +212,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <div className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-muted-foreground" />
               <a
-                href={partner.websiteUrl}
+                href={partner.websiteUrl.match(/^https?:\/\//) ? partner.websiteUrl : `https://${partner.websiteUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-medium hover:underline"
@@ -242,6 +243,30 @@ export default async function PartnerDetailPage({ params }: PageProps) {
                 />
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Map Section */}
+      {partner.address && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>위치</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KakaoMap address={partner.address} />
+            <div className="mt-3 flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{partner.address}</span>
+            </div>
+            <a
+              href={`https://map.kakao.com/?q=${encodeURIComponent(partner.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs text-primary hover:underline"
+            >
+              카카오맵에서 크게 보기 →
+            </a>
           </CardContent>
         </Card>
       )}
@@ -320,7 +345,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           이 업체에 대해 더 알고 싶으신가요?
         </p>
         {partner.contactKakao ? (
-          <Link href={partner.contactKakao} target="_blank" rel="noopener noreferrer">
+          <Link href={partner.contactKakao.match(/^https?:\/\//) ? partner.contactKakao : `https://${partner.contactKakao}`} target="_blank" rel="noopener noreferrer">
             <Button className="mt-3">
               <MessageCircle className="mr-2 h-4 w-4" />
               카카오톡으로 문의하기

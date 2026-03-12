@@ -170,11 +170,11 @@ export default function RegisterBusinessPage() {
           <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="businessName">업소명</Label>
+            <Label htmlFor="businessName">업체명</Label>
             <Input
               id="businessName"
               name="businessName"
-              placeholder="업소 이름"
+              placeholder="업체 이름"
               required
             />
           </div>
@@ -200,7 +200,7 @@ export default function RegisterBusinessPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "가입 중..." : "업소 가입하기"}
+            {loading ? "가입 중..." : "업체 가입하기"}
           </Button>
           <div className="flex gap-2 text-sm text-muted-foreground">
             <Link href="/login" className="hover:underline">

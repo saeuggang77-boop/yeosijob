@@ -49,11 +49,30 @@ export default async function BusinessPartnerPage() {
           <Card>
             <CardContent className="py-12 text-center">
               <div className="text-5xl mb-4">🤝</div>
-              <p className="text-lg font-semibold">등록된 제휴업체가 없습니다</p>
+              <p className="text-lg font-semibold">아직 업체가 등록되지 않았어요</p>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                여시잡과 함께 성장하세요<br />
-                카카오톡으로 입점 문의를 해주시면 빠르게 안내해드립니다
+                성형·미용·렌탈·금융 업체라면<br />
+                여시잡 구직자에게 직접 홍보하세요
               </p>
+
+              {/* 입점 절차 안내 */}
+              <div className="mt-6 flex items-start justify-center gap-0">
+                <div className="flex flex-col items-center gap-2 w-20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 border border-primary/35 text-lg">💬</div>
+                  <span className="text-[11px] font-medium text-primary">입점 문의</span>
+                </div>
+                <span className="text-muted-foreground text-sm mt-3 px-1.5">→</span>
+                <div className="flex flex-col items-center gap-2 w-20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-lg">📝</div>
+                  <span className="text-[11px] font-medium text-muted-foreground">업체 등록</span>
+                </div>
+                <span className="text-muted-foreground text-sm mt-3 px-1.5">→</span>
+                <div className="flex flex-col items-center gap-2 w-20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-lg">📢</div>
+                  <span className="text-[11px] font-medium text-muted-foreground leading-tight">구직자에게<br />노출</span>
+                </div>
+              </div>
+
               <a
                 href="https://pf.kakao.com/_zEqYG/chat"
                 target="_blank"
@@ -63,10 +82,10 @@ export default async function BusinessPartnerPage() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
                   <path d="M12 3C6.48 3 2 6.58 2 10.9c0 2.78 1.86 5.22 4.66 6.6l-.86 3.18c-.05.2.17.36.34.25l3.77-2.5c.67.1 1.36.16 2.09.16 5.52 0 10-3.58 10-7.99S17.52 3 12 3z"/>
                 </svg>
-                입점 문의하기
+                카카오톡으로 입점 문의하기
               </a>
               <Link href="/partner" className="mt-4 block text-sm text-primary hover:underline">
-                제휴업체 페이지 보기 →
+                제휴업체 페이지 둘러보기 →
               </Link>
             </CardContent>
           </Card>

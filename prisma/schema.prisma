@@ -536,15 +536,17 @@ model Resume {
 // ── REVIEW (업소 후기) ──
 
 model Review {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   adId      String
   userId    String
   rating    Int
-  content   String   @db.Text
-  isHidden  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id])
+  content   String    @db.Text
+  isHidden  Boolean   @default(false)
+  reply     String?   @db.Text
+  repliedAt DateTime?
+  createdAt DateTime  @default(now())
+  ad        Ad        @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
 
   @@unique([adId, userId])
   @@index([adId])

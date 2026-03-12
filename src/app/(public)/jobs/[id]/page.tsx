@@ -11,6 +11,7 @@ import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewReplyForm } from "@/components/reviews/ReviewReplyForm";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
 import { KakaoMap } from "@/components/map/KakaoMap";
@@ -68,6 +69,7 @@ export default async function JobDetailPage({ params }: PageProps) {
     where: { id },
     select: {
       id: true,
+      userId: true,
       title: true,
       description: true,
       businessName: true,
@@ -106,6 +108,8 @@ export default async function JobDetailPage({ params }: PageProps) {
           id: true,
           rating: true,
           content: true,
+          reply: true,
+          repliedAt: true,
           createdAt: true,
           user: { select: { name: true } },
         },
@@ -165,6 +169,8 @@ export default async function JobDetailPage({ params }: PageProps) {
         },
       }).then(review => !!review)
     : false;
+
+  const isAdOwner = session?.user?.id === ad.userId;
 
   const hasResume = session?.user?.role === "JOBSEEKER"
     ? await prisma.resume.findUnique({
@@ -547,6 +553,26 @@ export default async function JobDetailPage({ params }: PageProps) {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {review.content}
                 </p>
+
+                {/* 사장님 답글 */}
+                {review.reply && (
+                  <div className="mt-3 ml-4 rounded-md border bg-muted/50 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-primary">사장님 답글</span>
+                      <span className="text-xs text-muted-foreground">
+                        {review.repliedAt && formatDate(review.repliedAt)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{review.reply}</p>
+                  </div>
+                )}
+
+                {/* 사장님 답글 작성/수정 폼 */}
+                {isAdOwner && (
+                  <div className="ml-4">
+                    <ReviewReplyForm reviewId={review.id} existingReply={review.reply} />
+                  </div>
+                )}
               </div>
             ))}
           </CardContent>

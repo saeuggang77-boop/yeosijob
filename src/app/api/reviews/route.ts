@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     // Check if ad exists
     const ad = await prisma.ad.findUnique({
       where: { id: adId },
+      select: { id: true, userId: true, businessName: true },
     });
 
     if (!ad) {
@@ -96,6 +97,18 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // 사장님에게 알림 전송 (실패해도 후기 생성은 성공)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: ad.userId,
+          title: "새로운 후기가 등록되었습니다",
+          message: `${ad.businessName}에 새 후기가 등록되었습니다.`,
+          link: `/jobs/${ad.id}`,
+        },
+      });
+    } catch {}
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {

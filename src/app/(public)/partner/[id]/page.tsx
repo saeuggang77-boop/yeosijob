@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { PARTNER_CATEGORIES, PARTNER_GRADES } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,10 +69,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   });
 
   const categoryInfo = PARTNER_CATEGORIES[partner.category];
-  const gradeInfo = PARTNER_GRADES[partner.grade];
   const regionLabel = REGIONS[partner.region]?.label || partner.region;
-
-  const gradeColor = gradeInfo.color;
 
   // Check if current user already reviewed
   const isJobseeker = session?.user?.role === "JOBSEEKER";
@@ -115,12 +112,6 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <CardTitle className="text-2xl">{partner.name}</CardTitle>
-                <Badge
-                  style={{ backgroundColor: gradeColor }}
-                  className="shrink-0 text-white border-0"
-                >
-                  {gradeInfo.label}
-                </Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge

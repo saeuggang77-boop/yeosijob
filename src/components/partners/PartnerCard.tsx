@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { PARTNER_GRADES, PARTNER_CATEGORIES } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import type { PartnerGrade, PartnerCategory, Region } from "@/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,6 @@ interface PartnerCardProps {
 }
 
 export function PartnerCard({ partner }: PartnerCardProps) {
-  const gradeInfo = PARTNER_GRADES[partner.grade];
   const categoryInfo = PARTNER_CATEGORIES[partner.category];
   const regionLabel = REGIONS[partner.region]?.label || partner.region;
 
@@ -84,11 +83,6 @@ export function PartnerCard({ partner }: PartnerCardProps) {
             <h3 className={`min-w-0 truncate text-lg font-bold ${style.nameColor}`}>
               {partner.name}
             </h3>
-            <Badge
-              className={`shrink-0 px-2 py-0.5 text-[10px] font-bold ${style.badgeClass}`}
-            >
-              {gradeInfo.label}
-            </Badge>
           </div>
 
           {/* Category + Region */}

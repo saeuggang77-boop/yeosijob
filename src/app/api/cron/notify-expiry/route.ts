@@ -4,8 +4,8 @@ import { verifyCronAuth } from "@/lib/utils/cron-auth";
 import { sendAdExpiryNotification } from "@/lib/email";
 
 /**
- * 광고 만료 알림 cron - 매일 1회 실행
- * D-3, D-1, D-0 만료 예정 광고에 이메일 알림 발송
+ * 광고/제휴업체 만료 알림 cron - 매일 1회 실행 (09:00 KST)
+ * D-3, D-1, D-0 만료 예정 광고 + 제휴업체에 이메일/사이트 알림 발송
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -14,70 +14,53 @@ export async function GET(request: NextRequest) {
 
   try {
     const now = new Date();
-    const results = { notified: 0, errors: 0 };
+    const results = { adNotified: 0, partnerNotified: 0, errors: 0 };
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     // D-3, D-1, D-0 체크
     for (const daysLeft of [3, 1, 0]) {
       const targetDate = new Date(now);
       targetDate.setDate(targetDate.getDate() + daysLeft);
 
-      // 해당 날짜에 만료되는 ACTIVE 광고 조회
       const startOfDay = new Date(targetDate);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(targetDate);
       endOfDay.setHours(23, 59, 59, 999);
 
+      // ── 구인광고(Ad) 만료 알림 ──
       const expiringAds = await prisma.ad.findMany({
         where: {
           status: "ACTIVE",
-          productId: { not: "FREE" }, // FREE tier는 제외
-          endDate: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          productId: { not: "FREE" },
+          endDate: { gte: startOfDay, lte: endOfDay },
         },
         select: {
           id: true,
           title: true,
           businessName: true,
           userId: true,
-          user: {
-            select: { email: true },
-          },
+          user: { select: { email: true } },
         },
       });
 
       for (const ad of expiringAds) {
         if (!ad.user.email) continue;
 
-        // 중복 알림 방지: 24시간 이내 동일 알림이 있는지 확인
-        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const notificationLink = daysLeft === 0 ? `/business/ads/${ad.id}/renew` : `/business/ads/${ad.id}`;
         const existingNotification = await prisma.notification.findFirst({
           where: {
             userId: ad.userId,
             title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
             link: notificationLink,
-            createdAt: {
-              gte: twentyFourHoursAgo,
-            },
+            createdAt: { gte: twentyFourHoursAgo },
           },
         });
 
-        if (existingNotification) {
-          console.log(`Notification already sent for ad ${ad.id} (D-${daysLeft})`);
-          continue;
-        }
+        if (existingNotification) continue;
 
         try {
-          await sendAdExpiryNotification(
-            ad.user.email,
-            ad.title,
-            daysLeft,
-            ad.id,
-          );
+          await sendAdExpiryNotification(ad.user.email, ad.title, daysLeft, ad.id);
 
-          // Create in-app notification
           const notificationMessage = daysLeft === 3
             ? `광고 '${ad.businessName}'이 3일 후 만료됩니다. 갱신하시겠습니까?`
             : `'${ad.title}' 광고가 ${daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`}`;
@@ -87,13 +70,64 @@ export async function GET(request: NextRequest) {
               userId: ad.userId,
               title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
               message: notificationMessage,
-              link: daysLeft === 0 ? `/business/ads/${ad.id}/renew` : `/business/ads/${ad.id}`,
+              link: notificationLink,
             },
           });
 
-          results.notified++;
+          results.adNotified++;
         } catch (error) {
           console.error(`Failed to send expiry notification for ad ${ad.id}:`, error);
+          results.errors++;
+        }
+      }
+
+      // ── 제휴업체(Partner) 만료 알림 ──
+      const expiringPartners = await prisma.partner.findMany({
+        where: {
+          status: "ACTIVE",
+          endDate: { gte: startOfDay, lte: endOfDay },
+        },
+        select: {
+          id: true,
+          name: true,
+          userId: true,
+          user: { select: { email: true } },
+        },
+      });
+
+      for (const partner of expiringPartners) {
+        if (!partner.user.email) continue;
+
+        const partnerLink = `/business/partner`;
+        const partnerTitle = daysLeft === 0 ? "제휴업체 광고가 만료되었습니다" : `제휴업체 만료 D-${daysLeft}`;
+        const existingNotification = await prisma.notification.findFirst({
+          where: {
+            userId: partner.userId,
+            title: partnerTitle,
+            createdAt: { gte: twentyFourHoursAgo },
+          },
+        });
+
+        if (existingNotification) continue;
+
+        try {
+          // 이메일 알림 (구인광고 이메일 함수 재활용 - 제휴업체명으로)
+          await sendAdExpiryNotification(partner.user.email, partner.name, daysLeft, partner.id);
+
+          // 사이트 내 알림
+          const daysText = daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`;
+          await prisma.notification.create({
+            data: {
+              userId: partner.userId,
+              title: partnerTitle,
+              message: `제휴업체 '${partner.name}' 광고가 ${daysText}. 연장을 원하시면 문의해주세요.`,
+              link: partnerLink,
+            },
+          });
+
+          results.partnerNotified++;
+        } catch (error) {
+          console.error(`Failed to send expiry notification for partner ${partner.id}:`, error);
           results.errors++;
         }
       }

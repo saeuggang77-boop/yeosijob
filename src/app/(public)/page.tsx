@@ -421,19 +421,6 @@ export default async function HomePage() {
                       )}
                       <div className="mt-1 flex items-center gap-1.5">
                         <span
-                          className="rounded px-1.5 py-0.5 text-[10px] font-bold"
-                          style={{
-                            background: isA
-                              ? "linear-gradient(135deg, #D4A853, #b8902e)"
-                              : isB
-                                ? "#9CA3AF"
-                                : "#78716C",
-                            color: isA || isB ? "#000" : "#fff",
-                          }}
-                        >
-                          {partner.grade}
-                        </span>
-                        <span
                           className="rounded border px-1.5 py-0.5 text-[10px]"
                           style={{
                             borderColor: `${catInfo?.color}40`,

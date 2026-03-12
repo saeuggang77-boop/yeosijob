@@ -71,6 +71,9 @@ export function CommentForm({ postId, parentId, replyToName, onCancel, canWrite 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
+      <p className="text-[11px] text-muted-foreground">
+        불법/음란/비방 글은 통보 없이 삭제됩니다
+      </p>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

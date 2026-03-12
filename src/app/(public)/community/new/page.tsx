@@ -218,6 +218,17 @@ export default function NewPostPage() {
           <CardTitle>글쓰기</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 rounded-md border border-yellow-600/30 bg-yellow-900/10 px-4 py-3">
+            <p className="text-sm font-medium text-yellow-500/90">
+              성매매 알선/권유, 음란물, 청소년 고용 유도는 법적 처벌 대상입니다.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              욕설/비방/개인정보 노출 시 게시물 삭제 및 이용 제한됩니다.{" "}
+              <Link href="/terms" target="_blank" className="text-primary hover:underline">
+                이용약관 제9조
+              </Link>
+            </p>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-4">
               <div className="flex-1">

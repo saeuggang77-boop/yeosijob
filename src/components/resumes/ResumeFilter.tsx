@@ -79,7 +79,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
           <SelectValue placeholder="전체 지역" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ALL">전체</SelectItem>
+          <SelectItem value="ALL">전체 지역</SelectItem>
           {AD_REGION_LIST.map(({ value: key, label }) => (
             <SelectItem key={key} value={key}>
               {label}
@@ -97,7 +97,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
           <SelectValue placeholder="전체 업종" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ALL">전체</SelectItem>
+          <SelectItem value="ALL">전체 업종</SelectItem>
           {Object.entries(BUSINESS_TYPES).map(([key, { label }]) => (
             <SelectItem key={key} value={key}>
               {label}
@@ -115,7 +115,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
           <SelectValue placeholder="전체 경력" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ALL">전체</SelectItem>
+          <SelectItem value="ALL">전체 경력</SelectItem>
           <SelectItem value="BEGINNER">초보</SelectItem>
           <SelectItem value="EXPERIENCED">경력</SelectItem>
         </SelectContent>
@@ -130,7 +130,7 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
           <SelectValue placeholder="전체 연령" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ALL">전체</SelectItem>
+          <SelectItem value="ALL">전체 연령</SelectItem>
           <SelectItem value="20">20대</SelectItem>
           <SelectItem value="30">30대</SelectItem>
           <SelectItem value="40">40대 이상</SelectItem>

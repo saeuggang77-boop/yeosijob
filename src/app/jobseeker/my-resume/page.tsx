@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { DISTRICTS } from "@/lib/constants/districts";
 import { EXPERIENCE_LEVELS, SALARY_TYPES, GENDER_OPTIONS } from "@/lib/constants/resume";
-import { REGION_LIST } from "@/lib/constants/regions";
+import { AD_REGION_LIST } from "@/lib/constants/regions";
 import { BUSINESS_TYPE_LIST } from "@/lib/constants/business-types";
 
 type Mode = "view" | "form";
@@ -122,12 +122,12 @@ export default function MyResumePage() {
       toast.error("최대 3개까지 선택 가능합니다");
       return;
     }
-    const combined = `${REGION_LIST.find((r) => r.value === selectedRegion)?.label} ${selectedDistrict}`;
+    const combined = `${AD_REGION_LIST.find((r) => r.value === selectedRegion)?.label} ${selectedDistrict}`;
     if (form.districts.includes(combined)) {
       toast.error("이미 추가된 지역입니다");
       return;
     }
-    setForm((prev) => ({ ...prev, districts: [...prev.districts, combined] }));
+    setForm((prev) => ({ ...prev, region: selectedRegion, districts: [...prev.districts, combined] }));
     setSelectedDistrict("");
   }
 
@@ -589,9 +589,9 @@ export default function MyResumePage() {
         )}
 
         {/* Public Status */}
-        <Card className={`transition-colors ${resumeData.isPublic ? "border-green-200 bg-green-50/50" : "border-gray-200 bg-gray-50/50"}`}>
+        <Card className={`transition-colors ${resumeData.isPublic ? "border-green-500/30 bg-green-500/10" : "border-border bg-muted/30"}`}>
           <CardContent className="flex items-center gap-3 py-4">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${resumeData.isPublic ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-500"}`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${resumeData.isPublic ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"}`}>
               {resumeData.isPublic ? (
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -603,10 +603,10 @@ export default function MyResumePage() {
               )}
             </div>
             <div>
-              <p className={`text-sm font-semibold transition-colors ${resumeData.isPublic ? "text-green-700" : "text-gray-600"}`}>
+              <p className={`text-sm font-semibold transition-colors ${resumeData.isPublic ? "text-green-400" : "text-muted-foreground"}`}>
                 {resumeData.isPublic ? "공개 중" : "비공개"}
               </p>
-              <p className={`text-xs transition-colors ${resumeData.isPublic ? "text-green-600/70" : "text-gray-500"}`}>
+              <p className={`text-xs transition-colors ${resumeData.isPublic ? "text-green-400/70" : "text-muted-foreground"}`}>
                 {resumeData.isPublic ? "사장님들이 내 이력서를 볼 수 있어요" : "아무도 내 이력서를 볼 수 없어요"}
               </p>
             </div>
@@ -717,7 +717,7 @@ export default function MyResumePage() {
                   <SelectValue placeholder="시/도 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {REGION_LIST.map((r) => (
+                  {AD_REGION_LIST.map((r) => (
                     <SelectItem key={r.value} value={r.value}>
                       {r.label}
                     </SelectItem>
@@ -1060,10 +1060,10 @@ export default function MyResumePage() {
         </Card>
 
         {/* Card 10: 공개설정 */}
-        <Card className={`transition-colors ${form.isPublic ? "border-green-200 bg-green-50/50" : "border-gray-200 bg-gray-50/50"}`}>
+        <Card className={`transition-colors ${form.isPublic ? "border-green-500/30 bg-green-500/10" : "border-border bg-muted/30"}`}>
           <CardContent className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${form.isPublic ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-500"}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${form.isPublic ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"}`}>
                 {form.isPublic ? (
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1075,10 +1075,10 @@ export default function MyResumePage() {
                 )}
               </div>
               <div>
-                <p className={`text-sm font-semibold transition-colors ${form.isPublic ? "text-green-700" : "text-gray-600"}`}>
+                <p className={`text-sm font-semibold transition-colors ${form.isPublic ? "text-green-400" : "text-muted-foreground"}`}>
                   {form.isPublic ? "공개 중" : "비공개"}
                 </p>
-                <p className={`text-xs transition-colors ${form.isPublic ? "text-green-600/70" : "text-gray-500"}`}>
+                <p className={`text-xs transition-colors ${form.isPublic ? "text-green-400/70" : "text-muted-foreground"}`}>
                   {form.isPublic ? "사장님들이 내 이력서를 볼 수 있어요" : "아무도 내 이력서를 볼 수 없어요"}
                 </p>
               </div>

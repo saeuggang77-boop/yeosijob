@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { PARTNER_CATEGORIES, PARTNER_GRADES } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from "lucide-react";
+import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
+import { formatDate } from "@/lib/utils/format";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -18,26 +21,39 @@ export const revalidate = 60;
 export default async function PartnerDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const partner = await prisma.partner.findFirst({
-    where: { id, status: "ACTIVE", isProfileComplete: true },
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      region: true,
-      address: true,
-      description: true,
-      highlight: true,
-      thumbnailUrl: true,
-      detailImages: true,
-      contactPhone: true,
-      contactKakao: true,
-      websiteUrl: true,
-      businessHours: true,
-      grade: true,
-      viewCount: true,
-    },
-  });
+  const [partner, session] = await Promise.all([
+    prisma.partner.findFirst({
+      where: { id, status: "ACTIVE", isProfileComplete: true },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        region: true,
+        address: true,
+        description: true,
+        highlight: true,
+        thumbnailUrl: true,
+        detailImages: true,
+        contactPhone: true,
+        contactKakao: true,
+        websiteUrl: true,
+        businessHours: true,
+        grade: true,
+        viewCount: true,
+        partnerReviews: {
+          where: { isHidden: false },
+          include: {
+            user: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        _count: {
+          select: { partnerReviews: { where: { isHidden: false } } },
+        },
+      },
+    }),
+    auth(),
+  ]);
 
   if (!partner) {
     notFound();
@@ -54,6 +70,18 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   const regionLabel = REGIONS[partner.region]?.label || partner.region;
 
   const gradeColor = gradeInfo.color;
+
+  // Check if current user already reviewed
+  const isJobseeker = session?.user?.role === "JOBSEEKER";
+  const hasReviewed = isJobseeker
+    ? partner.partnerReviews.some((r) => r.userId === session.user.id)
+    : false;
+
+  // Calculate average rating
+  const avgRating =
+    partner.partnerReviews.length > 0
+      ? partner.partnerReviews.reduce((sum, r) => sum + r.rating, 0) / partner.partnerReviews.length
+      : 0;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -197,7 +225,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
       {/* Detail Images */}
       {partner.detailImages.length > 0 && (
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>상세 이미지</CardTitle>
           </CardHeader>
@@ -214,6 +242,74 @@ export default async function PartnerDetailPage({ params }: PageProps) {
                 />
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Reviews Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              이용 후기
+              <Badge variant="secondary">{partner._count.partnerReviews}건</Badge>
+            </CardTitle>
+            {avgRating > 0 && (
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold">{avgRating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {partner.partnerReviews.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              아직 이용 후기가 없습니다. 첫 번째 후기를 작성해보세요!
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {partner.partnerReviews.map((review) => {
+                const stars = Array.from({ length: 5 }, (_, i) => i < review.rating);
+                return (
+                  <div key={review.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {review.user.name || "익명"}
+                        </span>
+                        <div className="flex gap-0.5">
+                          {stars.map((filled, i) => (
+                            <span key={i} className={filled ? "text-yellow-400 text-sm" : "text-gray-300 text-sm"}>
+                              {filled ? "★" : "☆"}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(review.createdAt)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">{review.content}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Review Form */}
+      {isJobseeker && !hasReviewed && (
+        <div className="mb-6">
+          <PartnerReviewForm partnerId={partner.id} />
+        </div>
+      )}
+
+      {isJobseeker && hasReviewed && (
+        <Card className="mb-6">
+          <CardContent className="py-4 text-center text-sm text-muted-foreground">
+            이미 이 업체에 후기를 작성했습니다.
           </CardContent>
         </Card>
       )}

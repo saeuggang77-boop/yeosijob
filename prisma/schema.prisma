@@ -246,6 +246,7 @@ model User {
   payments           Payment[]
   resumes            Resume[]
   reviews            Review[]
+  partnerReviews     PartnerReview[]
   scraps             Scrap[]
   jumpLogs           JumpLog[]
   notifications      Notification[]
@@ -548,6 +549,24 @@ model Review {
   @@unique([adId, userId])
   @@index([adId])
   @@map("reviews")
+}
+
+// ── PARTNER REVIEW (제휴업체 이용 후기) ──
+
+model PartnerReview {
+  id        String   @id @default(cuid())
+  partnerId String
+  userId    String
+  rating    Int
+  content   String   @db.Text
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([partnerId, userId])
+  @@index([partnerId])
+  @@map("partner_reviews")
 }
 
 // ── SCRAP (스크랩/찜) ──
@@ -1009,7 +1028,8 @@ model Partner {
   updatedAt DateTime @updatedAt
 
   user     User      @relation("partners", fields: [userId], references: [id])
-  payments Payment[] @relation("partnerPayments")
+  payments       Payment[]       @relation("partnerPayments")
+  partnerReviews PartnerReview[]
 
   @@index([status, grade])
   @@index([status, category])

@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from "lucide-react";
 import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
+import { PartnerReplyForm } from "@/components/reviews/PartnerReplyForm";
 import { KakaoMap } from "@/components/map/KakaoMap";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 
@@ -27,6 +28,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
       where: { id, status: "ACTIVE", isProfileComplete: true },
       select: {
         id: true,
+        userId: true,
         name: true,
         category: true,
         region: true,
@@ -74,6 +76,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
   // Check if current user already reviewed
   const isJobseeker = session?.user?.role === "JOBSEEKER";
+  const isOwner = session?.user?.id === partner.userId;
   const hasReviewed = isJobseeker
     ? partner.partnerReviews.some((r) => r.userId === session.user.id)
     : false;
@@ -316,6 +319,26 @@ export default async function PartnerDetailPage({ params }: PageProps) {
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">{review.content}</p>
+
+                    {/* 사장님 답글 */}
+                    {review.reply && (
+                      <div className="mt-3 ml-4 rounded-md border bg-muted/50 p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-primary">사장님 답글</span>
+                          <span className="text-xs text-muted-foreground">
+                            {review.repliedAt && formatDate(review.repliedAt)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">{review.reply}</p>
+                      </div>
+                    )}
+
+                    {/* 사장님 답글 작성/수정 폼 */}
+                    {isOwner && (
+                      <div className="ml-4">
+                        <PartnerReplyForm reviewId={review.id} existingReply={review.reply} />
+                      </div>
+                    )}
                   </div>
                 );
               })}

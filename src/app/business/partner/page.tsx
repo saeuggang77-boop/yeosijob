@@ -180,11 +180,18 @@ export default async function BusinessPartnerPage() {
                   {/* Actions based on status */}
                   <div className="flex flex-wrap gap-2">
                     {partner.status === "ACTIVE" && partner.isProfileComplete && (
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/business/partner/${partner.id}/edit`}>
-                          정보 수정
-                        </Link>
-                      </Button>
+                      <>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/partner/${partner.id}`} target="_blank">
+                            내 광고 보기
+                          </Link>
+                        </Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/business/partner/${partner.id}/edit`}>
+                            정보 수정
+                          </Link>
+                        </Button>
+                      </>
                     )}
 
                     {partner.status === "ACTIVE" && remainingDays !== null && remainingDays < 30 && (

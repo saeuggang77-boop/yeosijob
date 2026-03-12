@@ -97,6 +97,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 사장님에게 알림 전송 (실패해도 후기 생성은 성공)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: partner.userId,
+          title: "새로운 이용 후기가 등록되었습니다",
+          message: `${partner.name}에 새 후기가 등록되었습니다.`,
+          link: `/partner/${partner.id}`,
+        },
+      });
+    } catch {}
+
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
     console.error("Partner review creation error:", error);

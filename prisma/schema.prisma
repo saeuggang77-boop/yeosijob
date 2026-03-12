@@ -560,6 +560,8 @@ model PartnerReview {
   rating    Int
   content   String   @db.Text
   isHidden  Boolean  @default(false)
+  reply     String?  @db.Text
+  repliedAt DateTime?
   createdAt DateTime @default(now())
   partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])

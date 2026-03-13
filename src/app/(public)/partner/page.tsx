@@ -100,7 +100,7 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
           <p className="text-lg">등록된 제휴업체가 없습니다</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {sorted.map((partner) => (
             <PartnerCard key={partner.id} partner={partner} />
           ))}

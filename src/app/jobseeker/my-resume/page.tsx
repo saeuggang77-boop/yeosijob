@@ -90,6 +90,9 @@ export default function MyResumePage() {
         } else {
           setResumeData(null);
           setMode("form");
+          if (data.userName) {
+            setForm((prev) => ({ ...prev, nickname: data.userName }));
+          }
         }
       }
     } catch {

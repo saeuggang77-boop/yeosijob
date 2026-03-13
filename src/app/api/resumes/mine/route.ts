@@ -14,7 +14,7 @@ export async function GET() {
     });
 
     if (!resume) {
-      return NextResponse.json({ resume: null });
+      return NextResponse.json({ resume: null, userName: session.user.name || "" });
     }
 
     // Calculate computed fields

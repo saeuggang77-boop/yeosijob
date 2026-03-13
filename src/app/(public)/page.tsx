@@ -333,38 +333,17 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* SPECIAL Section - 3-Column Grid Cards */}
-      {specialAds.length > 0 && (
-        <section className="border-b">
-          <div className="px-4 py-4">
-            <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
-              <span className="rounded bg-special/20 px-3 py-1 text-sm text-special">
-                스페셜
-              </span>
-            </h2>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {specialAds.map((ad) => (
-                <TierCard key={ad.id} ad={ad} tier="SPECIAL"  />
-              ))}
-            </div>
-            <div className="pb-3 pt-2 text-right">
-              <Link href="/jobs?productId=SPECIAL" className="text-sm text-special hover:underline">더보기 →</Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* PARTNER Section - 스페셜 스타일 3열 카드 */}
+      {/* PARTNER Section - 2열 카드 (PREMIUM 바로 아래) */}
       {shuffledPartners.length > 0 && (
         <section className="border-b">
           <div className="px-4 py-4">
-            <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
               <span className="rounded border border-primary/40 bg-primary/10 px-3 py-1 text-sm text-primary">
                 제휴업체
               </span>
             </h2>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {shuffledPartners.map((partner) => {
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {shuffledPartners.slice(0, 4).map((partner) => {
                 const gradeInfo = PARTNER_GRADES[partner.grade];
                 const catInfo = PARTNER_CATEGORIES[partner.category];
                 const regionLabel = REGIONS[partner.region]?.shortLabel || partner.region;
@@ -384,7 +363,7 @@ export default async function HomePage() {
                     }`}
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-auto w-[140px] shrink-0 overflow-hidden bg-muted md:w-[180px]">
+                    <div className="relative h-auto w-[160px] shrink-0 overflow-hidden bg-muted md:w-[200px]">
                       {partner.thumbnailUrl ? (
                         <Image
                           src={partner.thumbnailUrl}
@@ -393,11 +372,11 @@ export default async function HomePage() {
                           className="object-cover"
                         />
                       ) : (
-                        <div className="flex h-full min-h-[130px] items-center justify-center text-4xl">
+                        <div className="flex h-full min-h-[140px] items-center justify-center text-5xl">
                           {catInfo?.emoji || "🏢"}
                         </div>
                       )}
-                      <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
+                      <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-2 py-0.5 text-[11px] text-white">
                         <span>{catInfo?.emoji}</span>
                         <span>{catInfo?.label}</span>
                       </div>
@@ -409,19 +388,19 @@ export default async function HomePage() {
                     </div>
 
                     {/* Info */}
-                    <div className="flex flex-1 flex-col justify-center gap-1 p-3">
-                      <p className="text-sm font-bold">{partner.name}</p>
-                      <p className="line-clamp-2 text-xs text-muted-foreground">
-                        {partner.description.slice(0, 60)}
+                    <div className="flex flex-1 flex-col justify-center gap-1.5 p-4">
+                      <p className="text-[15px] font-bold">{partner.name}</p>
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {partner.description.slice(0, 80)}
                       </p>
                       {partner.highlight && (
-                        <p className="text-xs font-semibold" style={{ color: gradeInfo?.color }}>
+                        <p className="text-[13px] font-semibold" style={{ color: gradeInfo?.color }}>
                           {partner.highlight}
                         </p>
                       )}
-                      <div className="mt-1 flex items-center gap-1.5">
+                      <div className="mt-1 flex items-center gap-2">
                         <span
-                          className="rounded border px-1.5 py-0.5 text-[10px]"
+                          className="rounded border px-1.5 py-0.5 text-[11px]"
                           style={{
                             borderColor: `${catInfo?.color}40`,
                             color: catInfo?.color,
@@ -430,10 +409,10 @@ export default async function HomePage() {
                         >
                           {catInfo?.label}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           {regionLabel}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           조회 {partner.viewCount}
                         </span>
                       </div>
@@ -446,6 +425,27 @@ export default async function HomePage() {
               <Link href="/partner" className="text-sm text-primary hover:underline">
                 더보기 →
               </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SPECIAL Section - 3-Column Grid Cards */}
+      {specialAds.length > 0 && (
+        <section className="border-b">
+          <div className="px-4 py-4">
+            <h2 className="mb-3 flex items-center gap-2 text-xl font-bold">
+              <span className="rounded bg-special/20 px-3 py-1 text-sm text-special">
+                스페셜
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {specialAds.map((ad) => (
+                <TierCard key={ad.id} ad={ad} tier="SPECIAL"  />
+              ))}
+            </div>
+            <div className="pb-3 pt-2 text-right">
+              <Link href="/jobs?productId=SPECIAL" className="text-sm text-special hover:underline">더보기 →</Link>
             </div>
           </div>
         </section>

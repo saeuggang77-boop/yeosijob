@@ -180,6 +180,7 @@ export default async function ResumesPage({ searchParams }: PageProps) {
           defaultRegion={defaultRegion}
           defaultBusinessType={defaultBusinessType}
           hasSmartFilter={!isAdmin && !!defaultRegion && !!defaultBusinessType}
+          showContactedFilter
         />
       </div>
 

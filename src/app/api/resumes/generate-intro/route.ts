@@ -49,27 +49,32 @@ export async function POST(request: NextRequest) {
       OVER_3Y: "3년 이상 경력",
     };
 
-    const jobNames = (desiredJobs || []).join(", ") || "미정";
     const expText = experienceMap[experienceLevel] || "초보";
     const regionText = region || "미정";
 
-    const prompt = `당신은 구직자의 자기소개 작성을 도와주는 도우미입니다.
-아래 정보를 바탕으로 서비스업 구직자의 자기소개 문구를 200자 내외로 작성해주세요.
-밝고 긍정적이며 성실한 인상을 주는 문체로 작성하세요.
+    const prompt = `접객 서비스 분야 구직자의 자기소개를 300~400자로 작성해주세요.
+
+구조: 아래 순서로 단락을 나눠 작성하세요. 각 단락 사이에 줄바꿈을 넣으세요.
+1. 인사 + 간단한 자기소개 (닉네임, 나이, 경력)
+2. 성격과 장점 (친화력, 분위기, 대화 능력 등)
+3. 근무 태도 (성실함, 시간 약속, 책임감 등)
+4. 마무리 어필 한 줄
+
+톤: 밝고 친근하며 자신감 있는 느낌. 딱딱한 취업 자소서가 아니라, 사장님에게 어필하는 가벼운 인사말 스타일.
+금지: "회사 발전", "팀워크", "비전" 같은 기업 면접 표현은 절대 쓰지 마세요.
+금지: 개인정보(실명, 전화번호) 포함 금지.
 존댓말(~합니다, ~입니다)을 사용하세요.
-절대 개인정보(실명, 전화번호 등)를 포함하지 마세요.
 
 - 닉네임: ${nickname}
 - 나이: ${age}세
 - 경력: ${expText}
-- 희망 직종: ${jobNames}
 - 희망 근무지역: ${regionText}
 
 자기소개 문구만 출력하세요.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 300,
+      max_tokens: 500,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -84,7 +89,7 @@ export async function POST(request: NextRequest) {
       `resume-intro:${session.user.id}`
     );
 
-    return NextResponse.json({ introduction: text.trim() });
+    return NextResponse.json({ introduction: text.trim(), remainingCount: DAILY_LIMIT - todayCount - 1 });
   } catch (error) {
     console.error("Generate intro error:", error);
     return NextResponse.json(

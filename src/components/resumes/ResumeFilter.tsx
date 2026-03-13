@@ -17,9 +17,10 @@ interface ResumeFilterProps {
   defaultRegion?: Region;
   defaultBusinessType?: BusinessType;
   hasSmartFilter?: boolean;
+  showContactedFilter?: boolean;
 }
 
-export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilter }: ResumeFilterProps) {
+export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilter, showContactedFilter = false }: ResumeFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -137,15 +138,17 @@ export function ResumeFilter({ defaultRegion, defaultBusinessType, hasSmartFilte
         </SelectContent>
       </Select>
 
-      {/* Contacted Filter */}
-      <Button
-        variant={contacted === "uncontacted" ? "default" : "outline"}
-        size="sm"
-        onClick={() => handleFilterChange("contacted", contacted === "uncontacted" ? "ALL" : "uncontacted")}
-        className="h-10"
-      >
-        미연락만
-      </Button>
+      {/* Contacted Filter - only for business users */}
+      {showContactedFilter && (
+        <Button
+          variant={contacted === "uncontacted" ? "default" : "outline"}
+          size="sm"
+          onClick={() => handleFilterChange("contacted", contacted === "uncontacted" ? "ALL" : "uncontacted")}
+          className="h-10"
+        >
+          미연락만
+        </Button>
+      )}
       </div>
     </div>
   );

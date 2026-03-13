@@ -48,6 +48,7 @@ export default function MyResumePage() {
   const [bumping, setBumping] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [generatingIntro, setGeneratingIntro] = useState(false);
+  const [aiRemainingCount, setAiRemainingCount] = useState<number | null>(null);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -195,6 +196,9 @@ export default function MyResumePage() {
       toast.error("닉네임과 나이를 먼저 입력해주세요");
       return;
     }
+    if (form.introduction && !confirm("기존 자기소개가 AI 자동완성으로 대체됩니다. 계속할까요?")) {
+      return;
+    }
     setGeneratingIntro(true);
     try {
       const res = await fetch("/api/resumes/generate-intro", {
@@ -214,6 +218,7 @@ export default function MyResumePage() {
         return;
       }
       updateField("introduction", data.introduction);
+      if (data.remainingCount !== undefined) setAiRemainingCount(data.remainingCount);
       toast.success("자기소개가 생성되었습니다. 수정 후 저장해주세요.");
     } catch {
       toast.error("자동완성 중 오류가 발생했습니다");
@@ -613,6 +618,17 @@ export default function MyResumePage() {
         </div>
       </div>
 
+      {/* Warning notice */}
+      <div className="mb-4 rounded-md border border-yellow-600/30 bg-yellow-900/10 px-4 py-3">
+        <p className="text-sm font-medium text-yellow-500/90">
+          성매매 알선/권유, 음란물, 불법 행위 관련 내용은 법적 처벌 대상입니다.
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          해당 내용 포함 시 이력서가 삭제되며 이용이 제한됩니다.{" "}
+          <a href="/terms" target="_blank" className="text-primary hover:underline">이용약관 제9조</a>
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
@@ -806,10 +822,15 @@ export default function MyResumePage() {
               <Label htmlFor="salaryAmount">금액 (원)</Label>
               <input
                 id="salaryAmount"
-                type="number"
-                value={form.desiredSalaryAmount}
-                onChange={(e) => updateField("desiredSalaryAmount", e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={form.desiredSalaryAmount ? Number(form.desiredSalaryAmount).toLocaleString() : ""}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, "");
+                  updateField("desiredSalaryAmount", raw);
+                }}
                 disabled={form.desiredSalaryType === "NEGOTIABLE"}
+                placeholder="예: 3,000,000"
                 className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               />
             </div>
@@ -837,19 +858,25 @@ export default function MyResumePage() {
             <CardTitle className="text-lg">연락처</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-start gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2.5">
+              <span className="text-sm mt-0.5">🔒</span>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                연락처는 <strong className="text-foreground">유료 광고를 등록한 인증 사장님만</strong> 볼 수 있습니다.
+                카카오톡 ID 또는 전화번호 중 <strong className="text-foreground">하나 이상</strong> 입력해주세요.
+              </p>
+            </div>
             <div>
-              <Label htmlFor="kakaoId">카카오톡 ID *</Label>
+              <Label htmlFor="kakaoId">카카오톡 ID</Label>
               <input
                 id="kakaoId"
                 value={form.kakaoId}
                 onChange={(e) => updateField("kakaoId", e.target.value)}
                 className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                required
               />
               <FieldError field="kakaoId" />
             </div>
             <div>
-              <Label htmlFor="phone">전화번호 (선택)</Label>
+              <Label htmlFor="phone">전화번호</Label>
               <input
                 id="phone"
                 value={form.phone}
@@ -892,7 +919,7 @@ export default function MyResumePage() {
                   disabled={generatingIntro}
                   className="text-xs"
                 >
-                  {generatingIntro ? "생성 중..." : "AI 자동완성"}
+                  {generatingIntro ? "생성 중..." : aiRemainingCount !== null ? `AI 자동완성 (${aiRemainingCount}/5)` : "AI 자동완성 (5/5)"}
                 </Button>
               </div>
               <textarea

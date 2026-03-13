@@ -14,7 +14,7 @@ export const resumeSchema = z.object({
   desiredSalaryType: z.enum(["HOURLY", "DAILY", "MONTHLY", "NEGOTIABLE"]).optional(),
   desiredSalaryAmount: z.number().optional(),
   availableHours: z.string().max(50).optional(),
-  kakaoId: z.string().min(1, "카카오톡 ID를 입력해주세요").max(30),
+  kakaoId: z.string().max(30).optional().or(z.literal("")),
   phone: z.string().regex(phoneRegex, "올바른 전화번호 형식이 아닙니다").optional().or(z.literal("")),
   title: z.string().min(1, "제목을 입력해주세요").max(30, "제목은 30자 이내로 입력해주세요"),
   introduction: z.string().min(1, "자기소개를 입력해주세요").max(1000, "자기소개는 1000자 이내로 입력해주세요"),
@@ -22,6 +22,9 @@ export const resumeSchema = z.object({
   experience: z.string().max(1000, "경력 상세는 1000자 이내로 입력해주세요").optional().or(z.literal("")),
   photoUrl: z.string().optional(),
   isPublic: z.boolean(),
+}).refine((data) => (data.kakaoId && data.kakaoId.length > 0) || (data.phone && data.phone.length > 0), {
+  message: "카카오톡 ID 또는 전화번호 중 하나 이상 입력해주세요",
+  path: ["kakaoId"],
 });
 
 export type ResumeFormData = z.infer<typeof resumeSchema>;

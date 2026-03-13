@@ -266,6 +266,16 @@ export default function NewPostPage() {
               </div>
             </div>
 
+            {isAnonymous && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
+                <p className="mb-1.5 text-[13px] font-semibold text-primary">익명 작성 안내</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>작성자명이 <strong className="text-foreground">&quot;익명&quot;</strong>으로 표시됩니다</li>
+                  <li>익명 글 작성 후 <strong className="text-foreground">30일간</strong> 재사용이 제한됩니다</li>
+                </ul>
+              </div>
+            )}
+
             <div>
               <label htmlFor="title" className="block text-sm font-medium mb-2">
                 제목

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { put } from "@vercel/blob";
+import sharp from "sharp";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { writeFile, unlink, mkdir, readdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_WIDTH = 800;
+const QUALITY = 80;
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,52 +33,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "파일을 선택해주세요" }, { status: 400 });
     }
 
-    // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: "JPG, PNG, WEBP 형식의 이미지만 업로드 가능합니다" },
         { status: 400 }
       );
     }
 
-    // Validate file size (5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ error: "파일 크기는 5MB 이하만 가능합니다" }, { status: 400 });
     }
 
-    // Create upload directory if not exists
-    const uploadDir = path.join(process.cwd(), "public/uploads/resumes");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Delete previous photo if exists
-    const allFiles = await readdir(uploadDir);
-    const previousFiles = allFiles.filter((f) => f.startsWith(`${session.user.id}-`));
-    for (const prevFile of previousFiles) {
-      try {
-        await unlink(path.join(uploadDir, prevFile));
-      } catch (error) {
-        console.error("Failed to delete previous file:", error);
+    // Compress and convert to WebP
+    let processedBuffer: Buffer;
+    let contentType: string;
+    let ext: string;
+
+    try {
+      const image = sharp(buffer);
+      const metadata = await image.metadata();
+
+      if (metadata.width && metadata.width > MAX_WIDTH) {
+        processedBuffer = await image
+          .resize(MAX_WIDTH, null, { withoutEnlargement: true })
+          .webp({ quality: QUALITY })
+          .toBuffer();
+      } else {
+        processedBuffer = await image.webp({ quality: QUALITY }).toBuffer();
       }
+      contentType = "image/webp";
+      ext = "webp";
+    } catch {
+      processedBuffer = buffer;
+      contentType = file.type;
+      ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
     }
 
-    // Generate filename
-    const ext = path.extname(file.name);
     const timestamp = Date.now();
-    const filename = `${session.user.id}-${timestamp}${ext}`;
-    const filepath = path.join(uploadDir, filename);
+    const blobPath = `resumes/${session.user.id}/${timestamp}.${ext}`;
 
-    // Save file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const blob = await put(blobPath, processedBuffer, {
+      access: "public",
+      contentType,
+    });
 
-    const url = `/uploads/resumes/${filename}`;
-
-    return NextResponse.json({ url }, { status: 200 });
+    return NextResponse.json({ url: blob.url }, { status: 200 });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "파일 업로드 중 오류가 발생했습니다" }, { status: 500 });

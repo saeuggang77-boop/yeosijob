@@ -10,12 +10,12 @@ interface Props {
 
 export function PaymentActions({ paymentId }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"approve" | "cancel" | null>(null);
 
   async function handleApprove() {
     if (!confirm("입금을 확인하고 광고를 게재하시겠습니까?")) return;
 
-    setLoading(true);
+    setLoading("approve");
     try {
       const res = await fetch(`/api/admin/payments/${paymentId}/approve`, {
         method: "POST",
@@ -29,18 +29,49 @@ export function PaymentActions({ paymentId }: Props) {
     } catch {
       alert("서버 오류가 발생했습니다");
     } finally {
-      setLoading(false);
+      setLoading(null);
+    }
+  }
+
+  async function handleCancel() {
+    if (!confirm("이 결제를 취소하시겠습니까?\n가상계좌가 무효화되어 입금할 수 없게 됩니다.")) return;
+
+    setLoading("cancel");
+    try {
+      const res = await fetch(`/api/admin/payments/${paymentId}/cancel`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "취소 실패");
+        return;
+      }
+      router.refresh();
+    } catch {
+      alert("서버 오류가 발생했습니다");
+    } finally {
+      setLoading(null);
     }
   }
 
   return (
-    <Button
-      size="sm"
-      onClick={handleApprove}
-      disabled={loading}
-      className="bg-green-600 hover:bg-green-700"
-    >
-      {loading ? "처리중..." : "입금확인"}
-    </Button>
+    <div className="flex gap-2">
+      <Button
+        size="sm"
+        onClick={handleApprove}
+        disabled={!!loading}
+        className="bg-green-600 hover:bg-green-700"
+      >
+        {loading === "approve" ? "처리중..." : "입금확인"}
+      </Button>
+      <Button
+        size="sm"
+        variant="destructive"
+        onClick={handleCancel}
+        disabled={!!loading}
+      >
+        {loading === "cancel" ? "처리중..." : "취소"}
+      </Button>
+    </div>
   );
 }

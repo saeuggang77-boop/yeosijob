@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { logAiUsage } from "@/lib/ai-usage";
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic();
+const DAILY_LIMIT = 5;
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +16,22 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: "AI 서비스를 사용할 수 없습니다" }, { status: 503 });
+    }
+
+    // 1일 5회 제한
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayCount = await prisma.aiUsageLog.count({
+      where: {
+        context: `resume-intro:${session.user.id}`,
+        createdAt: { gte: todayStart },
+      },
+    });
+    if (todayCount >= DAILY_LIMIT) {
+      return NextResponse.json(
+        { error: `AI 자동완성은 1일 ${DAILY_LIMIT}회까지 사용할 수 있습니다` },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();
@@ -56,6 +75,14 @@ export async function POST(request: NextRequest) {
 
     const text =
       message.content[0].type === "text" ? message.content[0].text : "";
+
+    // 사용량 로깅
+    logAiUsage(
+      "claude-sonnet-4-20250514",
+      message.usage.input_tokens,
+      message.usage.output_tokens,
+      `resume-intro:${session.user.id}`
+    );
 
     return NextResponse.json({ introduction: text.trim() });
   } catch (error) {

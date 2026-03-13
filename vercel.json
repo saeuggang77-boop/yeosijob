@@ -40,6 +40,14 @@
     {
       "path": "/api/cron/check-blob-usage",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/boost-views",
+      "schedule": "0 */3 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-age-tokens",
+      "schedule": "0 4 * * *"
     }
   ],
   "redirects": [

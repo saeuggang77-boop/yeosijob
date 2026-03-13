@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -20,6 +21,38 @@ interface PageProps {
 }
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const partner = await prisma.partner.findFirst({
+    where: { id, status: "ACTIVE", isProfileComplete: true },
+    select: { name: true, category: true, region: true, description: true },
+  });
+
+  if (!partner) {
+    return { title: "제휴업체를 찾을 수 없습니다" };
+  }
+
+  const categoryInfo = PARTNER_CATEGORIES[partner.category];
+  const regionLabel = REGIONS[partner.region]?.label || partner.region;
+  const description = partner.description
+    ? partner.description.slice(0, 160)
+    : `${partner.name} - ${regionLabel} ${categoryInfo?.label || ""} | 여시잡 제휴업체`;
+
+  return {
+    title: `${partner.name} - ${categoryInfo?.label || "제휴업체"}`,
+    description,
+    alternates: {
+      canonical: `/partner/${id}`,
+    },
+    openGraph: {
+      type: "article",
+      title: `${partner.name} | 여시잡 제휴업체`,
+      description,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
+    },
+  };
+}
 
 export default async function PartnerDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -87,6 +120,45 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      {/* JSON-LD BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "홈", item: "https://yeosijob.com" },
+              { "@type": "ListItem", position: 2, name: "제휴업체", item: "https://yeosijob.com/partner" },
+              { "@type": "ListItem", position: 3, name: partner.name },
+            ],
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
+      {/* JSON-LD LocalBusiness */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: partner.name,
+            description: partner.description,
+            ...(partner.address && { address: { "@type": "PostalAddress", streetAddress: partner.address, addressCountry: "KR" } }),
+            ...(partner.contactPhone && { telephone: partner.contactPhone }),
+            ...(partner.websiteUrl && { url: partner.websiteUrl }),
+            ...(partner.thumbnailUrl && { image: partner.thumbnailUrl }),
+            ...(avgRating > 0 && {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: avgRating.toFixed(1),
+                reviewCount: partner.partnerReviews.length,
+              },
+            }),
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
+
       {/* Back button */}
       <Link href="/partner" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" />
@@ -112,7 +184,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <CardTitle className="text-2xl">{partner.name}</CardTitle>
+                <h1 className="text-2xl font-bold tracking-tight">{partner.name}</h1>
                 <ShareButton
                   title={`${partner.name} - ${categoryInfo.label}`}
                   description={`${regionLabel} ${categoryInfo.label} | 여시잡 제휴업체`}

@@ -216,6 +216,21 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-screen-xl">
+      {/* JSON-LD Organization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "여시잡",
+            url: "https://yeosijob.com",
+            logo: "https://yeosijob.com/icon-512.png",
+            description: "유흥업소 채용정보와 인재를 만나보세요. 룸싸롱, 노래방, 텐카페, 바, 클럽 등 전국 유흥알바 구인구직",
+            sameAs: [],
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Announcement Bar */}
       <AnnouncementBar />
       {eventInfo && <EventBanner eventInfo={eventInfo} />}
@@ -343,7 +358,7 @@ export default async function HomePage() {
               </span>
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {shuffledPartners.slice(0, 4).map((partner) => {
+              {shuffledPartners.slice(0, 2).map((partner) => {
                 const gradeInfo = PARTNER_GRADES[partner.grade];
                 const catInfo = PARTNER_CATEGORIES[partner.category];
                 const regionLabel = REGIONS[partner.region]?.shortLabel || partner.region;

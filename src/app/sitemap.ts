@@ -96,5 +96,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...jobPages, ...communityPages];
+  // Dynamic: active partner pages
+  const activePartners = await prisma.partner.findMany({
+    where: { status: "ACTIVE", isProfileComplete: true },
+    select: { id: true, updatedAt: true },
+  });
+
+  const partnerPages: MetadataRoute.Sitemap = activePartners.map((p) => ({
+    url: `${baseUrl}/partner/${p.id}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...jobPages, ...communityPages, ...partnerPages];
 }

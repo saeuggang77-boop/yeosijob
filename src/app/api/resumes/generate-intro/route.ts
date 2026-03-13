@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
     const expText = experienceMap[experienceLevel] || "초보";
     const regionText = region || "미정";
 
-    const prompt = `당신은 한국 유흥업소 구직 플랫폼의 자기소개 작성 도우미입니다.
-아래 정보를 바탕으로 구직자의 자기소개 문구를 200자 내외로 작성해주세요.
+    const prompt = `당신은 구직자의 자기소개 작성을 도와주는 도우미입니다.
+아래 정보를 바탕으로 서비스업 구직자의 자기소개 문구를 200자 내외로 작성해주세요.
 밝고 긍정적이며 성실한 인상을 주는 문체로 작성하세요.
 존댓말(~합니다, ~입니다)을 사용하세요.
 절대 개인정보(실명, 전화번호 등)를 포함하지 마세요.
@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
 - 닉네임: ${nickname}
 - 나이: ${age}세
 - 경력: ${expText}
-- 희망 업종: ${jobNames}
-- 희망 지역: ${regionText}
+- 희망 직종: ${jobNames}
+- 희망 근무지역: ${regionText}
 
-자기소개 문구만 작성하고, 다른 설명은 하지 마세요.`;
+자기소개 문구만 출력하세요.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",

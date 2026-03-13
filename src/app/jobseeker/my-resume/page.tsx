@@ -46,7 +46,6 @@ export default function MyResumePage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [bumping, setBumping] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [generatingIntro, setGeneratingIntro] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -330,24 +329,6 @@ export default function MyResumePage() {
     }
   }
 
-  async function handleRefresh() {
-    setRefreshing(true);
-    try {
-      const res = await fetch("/api/resumes/refresh", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "갱신 실패");
-        return;
-      }
-      toast.success("이력서가 갱신되었습니다");
-      await fetchResume();
-    } catch {
-      toast.error("갱신 중 오류가 발생했습니다");
-    } finally {
-      setRefreshing(false);
-    }
-  }
-
   function handleEdit() {
     if (!resumeData) return;
     setForm({
@@ -431,16 +412,9 @@ export default function MyResumePage() {
                   size="sm"
                   onClick={handleBump}
                   disabled={!resumeData.canBumpToday || bumping}
+                  title="인재검색 목록에서 내 이력서를 맨 위로 올립니다"
                 >
-                  {bumping ? "처리 중..." : "끌어올리기"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                >
-                  {refreshing ? "처리 중..." : "갱신하기"}
+                  {bumping ? "처리 중..." : resumeData.canBumpToday ? "끌어올리기 (1일 1회)" : "끌어올리기 (오늘 사용 완료)"}
                 </Button>
                 <Button
                   variant="outline"

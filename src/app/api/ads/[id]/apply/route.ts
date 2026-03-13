@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { REGIONS } from "@/lib/constants/regions";
+import { sendPushNotification } from "@/lib/push-notification";
 
 export async function POST(
   _req: Request,
@@ -82,6 +83,13 @@ export async function POST(
       },
     }),
   ]);
+
+  // 웹 푸시 알림
+  sendPushNotification(ad.userId, {
+    title: "새 지원자가 있습니다!",
+    body: `${resume.nickname}님이 "${ad.title}"에 지원했습니다.`,
+    url: "/business/resumes",
+  });
 
   return NextResponse.json({ success: true });
 }

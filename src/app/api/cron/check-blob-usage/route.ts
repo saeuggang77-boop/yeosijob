@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTotalBlobUsage, BLOB_QUOTA_BYTES } from "@/lib/blob-helpers";
 import { prisma } from "@/lib/prisma";
+import { verifyCronAuth } from "@/lib/utils/cron-auth";
 
 /**
  * Vercel Blob 용량 모니터링 Cron Job
@@ -16,9 +17,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!verifyCronAuth(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

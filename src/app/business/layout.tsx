@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/business/ads/new", label: "구인광고 등록", icon: "➕", sublabel: "유흥업소 채용공고" },
   { href: "/business/resumes", label: "인재 정보", icon: "👥" },
   { href: "/business/partner", label: "내 업체 관리", icon: "🤝", dividerBefore: true, sectionLabel: "제휴업체", sublabel: "성형·미용·렌탈·금융" },
+  { href: "/business/payments", label: "결제 내역", icon: "💳", dividerBefore: true, sectionLabel: "결제" },
 ];
 
 export default async function BusinessLayout({

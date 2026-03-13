@@ -63,7 +63,6 @@ export function Header() {
                 {session?.user.role === "JOBSEEKER" && (
                   <>
                     {navLink("/jobseeker/my-resume", "내 이력서")}
-                    {navLink("/jobseeker/scraps", "스크랩")}
                     {navLink("/jobseeker/reviews", "내 후기")}
                   </>
                 )}
@@ -144,18 +143,11 @@ export function Header() {
             </Button>
           </Link>
           {session?.user.role === "JOBSEEKER" && (
-            <>
-              <Link href="/jobseeker/my-resume">
-                <Button variant="ghost" size="sm">
-                  내 이력서
-                </Button>
-              </Link>
-              <Link href="/jobseeker/scraps">
-                <Button variant="ghost" size="sm">
-                  스크랩
-                </Button>
-              </Link>
-            </>
+            <Link href="/jobseeker/my-resume">
+              <Button variant="ghost" size="sm">
+                내 이력서
+              </Button>
+            </Link>
           )}
           {session?.user.role === "BUSINESS" && (
             <>

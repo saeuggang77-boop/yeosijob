@@ -88,7 +88,6 @@ export function MobileBottomNav() {
       { href: "/", label: "홈", icon: HomeIcon },
       { href: "/jobs", label: "채용정보", icon: SearchIcon },
       { href: "/community", label: "커뮤니티", icon: ChatIcon },
-      { href: "/jobseeker/scraps", label: "스크랩", icon: BookmarkIcon },
       { href: "/jobseeker/profile", label: "마이", icon: UserIcon },
     ];
   } else {

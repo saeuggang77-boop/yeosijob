@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from "lucide-react";
+import { ShareButton } from "@/components/share/ShareButton";
 import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
 import { PartnerReplyForm } from "@/components/reviews/PartnerReplyForm";
 import { KakaoMap } from "@/components/map/KakaoMap";
@@ -112,6 +113,10 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <CardTitle className="text-2xl">{partner.name}</CardTitle>
+                <ShareButton
+                  title={`${partner.name} - ${categoryInfo.label}`}
+                  description={`${regionLabel} ${categoryInfo.label} | 여시잡 제휴업체`}
+                />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge

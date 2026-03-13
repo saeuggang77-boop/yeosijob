@@ -12,6 +12,7 @@ import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ReviewReplyForm } from "@/components/reviews/ReviewReplyForm";
+import { ReviewActions } from "@/components/reviews/ReviewActions";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
 import { KakaoMap } from "@/components/map/KakaoMap";
@@ -106,6 +107,7 @@ export default async function JobDetailPage({ params }: PageProps) {
         take: 5,
         select: {
           id: true,
+          userId: true,
           rating: true,
           content: true,
           reply: true,
@@ -565,6 +567,15 @@ export default async function JobDetailPage({ params }: PageProps) {
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{review.reply}</p>
                   </div>
+                )}
+
+                {/* 내 후기 수정/삭제 (답글 없을 때만) */}
+                {session?.user?.id === review.userId && !review.reply && (
+                  <ReviewActions
+                    reviewId={review.id}
+                    currentRating={review.rating}
+                    currentContent={review.content}
+                  />
                 )}
 
                 {/* 사장님 답글 작성/수정 폼 */}

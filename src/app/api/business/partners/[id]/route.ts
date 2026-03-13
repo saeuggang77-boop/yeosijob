@@ -111,7 +111,7 @@ export async function PUT(
     const region = updateData.region as string;
     const description = (updateData.description as string) || "";
 
-    if (name && name !== "미등록 업체" && category && region) {
+    if (name && name !== "미등록 업체" && category && region && description.length >= 100) {
       updateData.isProfileComplete = true;
 
       // 프로필 완성 시 기간 시작 (endDate가 아직 없는 경우에만)

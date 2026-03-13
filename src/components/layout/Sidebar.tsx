@@ -48,18 +48,16 @@ export function Sidebar({
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-background shadow-sm md:hidden"
-        aria-label="메뉴 열기"
-      >
-        {mobileOpen ? (
-          <span className="text-lg">✕</span>
-        ) : (
+      {/* Mobile toggle button - 사이드바 열려있을 때는 숨김 */}
+      {!mobileOpen && (
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md border bg-background shadow-sm md:hidden"
+          aria-label="메뉴 열기"
+        >
           <span className="text-lg">☰</span>
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {mobileOpen && (
@@ -75,10 +73,26 @@ export function Sidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Logo */}
-        <div className="flex h-14 items-center border-b border-border px-4">
-          <Link href={logoHref} className="text-lg font-bold text-primary">
-            {logoText}
+        {/* Header: X + Logo + 홈 버튼 */}
+        <div className="flex h-14 items-center justify-between border-b border-border px-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground md:hidden"
+              aria-label="메뉴 닫기"
+            >
+              <span className="text-sm">✕</span>
+            </button>
+            <Link href={logoHref} className="text-lg font-bold text-primary">
+              {logoText}
+            </Link>
+          </div>
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            🏠 홈
           </Link>
         </div>
 
@@ -124,22 +138,11 @@ export function Sidebar({
           <p className="truncate text-sm font-medium">
             {userName}{userNameSuffix}
           </p>
-          {showBackLink && (
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mt-1 w-full justify-start px-0 text-xs text-muted-foreground"
-              >
-                {backLinkLabel}
-              </Button>
-            </Link>
-          )}
           {showLogout && (
             <Button
               variant="ghost"
               size="sm"
-              className={`w-full justify-start px-0 text-xs text-muted-foreground ${!showBackLink ? "mt-1" : ""}`}
+              className="mt-1 w-full justify-start px-0 text-xs text-muted-foreground"
               onClick={() => signOut({ callbackUrl: "/" })}
             >
               로그아웃

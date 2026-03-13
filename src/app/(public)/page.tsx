@@ -130,7 +130,7 @@ export default async function HomePage() {
     prisma.ad.findMany({
       where: { ...baseWhere, productId: "LINE" },
       orderBy: { lastJumpedAt: "desc" },
-      take: 20,
+      take: 10,
       select: adSelect,
     }),
     prisma.ad.findMany({
@@ -390,9 +390,11 @@ export default async function HomePage() {
                     {/* Info */}
                     <div className="flex flex-1 flex-col justify-center gap-1.5 p-4">
                       <p className="text-[15px] font-bold">{partner.name}</p>
-                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {partner.description.slice(0, 80)}
-                      </p>
+                      {partner.description && (
+                        <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                          {partner.description}
+                        </p>
+                      )}
                       {partner.highlight && (
                         <p className="text-[13px] font-semibold" style={{ color: gradeInfo?.color }}>
                           {partner.highlight}

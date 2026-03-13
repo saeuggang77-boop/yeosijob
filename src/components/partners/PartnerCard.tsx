@@ -107,10 +107,12 @@ export function PartnerCard({ partner }: PartnerCardProps) {
             </p>
           )}
 
-          {/* Description (1 line) */}
-          <p className="mt-1 flex-1 line-clamp-2 text-sm text-muted-foreground">
-            {partner.description}
-          </p>
+          {/* Description */}
+          {partner.description && (
+            <p className="mt-1 flex-1 line-clamp-3 text-sm text-muted-foreground">
+              {partner.description}
+            </p>
+          )}
 
           {/* View count */}
           <div className="mt-2 flex items-center justify-end">

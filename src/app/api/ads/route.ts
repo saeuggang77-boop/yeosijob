@@ -194,6 +194,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // BANNER 슬롯 제한 (maxSlots: 12)
+    if (productId === "BANNER") {
+      const bannerCount = await prisma.ad.count({
+        where: { productId: "BANNER", status: { in: ["ACTIVE", "PENDING_DEPOSIT"] } },
+      });
+      if (bannerCount >= (AD_PRODUCTS.BANNER.maxSlots || 12)) {
+        throw new Error("노블레스는 현재 만석입니다");
+      }
+    }
+
+    // KAKAO_ALERT 옵션 서버 거부 (기능 미구현 상태)
+    if (options && (options as string[]).includes("KAKAO_ALERT")) {
+      return NextResponse.json({ error: "신규 이력서 알림 기능은 현재 준비중입니다" }, { status: 400 });
+    }
+
     // 무료 광고권 사용
     if (productId !== "FREE" && useCredit) {
       const now = new Date();

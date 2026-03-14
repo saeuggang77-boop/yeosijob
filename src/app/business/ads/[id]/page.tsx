@@ -122,7 +122,7 @@ export default async function AdDetailPage({ params }: PageProps) {
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                 <li>• 수동점프는 유료 등급부터 사용할 수 있습니다</li>
                 <li>• 이력서 열람은 유료 등급부터 가능합니다</li>
-                <li>• 무료 광고는 리스트 최하단에 노출됩니다</li>
+                <li>• 무료 광고는 노출이 제한적입니다</li>
               </ul>
             )}
             <Link href={`/business/ads/${id}/upgrade`}>

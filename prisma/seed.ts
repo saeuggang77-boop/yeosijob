@@ -1373,7 +1373,7 @@ async function main() {
         status: "ACTIVE",
         startDate: isFreeAd ? new Date() : startDate,
         endDate: isFreeAd ? undefined : endDate,
-        autoJumpPerDay: isFreeAd ? 0 : 12,
+        autoJumpPerDay: isFreeAd ? 2 : 12,
         manualJumpPerDay: 0,
         lastJumpedAt: lastJumped,
         isVerified: i < 5,

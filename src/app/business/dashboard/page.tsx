@@ -87,8 +87,8 @@ export default async function DashboardPage() {
       {/* FREE 광고 업그레이드 배너 */}
       {hasFreeAd && (
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
-          <p className="font-medium">내 무료 광고가 리스트 최하단에 있습니다</p>
-          <p className="mt-1 text-sm text-muted-foreground">줄광고로 업그레이드하면 자동점프로 상위 노출됩니다</p>
+          <p className="font-medium">무료 광고는 노출이 제한적입니다</p>
+          <p className="mt-1 text-sm text-muted-foreground">줄광고로 업그레이드하면 더 자주 상위 노출됩니다</p>
           <Link href={`/business/ads/${freeAd!.id}/upgrade`}>
             <Button size="sm" className="mt-2">업그레이드하기</Button>
           </Link>

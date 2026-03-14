@@ -133,8 +133,8 @@ test.describe('Verification Management', () => {
     const response = await page.goto('/admin/verification');
     expect(response?.status()).not.toBe(500);
 
-    // 업소 인증 관리 제목 확인
-    await expect(page.getByRole('heading', { name: '업소 인증 관리' }).first()).toBeVisible();
+    // 업소 인증 현황 제목 확인
+    await expect(page.getByRole('heading', { name: '업소 인증 현황' }).first()).toBeVisible();
   });
 });
 

@@ -207,8 +207,8 @@ test.describe('구직자 커뮤니티 좋아요/반응', () => {
     await postLink.click();
     await page.waitForURL((url) => isPostDetailUrl(url), { timeout: 10000 });
 
-    // Reaction buttons: "👍 좋아요", "🤣 웃겨요", etc.
-    const likeButton = page.locator('button:has-text("좋아요")').first();
+    // Reaction buttons: "👍 추천", "🤣 웃음", etc. (count>0이면 숫자 표시되므로 title로 찾기)
+    const likeButton = page.locator('button[title="추천"]').first();
     await expect(likeButton).toBeVisible();
   });
 
@@ -220,8 +220,8 @@ test.describe('구직자 커뮤니티 좋아요/반응', () => {
     await postLink.click();
     await page.waitForURL((url) => isPostDetailUrl(url), { timeout: 10000 });
 
-    // Click "👍 좋아요" reaction
-    const likeButton = page.locator('button:has-text("좋아요")').first();
+    // Click "👍 추천" reaction
+    const likeButton = page.locator('button[title="추천"]').first();
     if (await likeButton.isVisible()) {
       await likeButton.click();
       await page.waitForTimeout(500);

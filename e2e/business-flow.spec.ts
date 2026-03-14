@@ -21,7 +21,7 @@ test.describe('사장 회원 흐름 테스트', () => {
     await expect(businessNumberFields).toHaveCount(0);
 
     // 회원가입 버튼 확인
-    const submitButton = page.getByRole('button', { name: /가입|회원가입|등록/ });
+    const submitButton = page.getByRole('button', { name: '업체 가입하기' });
     if (await submitButton.count() > 0) {
       await expect(submitButton).toBeVisible();
     }

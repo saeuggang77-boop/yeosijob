@@ -1,9 +1,9 @@
 /**
  * Global teardown: cleanup E2E test accounts after all tests finish.
- * This ensures test data doesn't persist in the database (especially on production).
+ * Uses direct DB query instead of API (test API was removed for security).
  */
-const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3001';
-const E2E_SECRET = process.env.E2E_CLEANUP_SECRET || '';
+import { execSync } from 'child_process';
+import path from 'path';
 
 const TEST_EMAILS = [
   'e2e-jobseeker@test.com',
@@ -13,25 +13,15 @@ const TEST_EMAILS = [
 
 export default async function globalTeardown() {
   try {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (E2E_SECRET) {
-      headers['x-e2e-secret'] = E2E_SECRET;
-    }
-
-    const response = await fetch(`${BASE_URL}/api/test/cleanup`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ emails: TEST_EMAILS }),
+    const emails = TEST_EMAILS.map((e) => `'${e}'`).join(',');
+    const sql = `DELETE FROM "users" WHERE "email" IN (${emails})`;
+    execSync('npx prisma db execute --stdin', {
+      input: sql,
+      cwd: path.join(__dirname, '..'),
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 15000,
     });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log(`✓ Teardown: ${data.message}`);
-    } else {
-      console.log(`Teardown cleanup returned ${response.status}`);
-    }
+    console.log('✓ Teardown: test accounts cleaned up (DB direct)');
   } catch (error) {
     console.log('Teardown cleanup skipped:', error instanceof Error ? error.message : 'unknown error');
   }

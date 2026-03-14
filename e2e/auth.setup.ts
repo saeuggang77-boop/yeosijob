@@ -1,5 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
+import { execSync } from 'child_process';
 
 const authFile = path.join(__dirname, '../.auth/jobseeker.json');
 const businessAuthFile = path.join(__dirname, '../.auth/business.json');
@@ -49,21 +50,21 @@ const TEST_EMAILS = [
 ];
 
 /**
- * Cleanup test accounts via API
+ * Cleanup test accounts via direct DB query
  */
-async function cleanupTestAccounts(request: import('@playwright/test').APIRequestContext) {
+function cleanupTestAccounts() {
   try {
-    const response = await request.post(`${BASE_URL}/api/test/cleanup`, {
-      headers: testApiHeaders,
-      data: { emails: TEST_EMAILS },
+    const emails = TEST_EMAILS.map((e) => `'${e}'`).join(',');
+    const sql = `DELETE FROM "users" WHERE "email" IN (${emails})`;
+    execSync('npx prisma db execute --stdin', {
+      input: sql,
+      cwd: path.join(__dirname, '..'),
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 15000,
     });
-    if (response.ok()) {
-      console.log('✓ Test accounts cleaned up');
-    } else {
-      console.log(`Cleanup returned ${response.status()} (may be first run)`);
-    }
+    console.log('✓ Test accounts cleaned up (DB direct)');
   } catch {
-    console.log('Cleanup skipped (API not available)');
+    console.log('Cleanup skipped (may be first run)');
   }
 }
 
@@ -100,25 +101,23 @@ async function registerWithRetry(
  */
 setup('register test accounts', async ({ request }) => {
   // Cleanup existing test accounts first
-  await cleanupTestAccounts(request);
+  cleanupTestAccounts();
 
   // Register accounts with retry on rate limit
   await registerWithRetry(request, JOBSEEKER_ACCOUNT, 'Jobseeker');
   await registerWithRetry(request, BUSINESS_ACCOUNT, 'Business');
   await registerWithRetry(request, ADMIN_ACCOUNT, 'Admin');
 
-  // Promote admin account
+  // Promote admin account via direct DB query
   try {
-    const promoteResponse = await request.post(`${BASE_URL}/api/test/promote-admin`, {
-      headers: testApiHeaders,
-      data: { email: ADMIN_ACCOUNT.email },
+    const sql = `UPDATE "users" SET "role" = 'ADMIN' WHERE "email" = '${ADMIN_ACCOUNT.email}'`;
+    execSync('npx prisma db execute --stdin', {
+      input: sql,
+      cwd: path.join(__dirname, '..'),
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 15000,
     });
-
-    if (promoteResponse.ok()) {
-      console.log('✓ Admin account promoted to ADMIN role');
-    } else {
-      console.warn(`Admin promotion returned ${promoteResponse.status()}`);
-    }
+    console.log('✓ Admin account promoted to ADMIN role (DB direct)');
   } catch (error) {
     console.error('Admin promotion failed:', error);
   }

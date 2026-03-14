@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 interface Props {
   businessNumber: string | null;
   isVerified: boolean;
+  bizOwnerName?: string | null;
 }
 
-export function VerificationCard({ businessNumber, isVerified }: Props) {
+export function VerificationCard({ businessNumber, isVerified, bizOwnerName }: Props) {
   const router = useRouter();
   const [number, setNumber] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ verified: boolean; message: string } | null>(null);
 
@@ -20,7 +22,10 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
     return (
       <Card>
         <CardContent className="flex items-center justify-between py-3">
-          <span className="text-sm">업소 인증</span>
+          <div>
+            <span className="text-sm">업소 인증</span>
+            {bizOwnerName && <span className="text-xs text-muted-foreground ml-1">{bizOwnerName}</span>}
+          </div>
           <Badge className="bg-green-100 text-green-700">인증완료</Badge>
         </CardContent>
       </Card>
@@ -43,13 +48,17 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
       alert("올바른 사업자등록번호를 입력해주세요");
       return;
     }
+    if (!ownerName.trim()) {
+      alert("대표자명을 입력해주세요");
+      return;
+    }
     setLoading(true);
     setResult(null);
     try {
       const res = await fetch("/api/verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessNumber: number }),
+        body: JSON.stringify({ businessNumber: number, ownerName: ownerName.trim() }),
       });
       const data = await res.json();
       if (data.verified) {
@@ -72,15 +81,21 @@ export function VerificationCard({ businessNumber, isVerified }: Props) {
     <Card>
       <CardContent className="py-3">
         <p className="text-sm font-medium">업소 인증</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">사업자등록번호를 제출하면 자동으로 인증됩니다</p>
-        <div className="mt-2 flex gap-2">
+        <p className="mt-0.5 text-xs text-muted-foreground">사업자등록증에 기재된 정보를 입력해주세요</p>
+        <div className="mt-2 space-y-2">
           <input
             value={number}
             onChange={(e) => setNumber(e.target.value)}
             placeholder="000-00-00000"
-            className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
-          <Button size="sm" onClick={handleSubmit} disabled={loading}>
+          <input
+            value={ownerName}
+            onChange={(e) => setOwnerName(e.target.value)}
+            placeholder="대표자명"
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+          <Button size="sm" onClick={handleSubmit} disabled={loading} className="w-full">
             {loading ? "확인 중..." : "인증"}
           </Button>
         </div>

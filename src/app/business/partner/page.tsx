@@ -113,6 +113,11 @@ export default async function BusinessPartnerPage() {
                       <Badge style={{ backgroundColor: gradeInfo.color }}>
                         {gradeInfo.label}
                       </Badge>
+                      {partner.isVerifiedBiz ? (
+                        <Badge className="bg-green-100 text-green-700 text-[10px]">인증</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px]">미인증</Badge>
+                      )}
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -173,6 +178,17 @@ export default async function BusinessPartnerPage() {
                         <Link href={`/business/partner/${partner.id}/edit`}>
                           정보 입력하기
                         </Link>
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* 사업자 미인증 안내 */}
+                  {!partner.isVerifiedBiz && partner.status === "ACTIVE" && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+                      <p className="text-sm font-medium text-amber-500">사업자 인증을 완료해주세요</p>
+                      <p className="mt-1 text-xs text-muted-foreground">사업자등록증 정보를 입력하면 인증업체 뱃지가 부여됩니다</p>
+                      <Button size="sm" variant="outline" className="mt-2" asChild>
+                        <Link href={`/business/partner/${partner.id}/edit`}>인증하기</Link>
                       </Button>
                     </div>
                   )}

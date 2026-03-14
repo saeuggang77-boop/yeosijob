@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { businessNumber } = await request.json();
+    const { businessNumber, ownerName } = await request.json();
     if (!businessNumber || businessNumber.replace(/-/g, "").length < 10) {
       return NextResponse.json({ error: "올바른 사업자등록번호를 입력해주세요" }, { status: 400 });
     }
@@ -92,13 +92,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 국세청 API로 자동 검증
-    const ntsResult = await verifyBusinessNumber(cleaned);
+    const ntsResult = await verifyBusinessNumber(cleaned, ownerName);
 
     if (ntsResult.valid) {
       // 영업중 — 자동 승인
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { businessNumber: cleaned, isVerifiedBiz: true },
+        data: { businessNumber: cleaned, isVerifiedBiz: true, bizOwnerName: ownerName || null },
       });
 
       // 기존 활성 광고에도 인증 배지 부여
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     // API 실패 또는 키 미설정 — 수동 플로우 fallback
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { businessNumber: cleaned },
+      data: { businessNumber: cleaned, bizOwnerName: ownerName || null },
     });
 
     return NextResponse.json({

@@ -84,6 +84,17 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
               <span className="text-muted-foreground">지역:</span>{" "}
               <span>{regionInfo.label}</span>
             </div>
+            <div className="col-span-2">
+              <span className="text-muted-foreground">사업자 인증:</span>{" "}
+              {partner.isVerifiedBiz ? (
+                <>
+                  <Badge className="bg-green-100 text-green-700 text-[10px]">인증완료</Badge>
+                  <span className="ml-2">{partner.businessNumber} · {partner.bizOwnerName}</span>
+                </>
+              ) : (
+                <Badge variant="outline" className="text-[10px]">미인증</Badge>
+              )}
+            </div>
             {partner.address && (
               <div className="col-span-2">
                 <span className="text-muted-foreground">주소:</span>{" "}

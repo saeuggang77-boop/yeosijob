@@ -1,3 +1,21 @@
+-- CreateTable: PostLike (누락된 테이블 생성)
+CREATE TABLE IF NOT EXISTS "post_likes" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "post_likes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS "post_likes_userId_postId_key" ON "post_likes"("userId", "postId");
+CREATE INDEX IF NOT EXISTS "post_likes_postId_idx" ON "post_likes"("postId");
+
+-- AddForeignKey
+ALTER TABLE "post_likes" ADD CONSTRAINT "post_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "post_likes" ADD CONSTRAINT "post_likes_postId_fkey" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 -- AlterTable: Post에 익명 글쓰기 필드 추가
 ALTER TABLE "posts" ADD COLUMN IF NOT EXISTS "isAnonymous" BOOLEAN NOT NULL DEFAULT false;
 

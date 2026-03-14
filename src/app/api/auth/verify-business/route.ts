@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // 4. 요청 본문 파싱
     const body = await req.json();
-    const { businessNumber } = body;
+    const { businessNumber, ownerName } = body;
 
     if (!businessNumber || typeof businessNumber !== "string") {
       return NextResponse.json(
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 9. 국세청 API로 실제 상태 확인
-    const verifyResult = await verifyBusinessNumber(bizNum);
+    const verifyResult = await verifyBusinessNumber(bizNum, ownerName);
 
     if (!verifyResult.valid) {
       return NextResponse.json(
@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
       data: {
         businessNumber: bizNum,
         isVerifiedBiz: true,
+        bizOwnerName: ownerName || null,
       },
     });
 

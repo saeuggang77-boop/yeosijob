@@ -76,6 +76,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         websiteUrl: true,
         businessHours: true,
         grade: true,
+        isVerifiedBiz: true,
         viewCount: true,
         partnerReviews: {
           where: { isHidden: false },
@@ -185,6 +186,11 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-2xl font-bold tracking-tight">{partner.name}</h1>
+                {partner.isVerifiedBiz && (
+                  <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    인증업체
+                  </span>
+                )}
                 <ShareButton
                   title={`${partner.name} - ${categoryInfo.label}`}
                   description={`${regionLabel} ${categoryInfo.label} | 여시잡 제휴업체`}

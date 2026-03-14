@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   const [user, ads] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { businessNumber: true, isVerifiedBiz: true },
+      select: { businessNumber: true, isVerifiedBiz: true, bizOwnerName: true },
     }),
     prisma.ad.findMany({
       where: { userId: session.user.id },
@@ -81,6 +81,7 @@ export default async function DashboardPage() {
         <VerificationCard
           businessNumber={user?.businessNumber || null}
           isVerified={user?.isVerifiedBiz || false}
+          bizOwnerName={user?.bizOwnerName || null}
         />
       </div>
 

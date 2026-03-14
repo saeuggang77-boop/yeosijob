@@ -222,6 +222,7 @@ model User {
   businessName    String?
   businessNumber  String?
   isVerifiedBiz   Boolean @default(false)
+  bizOwnerName    String?
   freeAdCredits   Int     @default(0)
   totalPaidAdDays Int     @default(0)
 
@@ -1023,6 +1024,11 @@ model Partner {
 
   // 프로필 완성 여부 (업체가 직접 정보 입력 후 true)
   isProfileComplete Boolean @default(false)
+
+  // 사업자 인증
+  businessNumber  String?
+  bizOwnerName    String?
+  isVerifiedBiz   Boolean @default(false)
 
   // 통계
   viewCount  Int @default(0)

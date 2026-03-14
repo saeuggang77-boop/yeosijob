@@ -9,7 +9,7 @@ export interface NtsResult {
   statusCode: string;
 }
 
-export async function verifyBusinessNumber(bizNo: string): Promise<NtsResult> {
+export async function verifyBusinessNumber(bizNo: string, ownerName?: string): Promise<NtsResult> {
   const cleaned = bizNo.replace(/-/g, "");
 
   if (cleaned.length !== 10 || !/^\d{10}$/.test(cleaned)) {
@@ -25,6 +25,47 @@ export async function verifyBusinessNumber(bizNo: string): Promise<NtsResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
+    // ownerName이 있으면 진위확인 API 사용
+    if (ownerName) {
+      const res = await fetch(
+        `https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=${encodeURIComponent(apiKey)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businesses: [{
+              b_no: cleaned,
+              p_nm: ownerName,
+              start_dt: "",
+              p_nm2: "", b_nm: "", corp_no: "", b_sector: "", b_type: "", b_adr: "",
+            }],
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        console.error("NTS API error:", res.status, await res.text());
+        return { valid: false, status: "확인불가", statusCode: "" };
+      }
+
+      const json = await res.json();
+      const data = json.data?.[0];
+
+      if (!data) {
+        return { valid: false, status: "확인불가", statusCode: "" };
+      }
+
+      if (data.valid === "01") {
+        return { valid: true, status: "확인완료", statusCode: "01" };
+      } else {
+        return { valid: false, status: "불일치", statusCode: "02" };
+      }
+    }
+
+    // 기존 상태조회 API
     const res = await fetch(
       `https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${encodeURIComponent(apiKey)}`,
       {

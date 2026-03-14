@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -55,6 +56,9 @@ interface PartnerData {
   grade: string;
   status: string;
   isProfileComplete: boolean;
+  businessNumber: string | null;
+  bizOwnerName: string | null;
+  isVerifiedBiz: boolean;
 }
 
 function formatPhone(value: string): string {
@@ -80,6 +84,13 @@ export default function BusinessPartnerEditPage() {
   const [saving, setSaving] = useState(false);
   const [showPostcode, setShowPostcode] = useState(false);
   const postcodeRef = useRef<HTMLDivElement>(null);
+
+  // 사업자 인증
+  const [bizNumber, setBizNumber] = useState("");
+  const [bizOwnerName, setBizOwnerName] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ verified: boolean; message: string } | null>(null);
+  const [isVerifiedBiz, setIsVerifiedBiz] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -159,6 +170,9 @@ export default function BusinessPartnerEditPage() {
           websiteUrl: p.websiteUrl || "",
           businessHours: p.businessHours || "",
         });
+        setIsVerifiedBiz(p.isVerifiedBiz);
+        if (p.businessNumber) setBizNumber(p.businessNumber);
+        if (p.bizOwnerName) setBizOwnerName(p.bizOwnerName);
       } catch {
         toast.error("데이터를 불러올 수 없습니다");
         router.push("/business/partner");
@@ -169,6 +183,39 @@ export default function BusinessPartnerEditPage() {
 
     fetchPartner();
   }, [partnerId, router]);
+
+  const handleVerify = async () => {
+    const cleaned = bizNumber.replace(/[^0-9]/g, "");
+    if (cleaned.length < 10) {
+      toast.error("올바른 사업자등록번호를 입력해주세요");
+      return;
+    }
+    if (!bizOwnerName.trim()) {
+      toast.error("대표자명을 입력해주세요");
+      return;
+    }
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await fetch("/api/partners/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partnerId, businessNumber: cleaned, ownerName: bizOwnerName.trim() }),
+      });
+      const data = await res.json();
+      if (data.verified) {
+        setVerifyResult({ verified: true, message: data.message });
+        setIsVerifiedBiz(true);
+        toast.success("사업자 인증 완료");
+      } else {
+        setVerifyResult({ verified: false, message: data.error || data.message || "인증 실패" });
+      }
+    } catch {
+      toast.error("서버 오류가 발생했습니다");
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,6 +280,54 @@ export default function BusinessPartnerEditPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        {/* 사업자 인증 */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-base">
+              <span>사업자 인증</span>
+              {isVerifiedBiz && (
+                <Badge className="bg-green-100 text-green-700">인증완료</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isVerifiedBiz ? (
+              <div className="text-sm text-muted-foreground">
+                <p>사업자번호: {bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, "$1-$2-$3")}</p>
+                <p>대표자명: {bizOwnerName}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">사업자등록증에 기재된 정보를 입력해주세요</p>
+                <div className="space-y-2">
+                  <Label>사업자등록번호</Label>
+                  <Input
+                    value={bizNumber}
+                    onChange={(e) => setBizNumber(e.target.value)}
+                    placeholder="000-00-00000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>대표자명</Label>
+                  <Input
+                    value={bizOwnerName}
+                    onChange={(e) => setBizOwnerName(e.target.value)}
+                    placeholder="사업자등록증에 기재된 대표자명"
+                  />
+                </div>
+                <Button type="button" onClick={handleVerify} disabled={verifying} className="w-full">
+                  {verifying ? "확인 중..." : "인증하기"}
+                </Button>
+                {verifyResult && (
+                  <p className={`text-xs ${verifyResult.verified ? "text-green-600" : "text-red-500"}`}>
+                    {verifyResult.message}
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* 기본 정보 */}
         <Card>
           <CardHeader>

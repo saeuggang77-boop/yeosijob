@@ -51,6 +51,9 @@ export async function GET(
         monthlyPrice: true,
         status: true,
         isProfileComplete: true,
+        businessNumber: true,
+        bizOwnerName: true,
+        isVerifiedBiz: true,
       },
     });
 

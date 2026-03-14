@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     // 사업자 인증 확인
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { isVerifiedBiz: true },
+      select: { isVerifiedBiz: true, businessNumber: true },
     });
     if (!user?.isVerifiedBiz) {
       return NextResponse.json(
@@ -156,31 +156,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "올바른 상품을 선택해주세요" }, { status: 400 });
     }
 
-    // FREE 상품: 이미 활성화된 무료 광고가 있는지 확인
+    // 같은 사업자번호를 가진 모든 인증 계정 조회 (FREE/유료 광고 제한 공통)
+    let sameBusinessUserIds = [session.user.id];
+    if (user.businessNumber) {
+      const sameBusinessUsers = await prisma.user.findMany({
+        where: { businessNumber: user.businessNumber, isVerifiedBiz: true },
+        select: { id: true },
+      });
+      sameBusinessUserIds = sameBusinessUsers.map((u) => u.id);
+    }
+
+    // FREE 상품: 같은 사업자번호 기준 활성 무료 광고 2건 제한
     if (isFreeProduct) {
       const existingFreeAd = await prisma.ad.count({
         where: {
-          userId: session.user.id,
+          userId: { in: sameBusinessUserIds },
           productId: "FREE",
           status: "ACTIVE",
         },
       });
-      if (existingFreeAd > 0) {
-        return NextResponse.json({ error: "무료 광고는 1건만 등록할 수 있습니다" }, { status: 400 });
+      if (existingFreeAd >= 2) {
+        return NextResponse.json({ error: "같은 사업자번호로 등록된 무료 광고가 이미 2건 있습니다. 무료 광고는 사업자번호당 2건까지 가능합니다." }, { status: 400 });
       }
     }
 
-    // 유료 광고: 사업자당 최대 2개 제한
+    // 유료 광고: 같은 사업자번호 기준 최대 5건 제한
     if (!isFreeProduct) {
       const existingPaidAds = await prisma.ad.count({
         where: {
-          userId: session.user.id,
+          userId: { in: sameBusinessUserIds },
           productId: { not: "FREE" },
           status: { in: ["ACTIVE", "PENDING_DEPOSIT"] },
         },
       });
-      if (existingPaidAds >= 2) {
-        return NextResponse.json({ error: "유료 광고는 최대 2개까지 등록할 수 있습니다" }, { status: 400 });
+      if (existingPaidAds >= 5) {
+        return NextResponse.json({ error: "같은 사업자번호로 등록된 유료 광고가 이미 5건 있습니다. 유료 광고는 사업자번호당 5건까지 가능합니다." }, { status: 400 });
       }
     }
 

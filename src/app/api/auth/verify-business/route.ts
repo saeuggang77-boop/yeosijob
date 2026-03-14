@@ -64,21 +64,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 8. 중복 사업자번호 체크
-    const existingUser = await prisma.user.findFirst({
+    // 8. 중복 사업자번호 체크 → 허용하되 관리자 알림
+    const existingUsers = await prisma.user.findMany({
       where: {
         businessNumber: bizNum,
         isVerifiedBiz: true,
         id: { not: session.user.id },
       },
-      select: { id: true },
+      select: { id: true, email: true, businessName: true, name: true },
     });
 
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "이미 다른 계정에서 인증된 사업자등록번호입니다. 기존 계정이 있다면 비밀번호 찾기를 이용해주세요." },
-        { status: 400 }
-      );
+    if (existingUsers.length > 0) {
+      // 중복이지만 차단하지 않고 관리자에게 알림
+      const existingNames = existingUsers
+        .map((u) => u.businessName || u.name || u.email)
+        .join(", ");
+      const formatted = `${bizNum.slice(0, 3)}-${bizNum.slice(3, 5)}-${bizNum.slice(5)}`;
+
+      prisma.user
+        .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+        .then((admins) => {
+          if (admins.length > 0) {
+            return prisma.notification.createMany({
+              data: admins.map((admin) => ({
+                userId: admin.id,
+                title: "중복 사업자 인증",
+                message: `사업자번호 ${formatted}이 중복 인증되었습니다. 기존: ${existingNames} / 신규: ${session.user.email || session.user.id}`,
+                link: "/admin/verification",
+              })),
+            });
+          }
+        })
+        .catch(() => {});
     }
 
     // 8-2. 블랙리스트 체크

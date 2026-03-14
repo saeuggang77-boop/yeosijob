@@ -19,6 +19,7 @@ interface Props {
 
 export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [titleLength, setTitleLength] = useState(data.title?.length || 0);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -72,7 +73,11 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
               placeholder="예: 강남 룸싸롱 여성 정직원 모집"
               maxLength={30}
               required
+              onChange={(e) => setTitleLength(e.target.value.length)}
             />
+            <p className={`text-xs ${titleLength >= 30 ? "text-destructive" : titleLength >= 25 ? "text-amber-500" : "text-muted-foreground"}`}>
+              {titleLength}/30자
+            </p>
             {errors.title && (
               <p className="text-xs text-destructive">{errors.title}</p>
             )}

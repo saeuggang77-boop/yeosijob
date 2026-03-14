@@ -8,6 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { JumpButton } from "@/components/dashboard/JumpButton";
 import { VerificationCard } from "@/components/dashboard/VerificationCard";
 import { DeleteAdButton } from "@/components/dashboard/DeleteAdButton";
+import { AD_PRODUCTS } from "@/lib/constants/products";
+
+const PRODUCT_BADGE_STYLES: Record<string, string> = {
+  FREE: "bg-zinc-600/20 text-zinc-400 border-zinc-600/40",
+  LINE: "bg-slate-500/20 text-slate-300 border-slate-500/40",
+  RECOMMEND: "bg-teal-500/20 text-teal-400 border-teal-500/40",
+  URGENT: "bg-orange-500/20 text-orange-400 border-orange-500/40",
+  SPECIAL: "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  PREMIUM: "bg-purple-500/20 text-purple-400 border-purple-500/40",
+  VIP: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+  BANNER: "bg-amber-500/30 text-amber-300 border-amber-500/50 font-bold",
+};
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   ACTIVE: { label: "게재중", variant: "default" },
@@ -135,6 +147,12 @@ export default async function DashboardPage() {
           <div className="space-y-3">
             {ads.map((ad) => {
               const statusInfo = STATUS_LABELS[ad.status];
+              const isFree = ad.productId === "FREE";
+              const now = new Date();
+              const daysLeft = ad.endDate ? Math.ceil((new Date(ad.endDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+              const isUrgent = daysLeft !== null && daysLeft <= 2;
+              const isWarn = daysLeft !== null && daysLeft > 2 && daysLeft <= 7;
+              const showRenew = ad.status === "ACTIVE" && !isFree && daysLeft !== null && daysLeft <= 7;
               return (
                 <Card key={ad.id} className="transition-colors hover:bg-muted/50">
                   <CardContent className="py-4">
@@ -146,11 +164,28 @@ export default async function DashboardPage() {
                             <Badge variant={statusInfo?.variant || "outline"}>
                               {statusInfo?.label || ad.status}
                             </Badge>
+                            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${PRODUCT_BADGE_STYLES[ad.productId] || "bg-muted text-muted-foreground border-muted"}`}>
+                              {AD_PRODUCTS[ad.productId]?.name || ad.productId}
+                            </span>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             조회 {ad.viewCount.toLocaleString()}회 ·{" "}
-                            {ad.productId === "FREE" ? "무료" : `${ad.totalAmount.toLocaleString()}원`}
+                            {isFree ? "무료" : `${ad.totalAmount.toLocaleString()}원`}
                           </p>
+                          {ad.status === "ACTIVE" && (
+                            <p className={`mt-1 text-xs ${isFree ? "text-green-500" : isUrgent ? "font-medium text-destructive" : isWarn ? "text-amber-500" : "text-muted-foreground"}`}>
+                              {isFree
+                                ? "무제한"
+                                : ad.endDate
+                                  ? `${new Date(ad.endDate).toLocaleDateString("ko-KR")} 마감 · D-${daysLeft}${isUrgent ? " (곧 만료!)" : isWarn ? " (곧 만료)" : ""}`
+                                  : ""}
+                            </p>
+                          )}
+                          {ad.status === "EXPIRED" && ad.endDate && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {new Date(ad.endDate).toLocaleDateString("ko-KR")} 만료됨
+                            </p>
+                          )}
                         </div>
                       </div>
                     </Link>
@@ -174,6 +209,13 @@ export default async function DashboardPage() {
                             수정
                           </Button>
                         </Link>
+                        {showRenew && (
+                          <Link href={`/business/ads/${ad.id}/renew`}>
+                            <Button size="sm" variant="outline" className="text-xs border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
+                              연장하기
+                            </Button>
+                          </Link>
+                        )}
                         <DeleteAdButton
                           adId={ad.id}
                           isPaidActive={ad.productId !== "FREE"}

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PaymentActions } from "@/components/admin/PaymentActions";
 import { PaymentFilters } from "@/components/admin/PaymentFilters";
+import { PaymentExportButton } from "@/components/admin/PaymentExportButton";
 import Link from "next/link";
 
 const STATUS_LABELS: Record<
@@ -180,6 +181,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
       {/* Filters */}
       <div className="mt-6">
         <PaymentFilters />
+      </div>
+
+      {/* 증빙서류 엑셀 다운로드 */}
+      <div className="mt-4">
+        <PaymentExportButton />
       </div>
 
       {/* Payment List */}

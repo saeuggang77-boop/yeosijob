@@ -68,6 +68,13 @@ export async function POST(
 
     if (options && Array.isArray(options)) {
       for (const optId of options) {
+        // 카카오 알림톡은 현재 미구현 — 결제 차단
+        if (optId === "KAKAO_ALERT") {
+          return NextResponse.json(
+            { error: "신규 이력서 알림은 현재 준비 중입니다" },
+            { status: 400 }
+          );
+        }
         const option = AD_OPTIONS[optId as AdOptionId];
         if (!option) continue;
         const isFreeIcon = optId === "ICON" && product.includeIconFree;

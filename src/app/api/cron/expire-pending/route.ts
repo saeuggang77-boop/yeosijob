@@ -15,47 +15,53 @@ export async function GET(request: NextRequest) {
   try {
     const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
-    // 미입금 광고 조회 (계좌이체: 48시간 초과 시 자동 취소)
-    const expiredAds = await prisma.ad.findMany({
+    // Payment.createdAt 기준으로 48시간 초과 PENDING 결제 조회
+    const expiredPayments = await prisma.payment.findMany({
       where: {
-        status: "PENDING_DEPOSIT",
+        status: "PENDING",
         createdAt: { lt: cutoff48h },
       },
-      select: { id: true },
+      select: { id: true, adId: true },
     });
 
-    if (expiredAds.length === 0) {
+    if (expiredPayments.length === 0) {
       return NextResponse.json({
         message: "No pending deposits to cancel",
         cancelled: 0,
       });
     }
 
-    const adIds = expiredAds.map((a) => a.id);
+    const paymentIds = expiredPayments.map((p) => p.id);
+    const adIds = expiredPayments
+      .map((p) => p.adId)
+      .filter((id): id is string => id !== null);
 
     await prisma.$transaction(async (tx) => {
-      // 광고 취소
-      await tx.ad.updateMany({
-        where: { id: { in: adIds } },
-        data: { status: "CANCELLED" },
-      });
-
-      // 관련 결제 취소
+      // 결제 취소
       await tx.payment.updateMany({
-        where: {
-          adId: { in: adIds },
-          status: "PENDING",
-        },
+        where: { id: { in: paymentIds } },
         data: {
           status: "CANCELLED",
           failReason: "48시간 미입금 자동 취소",
         },
       });
+
+      // 관련 광고 취소 (PENDING_DEPOSIT 상태인 경우만)
+      if (adIds.length > 0) {
+        await tx.ad.updateMany({
+          where: {
+            id: { in: adIds },
+            status: "PENDING_DEPOSIT",
+          },
+          data: { status: "CANCELLED" },
+        });
+      }
     });
 
     return NextResponse.json({
       message: "Expire-pending completed",
-      cancelled: expiredAds.length,
+      cancelledPayments: paymentIds.length,
+      cancelledAds: adIds.length,
     });
   } catch (error) {
     console.error("Expire-pending cron error:", error);

@@ -54,7 +54,7 @@ export async function POST(
         orderId,
         userId: partner.userId,
         amount: partner.monthlyPrice,
-        method: "CARD",
+        method: "BANK_TRANSFER",
         status: "PENDING",
         itemSnapshot: {
           type: "partner_renewal",

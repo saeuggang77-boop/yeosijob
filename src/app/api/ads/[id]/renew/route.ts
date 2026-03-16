@@ -108,7 +108,7 @@ export async function POST(
         adId: ad.id,
         orderId,
         amount: totalAmount,
-        method: "CARD" as PaymentMethod,
+        method: "BANK_TRANSFER" as PaymentMethod,
         status: "PENDING",
         itemSnapshot,
       },

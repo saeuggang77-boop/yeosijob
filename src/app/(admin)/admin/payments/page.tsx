@@ -223,6 +223,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 text-sm text-muted-foreground">
+                    {payment.depositorName && payment.status === "PENDING" && (
+                      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                        입금자명: {payment.depositorName}
+                      </p>
+                    )}
                     <p className="truncate">
                       주문번호: <span className="font-mono text-xs">{payment.orderId}</span>
                     </p>

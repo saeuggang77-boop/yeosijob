@@ -386,7 +386,7 @@ export async function POST(request: NextRequest) {
           adId: ad.id,
           orderId,
           amount: totalAmount,
-          method: "CARD" as PaymentMethod,
+          method: "BANK_TRANSFER" as PaymentMethod,
           status: "PENDING",
           itemSnapshot: {
             product: { id: productId, name: product.name },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activateAd, sendPaymentNotification } from "@/lib/payment/activate-ad";
+import { sendSms } from "@/lib/sms";
 
 export async function POST(
   _request: NextRequest,
@@ -78,6 +79,20 @@ export async function POST(
           link: "/business/partner",
         },
       });
+    }
+
+    // SMS 입금확인 발송 (fire and forget)
+    const user = await prisma.user.findUnique({
+      where: { id: payment.userId },
+      select: { phone: true },
+    });
+    if (user?.phone) {
+      const smsText = result?.type === "ad"
+        ? `[여시잡] 입금이 확인되었습니다. 광고가 게재되었습니다. (${payment.amount.toLocaleString()}원)`
+        : result?.type === "partner"
+          ? `[여시잡] 입금이 확인되었습니다. 제휴업체가 활성화되었습니다. (${payment.amount.toLocaleString()}원)`
+          : `[여시잡] 입금이 확인되었습니다. (${payment.amount.toLocaleString()}원)`;
+      sendSms(user.phone, smsText).catch(() => {});
     }
 
     return NextResponse.json({

@@ -30,6 +30,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -46,6 +47,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         phone: true,
         role: true,
         businessName: true,
+        bizOwnerName: true,
         isActive: true,
         createdAt: true,
       },
@@ -101,7 +103,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             type="text"
             name="search"
             defaultValue={search}
-            placeholder="이름, 이메일로 검색"
+            placeholder="이름, 이메일, 연락처로 검색"
             className="h-10 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
           />
           <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
@@ -115,8 +117,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
-              <th className="pb-3 font-medium">이름</th>
+              <th className="pb-3 font-medium">닉네임</th>
               <th className="pb-3 font-medium">이메일</th>
+              <th className="pb-3 font-medium">연락처</th>
               <th className="pb-3 font-medium">역할</th>
               <th className="pb-3 font-medium">업소명</th>
               <th className="pb-3 font-medium">가입일</th>
@@ -126,8 +129,14 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
           <tbody className="divide-y">
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-muted/50">
-                <td className="py-3 font-medium">{user.name || "-"}</td>
+                <td className="py-3">
+                  <div className="font-medium">{user.name || "-"}</div>
+                  {user.bizOwnerName && (
+                    <div className="text-xs text-muted-foreground">대표: {user.bizOwnerName}</div>
+                  )}
+                </td>
                 <td className="py-3 text-muted-foreground">{user.email}</td>
+                <td className="py-3 text-muted-foreground">{user.phone ? user.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3") : "-"}</td>
                 <td className="py-3">
                   <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
                     {roleLabels[user.role]}

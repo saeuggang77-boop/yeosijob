@@ -15,7 +15,7 @@ import { ReviewReplyForm } from "@/components/reviews/ReviewReplyForm";
 import { ReviewActions } from "@/components/reviews/ReviewActions";
 import { ScrapButton } from "@/components/scraps/ScrapButton";
 import { ShareButton } from "@/components/share/ShareButton";
-import { KakaoMap } from "@/components/map/KakaoMap";
+import { GoogleMap } from "@/components/map/GoogleMap";
 import { Banner } from "@/components/ads/Banner";
 import GradeBadge from "@/components/ads/GradeBadge";
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
@@ -417,7 +417,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               {ad.addressDetail && (
                 <p className="text-muted-foreground">{ad.addressDetail}</p>
               )}
-              <KakaoMap address={ad.address} />
+              <GoogleMap address={ad.address} />
             </div>
           ) : ad.locationHint ? (
             <p className="font-medium">{ad.locationHint}</p>

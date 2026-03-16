@@ -13,7 +13,7 @@ import { ArrowLeft, MapPin, Clock, Phone, MessageCircle, Globe, Eye, Star } from
 import { ShareButton } from "@/components/share/ShareButton";
 import { PartnerReviewForm } from "@/components/reviews/PartnerReviewForm";
 import { PartnerReplyForm } from "@/components/reviews/PartnerReplyForm";
-import { KakaoMap } from "@/components/map/KakaoMap";
+import { GoogleMap } from "@/components/map/GoogleMap";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 
 interface PageProps {
@@ -331,18 +331,18 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <CardTitle>위치</CardTitle>
           </CardHeader>
           <CardContent>
-            <KakaoMap address={partner.address} />
+            <GoogleMap address={partner.address} />
             <div className="mt-3 flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">{partner.address}</span>
             </div>
             <a
-              href={`https://map.kakao.com/?q=${encodeURIComponent(partner.address)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partner.address)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-block text-xs text-primary hover:underline"
             >
-              카카오맵에서 크게 보기 →
+              Google Maps에서 크게 보기 →
             </a>
           </CardContent>
         </Card>

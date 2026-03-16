@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TOSS_API_URL, TOSS_SECRET_KEY } from "@/lib/toss/client";
 
 export async function POST(
   _request: NextRequest,
@@ -29,32 +28,6 @@ export async function POST(
         { error: `입금대기 상태만 취소할 수 있습니다 (현재: ${payment.status})` },
         { status: 400 }
       );
-    }
-
-    // 토스 결제 취소 (paymentKey가 있는 경우 = 가상계좌 발급된 경우)
-    if (payment.tossPaymentKey && TOSS_SECRET_KEY) {
-      try {
-        const auth = Buffer.from(`${TOSS_SECRET_KEY}:`).toString("base64");
-        const res = await fetch(
-          `${TOSS_API_URL}/payments/${payment.tossPaymentKey}/cancel`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Basic ${auth}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ cancelReason: "관리자 취소" }),
-          }
-        );
-
-        if (!res.ok) {
-          const error = await res.json();
-          // 이미 만료된 가상계좌는 토스에서 에러 반환 → DB만 취소 진행
-          console.log("[결제 취소] 토스 취소 응답:", error.code, error.message);
-        }
-      } catch (e) {
-        console.error("[결제 취소] 토스 API 호출 실패:", e);
-      }
     }
 
     // DB 취소 처리

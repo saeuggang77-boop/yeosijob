@@ -72,9 +72,8 @@ export function PaymentFilters() {
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="ALL">전체</option>
-            <option value="CARD">카드</option>
-            <option value="BANK_TRANSFER">무통장입금</option>
-            <option value="KAKAO_PAY">카카오페이</option>
+            <option value="BANK_TRANSFER">계좌이체</option>
+            <option value="FREE_CREDIT">무료광고권</option>
           </select>
         </div>
 

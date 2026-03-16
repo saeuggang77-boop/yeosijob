@@ -447,6 +447,12 @@ model Payment {
   taxInvoice   Boolean @default(false)
   taxBizNumber String?
 
+  // 증빙서류
+  receiptType     String?  // "TAX_INVOICE" | "CASH_RECEIPT" | "NONE"
+  taxEmail        String?  // 세금계산서 수신 이메일
+  cashReceiptNo   String?  // 현금영수증 번호 (휴대폰번호 또는 사업자번호)
+  cashReceiptType String?  // "PHONE" | "BIZ" (개인/사업자 구분)
+
   paidAt       DateTime?
   failedAt     DateTime?
   failReason   String?

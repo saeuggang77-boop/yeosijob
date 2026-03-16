@@ -53,12 +53,12 @@ export default async function PaymentInfoPage({
           {isApproved ? "✓" : "!"}
         </div>
         <h1 className="mt-4 text-2xl font-bold">
-          {isApproved ? "입금 확인 완료" : "가상계좌 입금 안내"}
+          {isApproved ? "입금 확인 완료" : "입금 안내"}
         </h1>
         <p className="mt-2 text-muted-foreground">
           {isApproved
             ? "입금이 확인되어 광고가 게재되었습니다"
-            : "아래 계좌로 입금해주시면 자동으로 광고가 게재됩니다"}
+            : "아래 계좌로 입금해주시면 확인 후 광고가 게재됩니다"}
         </p>
       </div>
 
@@ -109,8 +109,8 @@ export default async function PaymentInfoPage({
             <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
               <p className="font-medium">안내 사항</p>
               <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs">
-                <li>48시간 이내 미입금 시 자동 취소됩니다</li>
-                <li>입금 확인은 평균 1~2분 내에 자동으로 처리됩니다</li>
+                <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간)</li>
+                <li>입금자명을 반드시 안내된 이름으로 기재해주세요</li>
               </ul>
             </div>
           )}

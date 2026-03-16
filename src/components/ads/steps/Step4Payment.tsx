@@ -193,7 +193,7 @@ export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Pro
       {!isFreeProduct && (
         <Card>
           <CardContent className="py-4 text-center text-sm text-muted-foreground">
-            다음 단계에서 결제 수단을 선택할 수 있습니다
+            다음 단계에서 입금 계좌 안내 및 증빙 서류를 선택할 수 있습니다
           </CardContent>
         </Card>
       )}

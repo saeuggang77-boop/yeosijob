@@ -60,7 +60,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
         userId: partner.userId,
         partnerId: partner.id,
         amount: partner.monthlyPrice,
-        method: "CARD",
+        method: "BANK_TRANSFER",
         status: "PENDING",
         itemSnapshot: {
           type: "partner",
@@ -108,7 +108,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>결제 수단 선택</CardTitle>
+          <CardTitle>입금 안내 및 증빙 서류</CardTitle>
         </CardHeader>
         <CardContent>
           <TossPaymentWidget

@@ -1,110 +1,71 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
-interface Props {
-  params: Promise<{ token: string }>;
-}
+const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME || "토스뱅크";
+const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || "";
+const ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_ACCOUNT_HOLDER || "여시잡";
 
-export default function PartnerPaymentSuccessPage({ params }: Props) {
+export default function PartnerPaymentSuccessPage() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState("");
-  const [partnerId, setPartnerId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const confirm = async () => {
-      const paymentKey = searchParams.get("paymentKey");
-      const orderId = searchParams.get("orderId");
-      const amount = searchParams.get("amount");
-
-      if (!paymentKey || !orderId || !amount) {
-        setStatus("error");
-        setMessage("결제 정보가 올바르지 않습니다");
-        return;
-      }
-
-      const resolvedParams = await params;
-      const token = resolvedParams.token;
-
-      try {
-        const res = await fetch(`/api/partners/pay/${token}/confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentKey, orderId, amount: parseInt(amount) }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          setStatus("success");
-          setMessage("결제가 완료되었습니다");
-          setPartnerId(data.partnerId);
-        } else {
-          setStatus("error");
-          setMessage(data.error || "결제 승인에 실패했습니다");
-        }
-      } catch (error) {
-        console.error("Payment confirmation error:", error);
-        setStatus("error");
-        setMessage("결제 승인 중 오류가 발생했습니다");
-      }
-    };
-
-    confirm();
-  }, [searchParams, params]);
+  const orderId = searchParams.get("orderId");
+  const depositorCode = orderId ? orderId.slice(-4).toUpperCase() : "";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Card>
         <CardHeader>
-          <CardTitle className="text-center">결제 결과</CardTitle>
+          <CardTitle className="text-center">결제 신청 완료</CardTitle>
         </CardHeader>
         <CardContent>
-          {status === "loading" && (
-            <div className="py-12 text-center">
-              <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">결제를 승인하는 중입니다...</p>
-            </div>
-          )}
+          <div className="py-8 text-center">
+            <CheckCircle className="mx-auto h-16 w-16 text-blue-500" />
+            <h2 className="mt-4 text-xl font-bold">입금 안내</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              아래 계좌로 입금해주시면 확인 후 서비스가 활성화됩니다
+            </p>
+          </div>
 
-          {status === "success" && (
-            <div className="py-12 text-center">
-              <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-              <h2 className="mt-4 text-xl font-bold">{message}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                이제 업체 정보를 입력하면 제휴업체 페이지에 노출됩니다
-              </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                {partnerId && (
-                  <Link href={`/business/partner/${partnerId}/edit`}>
-                    <Button>업체 정보 입력하기</Button>
-                  </Link>
-                )}
-                <Link href="/business/partner">
-                  <Button variant="outline">제휴업체 관리</Button>
-                </Link>
-              </div>
+          <div className="rounded-lg bg-muted p-4 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground text-sm">은행</span>
+              <span className="font-medium">{BANK_NAME}</span>
             </div>
-          )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground text-sm">계좌번호</span>
+              <span className="font-mono font-bold">{ACCOUNT_NUMBER}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground text-sm">예금주</span>
+              <span className="font-medium">{ACCOUNT_HOLDER}</span>
+            </div>
+            {depositorCode && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground text-sm">입금자명</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  {depositorCode}
+                </span>
+              </div>
+            )}
+          </div>
 
-          {status === "error" && (
-            <div className="py-12 text-center">
-              <XCircle className="mx-auto h-16 w-16 text-destructive" />
-              <h2 className="mt-4 text-xl font-bold">결제 실패</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-              <div className="mt-6">
-                <Link href="/business/partner">
-                  <Button variant="outline">제휴업체 관리로</Button>
-                </Link>
-              </div>
-            </div>
-          )}
+          <div className="mt-4 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
+            입금 확인 후 서비스가 활성화됩니다 (영업시간 내 최대 1시간).
+            입금자명을 반드시 위에 안내된 이름으로 기재해주세요.
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link href="/business/partner">
+              <Button variant="outline">제휴업체 관리</Button>
+            </Link>
+            <Link href="/">
+              <Button>홈으로</Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

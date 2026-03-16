@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PaymentActions } from "@/components/admin/PaymentActions";
+import { PaymentDeleteButton } from "@/components/admin/PaymentDeleteButton";
 import { PaymentFilters } from "@/components/admin/PaymentFilters";
 import { PaymentExportButton } from "@/components/admin/PaymentExportButton";
 import Link from "next/link";
@@ -252,6 +253,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                   {payment.status === "PENDING" && (
                     <div className="mt-3">
                       <PaymentActions paymentId={payment.id} />
+                    </div>
+                  )}
+                  {!payment.ad && !payment.partner && payment.status !== "PENDING" && (
+                    <div className="mt-3">
+                      <PaymentDeleteButton paymentId={payment.id} />
                     </div>
                   )}
                 </CardContent>

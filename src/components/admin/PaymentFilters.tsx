@@ -40,7 +40,6 @@ export function PaymentFilters() {
     setPeriod("ALL");
     setSearch("");
     setDebouncedSearch("");
-    router.push("/admin/payments");
   };
 
   return (

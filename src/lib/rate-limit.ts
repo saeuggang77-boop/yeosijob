@@ -41,6 +41,11 @@ export async function checkRateLimit(
   const client = getRedis();
 
   if (!client) {
+    // Fail-closed: 프로덕션에서는 Redis 없으면 요청 거부
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, remaining: 0 };
+    }
+    // 개발환경에서만 메모리 폴백 허용
     return checkRateLimitMemory(key, limit, windowMs);
   }
 

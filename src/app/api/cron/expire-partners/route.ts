@@ -35,13 +35,18 @@ export async function GET(request: NextRequest) {
       select: { id: true, durationDays: true, startDate: true },
     });
 
-    for (const p of pendingPartners) {
-      if (!p.startDate) continue; // 쿼리에서 필터되지만 타입 안전성 보장
-      const endDate = new Date(p.startDate);
-      endDate.setDate(endDate.getDate() + 3 + p.durationDays);
-      await prisma.partner.update({
-        where: { id: p.id },
-        data: { endDate },
+    // N+1 쿼리 방지: 트랜잭션으로 일괄 처리
+    if (pendingPartners.length > 0) {
+      await prisma.$transaction(async (tx) => {
+        for (const p of pendingPartners) {
+          if (!p.startDate) continue; // 쿼리에서 필터되지만 타입 안전성 보장
+          const endDate = new Date(p.startDate);
+          endDate.setDate(endDate.getDate() + 3 + p.durationDays);
+          await tx.partner.update({
+            where: { id: p.id },
+            data: { endDate },
+          });
+        }
       });
     }
 

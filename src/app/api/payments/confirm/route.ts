@@ -2,10 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
+import { z } from "zod";
 
-const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME || "토스뱅크";
-const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || "";
-const ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_ACCOUNT_HOLDER || "여시잡";
+const receiptSchema = z.object({
+  orderId: z.string(),
+  receiptType: z.enum(["TAX_INVOICE", "CASH_RECEIPT", "NONE"]),
+  taxEmail: z.string().email().optional(),
+  cashReceiptNo: z.string().regex(/^\d{10,13}$/).optional(),
+  cashReceiptType: z.enum(["PHONE", "BIZ"]).optional(),
+}).refine(
+  (data) => {
+    if (data.receiptType === "TAX_INVOICE") {
+      return !!data.taxEmail;
+    }
+    return true;
+  },
+  { message: "세금계산서 선택 시 이메일은 필수입니다", path: ["taxEmail"] }
+).refine(
+  (data) => {
+    if (data.receiptType === "CASH_RECEIPT") {
+      return !!data.cashReceiptNo && !!data.cashReceiptType;
+    }
+    return true;
+  },
+  { message: "현금영수증 선택 시 발급번호와 타입은 필수입니다", path: ["cashReceiptNo"] }
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +42,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }
 
-    const { orderId, receiptType, taxEmail, cashReceiptNo, cashReceiptType } = await request.json();
+    const body = await request.json();
+
+    // M3: zod validation for receipt data
+    const validationResult = receiptSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "입력값이 올바르지 않습니다", details: validationResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { orderId, receiptType, taxEmail, cashReceiptNo, cashReceiptType } = validationResult.data;
 
     if (!orderId) {
       return NextResponse.json(
@@ -72,8 +105,8 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Ad 상태를 PENDING_DEPOSIT로 변경
-      if (payment.adId) {
+      // Ad 상태를 PENDING_DEPOSIT로 변경 (업그레이드 중인 ACTIVE 광고는 유지)
+      if (payment.adId && payment.ad?.status !== "ACTIVE") {
         await tx.ad.update({
           where: { id: payment.adId },
           data: { status: "PENDING_DEPOSIT" },

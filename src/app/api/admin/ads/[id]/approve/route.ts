@@ -43,6 +43,22 @@ export async function POST(
       },
     });
 
+    // 승인 알림 발송 (fire-and-forget)
+    const periodText = bonusDays > 0
+      ? `${ad.durationDays}일 + 보너스 ${bonusDays}일 = 총 ${ad.durationDays + bonusDays}일`
+      : `${ad.durationDays}일`;
+
+    prisma.notification.create({
+      data: {
+        userId: ad.userId,
+        title: "광고가 승인되었습니다",
+        message: `'${ad.title}' 광고가 활성화되었습니다. 광고 기간: ${periodText}`,
+        link: "/business/dashboard",
+      },
+    }).catch((err) => {
+      console.error("Failed to send approval notification:", err);
+    });
+
     return NextResponse.json({ message: "광고가 승인되었습니다", adId: id });
   } catch (error) {
     console.error("Ad approve error:", error);

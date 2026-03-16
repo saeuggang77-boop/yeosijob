@@ -209,13 +209,15 @@ export async function DELETE(
 
     // 그 외 (무료, 만료, 취소, 반려, 임시저장, 결제대기 등) → DB 삭제
     // Payment는 adId가 optional이므로 연결만 해제
-    await prisma.payment.updateMany({
-      where: { adId: id },
-      data: { adId: null },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.updateMany({
+        where: { adId: id },
+        data: { adId: null },
+      });
 
-    await prisma.ad.delete({
-      where: { id },
+      await tx.ad.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json({ message: "광고가 삭제되었습니다", action: "deleted" });

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
 import type { AdOptionId, PaymentMethod } from "@/generated/prisma/client";
+import crypto from "node:crypto";
 
 export async function POST(
   request: NextRequest,
@@ -118,7 +119,7 @@ export async function POST(
     const totalAmount = linePrice + upgradePrice + optionsPrice;
 
     // orderId 생성
-    const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const orderId = `YSJ-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
     // 결제 정보 생성 (itemSnapshot에 upgrade 정보 포함)
     const itemSnapshot = {
@@ -142,6 +143,15 @@ export async function POST(
         total: totalAmount,
       },
     };
+
+    // 기존 PENDING 업그레이드 결제가 있으면 취소
+    await prisma.payment.updateMany({
+      where: {
+        adId: ad.id,
+        status: "PENDING",
+      },
+      data: { status: "CANCELLED", failReason: "새 업그레이드 요청으로 취소" },
+    });
 
     const payment = await prisma.payment.create({
       data: {

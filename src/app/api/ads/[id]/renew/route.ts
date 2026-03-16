@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
 import type { AdOptionId, PaymentMethod } from "@/generated/prisma/client";
+import crypto from "node:crypto";
 
 export async function POST(
   request: NextRequest,
@@ -82,7 +83,7 @@ export async function POST(
     }
 
     const totalAmount = linePrice + upgradePrice + optionsPrice;
-    const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const orderId = `YSJ-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
     const itemSnapshot = {
       type: "renew",

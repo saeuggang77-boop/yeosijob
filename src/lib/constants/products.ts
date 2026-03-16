@@ -17,7 +17,7 @@ export interface AdProduct {
   includeIconFree: boolean;
   resumeViewLimit: number;
   maxEdits: number;
-  maxSlots?: number;
+
   pricing: Record<DurationDays, number>;
   vsQueen: string;
 }
@@ -187,7 +187,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     includeIconFree: true,
     resumeViewLimit: 9999,
     maxEdits: 5,
-    maxSlots: 12,
+
     pricing: { 30: 350_000, 60: 650_000, 90: 900_000 },
     vsQueen: "12건 한정(퀸알바 23건), 카페연동 2회, 수정 5회",
   },

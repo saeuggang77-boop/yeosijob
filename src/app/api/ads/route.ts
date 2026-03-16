@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
 import type { Region, BusinessType, AdProductId, AdOptionId, PaymentMethod } from "@/generated/prisma/client";
+import crypto from "node:crypto";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -194,15 +195,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // BANNER 슬롯 제한 (maxSlots: 12)
-    if (productId === "BANNER") {
-      const bannerCount = await prisma.ad.count({
-        where: { productId: "BANNER", status: { in: ["ACTIVE", "PENDING_DEPOSIT"] } },
-      });
-      if (bannerCount >= (AD_PRODUCTS.BANNER.maxSlots || 12)) {
-        throw new Error("노블레스는 현재 만석입니다");
-      }
-    }
 
     // KAKAO_ALERT 옵션 서버 거부 (기능 미구현 상태)
     if (options && (options as string[]).includes("KAKAO_ALERT")) {
@@ -215,7 +207,7 @@ export async function POST(request: NextRequest) {
       const endDate = new Date(now);
       endDate.setDate(endDate.getDate() + durationDays);
 
-      const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const orderId = `YSJ-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
       // #4: TOCTOU 수정 - 크레딧 확인을 트랜잭션 안으로 이동, atomic UPDATE 사용
       const ad = await prisma.$transaction(async (tx) => {
@@ -328,7 +320,7 @@ export async function POST(request: NextRequest) {
     }
 
     // orderId 생성 (FREE는 불필요하지만 일관성을 위해 생성)
-    const orderId = `YSJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const orderId = `YSJ-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
     // 트랜잭션으로 Ad + Payment 생성 (FREE는 Payment 생성 안 함)
     const result = await prisma.$transaction(async (tx) => {

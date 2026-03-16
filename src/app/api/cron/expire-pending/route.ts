@@ -13,13 +13,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cutoff72h = new Date(Date.now() - 72 * 60 * 60 * 1000);
+    const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
-    // 미입금 광고 조회 (계좌이체: 72시간 초과 시 자동 취소)
+    // 미입금 광고 조회 (계좌이체: 48시간 초과 시 자동 취소)
     const expiredAds = await prisma.ad.findMany({
       where: {
         status: "PENDING_DEPOSIT",
-        createdAt: { lt: cutoff72h },
+        createdAt: { lt: cutoff48h },
       },
       select: { id: true },
     });

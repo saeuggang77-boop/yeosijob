@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
 
 interface Props {
   orderId: string;
@@ -19,10 +20,6 @@ interface Props {
 
 type ReceiptType = "TAX_INVOICE" | "CASH_RECEIPT" | "NONE";
 type CashReceiptType = "PHONE" | "BIZ";
-
-const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME || "토스뱅크";
-const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER || "";
-const ACCOUNT_HOLDER = process.env.NEXT_PUBLIC_ACCOUNT_HOLDER || "여시잡";
 
 export function TossPaymentWidget({
   orderId,

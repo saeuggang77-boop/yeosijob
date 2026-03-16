@@ -106,6 +106,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
       include: {
         user: { select: { email: true, name: true, businessName: true } },
         ad: { select: { id: true, title: true, businessName: true, durationDays: true } },
+        partner: { select: { id: true, name: true, grade: true } },
       },
     }),
     prisma.payment.count({ where }),
@@ -209,7 +210,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                   <CardTitle className="text-base">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="truncate">{payment.ad?.title || "삭제된 광고"}</span>
+                        <span className="truncate">{payment.ad?.title ?? (payment.partner ? `[제휴] ${payment.partner.name}` : "삭제된 광고")}</span>
                         <Badge variant={statusInfo.variant}>
                           {statusInfo.label}
                         </Badge>
@@ -226,7 +227,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                       주문번호: <span className="font-mono text-xs">{payment.orderId}</span>
                     </p>
                     <p className="truncate">
-                      광고주: {payment.ad?.businessName || "-"} ({payment.user?.email})
+                      {payment.ad ? `광고주: ${payment.ad.businessName}` : payment.partner ? `제휴업체: ${payment.partner.name}` : "광고주: -"} ({payment.user?.email})
                     </p>
                     <p>
                       상품: {snapshot?.product?.name || "-"} ({snapshot?.duration || "-"}일)

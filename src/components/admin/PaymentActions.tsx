@@ -34,7 +34,7 @@ export function PaymentActions({ paymentId }: Props) {
   }
 
   async function handleCancel() {
-    if (!confirm("이 결제를 취소하시겠습니까?\n가상계좌가 무효화되어 입금할 수 없게 됩니다.")) return;
+    if (!confirm("이 결제를 취소하시겠습니까?\n입금 대기가 취소되며 광고가 게재되지 않습니다.")) return;
 
     setLoading("cancel");
     try {

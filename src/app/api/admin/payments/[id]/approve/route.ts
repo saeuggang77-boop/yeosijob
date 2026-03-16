@@ -17,7 +17,7 @@ export async function POST(
 
     const payment = await prisma.payment.findUnique({
       where: { id },
-      include: { ad: true },
+      include: { ad: true, partner: true },
     });
 
     if (!payment) {
@@ -33,7 +33,7 @@ export async function POST(
 
     const now = new Date();
 
-    const activationResult = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Payment 승인
       await tx.payment.update({
         where: { id },
@@ -43,21 +43,54 @@ export async function POST(
         },
       });
 
-      // 광고 활성화 (공통 함수)
-      return activateAd(tx, payment, now);
+      // 광고 활성화
+      if (payment.adId && payment.ad) {
+        return { type: "ad" as const, activation: await activateAd(tx, payment, now) };
+      }
+
+      // 제휴업체 활성화
+      if (payment.partnerId && payment.partner) {
+        const durationDays = payment.partner.durationDays || 30;
+        const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        await tx.partner.update({
+          where: { id: payment.partnerId },
+          data: {
+            status: "ACTIVE",
+            startDate: now,
+            endDate,
+          },
+        });
+        return { type: "partner" as const, endDate, durationDays };
+      }
+
+      return null;
     });
 
-    // 입금 확인 알림
-    if (activationResult) {
-      await sendPaymentNotification(payment, "입금이 확인되었습니다", activationResult);
+    // 알림 발송
+    if (result?.type === "ad" && result.activation) {
+      await sendPaymentNotification(payment, "입금이 확인되었습니다", result.activation);
+    } else if (result?.type === "partner" && payment.partner) {
+      await prisma.notification.create({
+        data: {
+          userId: payment.userId,
+          title: "입금이 확인되었습니다",
+          message: `'${payment.partner.name}' 제휴업체가 활성화되었습니다. 기간: ${result.durationDays}일`,
+          link: "/business/partner",
+        },
+      });
     }
 
     return NextResponse.json({
       message: "입금이 확인되었습니다",
       paymentId: id,
       adId: payment.adId,
+      partnerId: payment.partnerId,
       startDate: now.toISOString(),
-      endDate: activationResult?.endDate.toISOString() ?? now.toISOString(),
+      endDate: result?.type === "ad"
+        ? (result.activation?.endDate.toISOString() ?? now.toISOString())
+        : result?.type === "partner"
+          ? result.endDate.toISOString()
+          : now.toISOString(),
     });
   } catch (error) {
     console.error("Payment approve error:", error);

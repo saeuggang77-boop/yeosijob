@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -23,8 +23,14 @@ export function PaymentFilters() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const skipNextEffect = useRef(false);
+
   // Update URL when filters change
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     const params = new URLSearchParams();
     if (status !== "ALL") params.set("status", status);
     if (method !== "ALL") params.set("method", method);
@@ -35,11 +41,13 @@ export function PaymentFilters() {
   }, [status, method, period, debouncedSearch, router]);
 
   const handleReset = () => {
+    skipNextEffect.current = true;
     setStatus("ALL");
     setMethod("ALL");
     setPeriod("ALL");
     setSearch("");
     setDebouncedSearch("");
+    router.push("/admin/payments");
   };
 
   return (

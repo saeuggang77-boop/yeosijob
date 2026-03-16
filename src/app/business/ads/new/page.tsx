@@ -8,7 +8,7 @@ import { Step1BusinessInfo } from "@/components/ads/steps/Step1BusinessInfo";
 import { Step2JobInfo } from "@/components/ads/steps/Step2JobInfo";
 import { Step3ProductSelector } from "@/components/ads/steps/Step3ProductSelector";
 import { Step4Payment } from "@/components/ads/steps/Step4Payment";
-import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
+import { PaymentWidget } from "@/components/payment/PaymentWidget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BizVerifyModal } from "@/components/business/BizVerifyModal";
@@ -159,7 +159,7 @@ export default function NewAdPage() {
         return;
       }
 
-      // 모든 유료 결제는 TossPaymentWidget으로 처리
+      // 유료 결제: 계좌이체 결제 위젯 표시
       setPaymentInfo({
         orderId: result.orderId,
         amount: result.amount,
@@ -185,7 +185,7 @@ export default function NewAdPage() {
               <p className="text-sm text-muted-foreground">{paymentInfo.orderName}</p>
             </CardContent>
           </Card>
-          <TossPaymentWidget
+          <PaymentWidget
             orderId={paymentInfo.orderId}
             orderName={paymentInfo.orderName}
             amount={paymentInfo.amount}

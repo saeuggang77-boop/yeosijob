@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import { PARTNER_GRADES } from "@/lib/constants/partners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
+import { PaymentWidget } from "@/components/payment/PaymentWidget";
 import { Badge } from "@/components/ui/badge";
 
 interface PageProps {
@@ -111,7 +111,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
           <CardTitle>입금 안내 및 증빙 서류</CardTitle>
         </CardHeader>
         <CardContent>
-          <TossPaymentWidget
+          <PaymentWidget
             orderId={orderId}
             orderName={orderName}
             amount={partner.monthlyPrice}

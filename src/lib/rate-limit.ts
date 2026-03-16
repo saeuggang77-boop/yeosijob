@@ -63,7 +63,10 @@ export async function checkRateLimit(
       remaining: Math.max(0, limit - count),
     };
   } catch {
-    // Redis 실패 시 메모리 폴백
+    // Redis 실패 시: 프로덕션은 fail-closed, 개발은 메모리 폴백
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, remaining: 0 };
+    }
     return checkRateLimitMemory(key, limit, windowMs);
   }
 }

@@ -29,7 +29,7 @@ export interface ActivationResult {
 
 /**
  * 결제 승인 후 광고를 활성화하는 공통 함수.
- * confirm (카드결제), webhook (가상계좌), admin/approve (관리자승인) 3곳에서 호출.
+ * admin/approve (관리자 수동 입금확인) 에서 호출.
  *
  * 반드시 prisma.$transaction 내부에서 호출해야 합니다.
  * payment.update(APPROVED)는 각 라우트에서 별도로 처리합니다 (카드정보 등 차이 때문).

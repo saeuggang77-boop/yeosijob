@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Step3ProductSelector } from "@/components/ads/steps/Step3ProductSelector";
 import { Step4Payment } from "@/components/ads/steps/Step4Payment";
-import { TossPaymentWidget } from "@/components/payment/TossPaymentWidget";
+import { PaymentWidget } from "@/components/payment/PaymentWidget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,7 +85,7 @@ export default function UpgradeAdPage() {
         return;
       }
 
-      // 모든 유료 결제는 TossPaymentWidget으로 처리
+      // 유료 결제: 계좌이체 결제 위젯 표시
       setPaymentInfo({
         orderId: result.orderId,
         amount: result.amount,
@@ -119,7 +119,7 @@ export default function UpgradeAdPage() {
     );
   }
 
-  // Toss payment widget screen
+  // 결제 위젯 화면
   if (showPayment && paymentInfo) {
     return (
       <div className="mx-auto max-w-screen-md px-4 py-6">
@@ -131,7 +131,7 @@ export default function UpgradeAdPage() {
               <p className="text-sm text-muted-foreground">{paymentInfo.orderName}</p>
             </CardContent>
           </Card>
-          <TossPaymentWidget
+          <PaymentWidget
             orderId={paymentInfo.orderId}
             orderName={paymentInfo.orderName}
             amount={paymentInfo.amount}

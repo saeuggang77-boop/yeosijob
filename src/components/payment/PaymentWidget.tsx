@@ -21,7 +21,7 @@ interface Props {
 type ReceiptType = "TAX_INVOICE" | "CASH_RECEIPT" | "NONE";
 type CashReceiptType = "PHONE" | "BIZ";
 
-export function TossPaymentWidget({
+export function PaymentWidget({
   orderId,
   orderName,
   amount,

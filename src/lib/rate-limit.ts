@@ -41,11 +41,8 @@ export async function checkRateLimit(
   const client = getRedis();
 
   if (!client) {
-    // Fail-closed: 프로덕션에서는 Redis 없으면 요청 거부
-    if (process.env.NODE_ENV === "production") {
-      return { success: false, remaining: 0 };
-    }
-    // 개발환경에서만 메모리 폴백 허용
+    // Redis 미설정 시 메모리 폴백 (서버리스 환경에서는 인스턴스별 독립)
+    // Upstash Redis 설정 시 자동 전환됨
     return checkRateLimitMemory(key, limit, windowMs);
   }
 
@@ -63,10 +60,7 @@ export async function checkRateLimit(
       remaining: Math.max(0, limit - count),
     };
   } catch {
-    // Redis 실패 시: 프로덕션은 fail-closed, 개발은 메모리 폴백
-    if (process.env.NODE_ENV === "production") {
-      return { success: false, remaining: 0 };
-    }
+    // Redis 연결 실패 시 메모리 폴백
     return checkRateLimitMemory(key, limit, windowMs);
   }
 }

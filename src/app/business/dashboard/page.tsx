@@ -64,8 +64,6 @@ export default async function DashboardPage() {
 
   const activeCount = ads.filter((a) => a.status === "ACTIVE").length;
   const totalViews = ads.reduce((sum, a) => sum + a.viewCount, 0);
-  const freeAd = ads.find((a) => a.status === "ACTIVE" && a.productId === "FREE");
-  const hasFreeAd = !!freeAd;
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-6">
@@ -85,16 +83,6 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* FREE 광고 업그레이드 배너 */}
-      {hasFreeAd && (
-        <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
-          <p className="font-medium">무료 광고는 노출이 제한적입니다</p>
-          <p className="mt-1 text-sm text-muted-foreground">줄광고로 업그레이드하면 더 자주 상위 노출됩니다</p>
-          <Link href={`/business/ads/${freeAd!.id}/upgrade`}>
-            <Button size="sm" className="mt-2">업그레이드하기</Button>
-          </Link>
-        </div>
-      )}
 
       {/* 요약 카드 */}
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -210,6 +198,13 @@ export default async function DashboardPage() {
                             수정
                           </Button>
                         </Link>
+                        {ad.productId !== "BANNER" && (
+                          <Link href={`/business/ads/${ad.id}/upgrade`}>
+                            <Button size="sm" variant="outline" className="text-xs border-purple-500/40 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20">
+                              업그레이드
+                            </Button>
+                          </Link>
+                        )}
                         {showRenew && (
                           <Link href={`/business/ads/${ad.id}/renew`}>
                             <Button size="sm" variant="outline" className="text-xs border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">

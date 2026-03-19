@@ -21,6 +21,7 @@ interface AdInfo {
   regions: string[];
   title: string;
   status: string;
+  endDate: string | null;
 }
 
 export default function UpgradeAdPage() {
@@ -154,6 +155,10 @@ export default function UpgradeAdPage() {
 
   const STEP_LABELS = ["상품 선택", "결제"];
   const currentProductName = AD_PRODUCTS[adInfo.productId]?.name || adInfo.productId;
+  const isFreeAd = adInfo.productId === "FREE";
+  const daysLeft = adInfo.endDate
+    ? Math.max(0, Math.ceil((new Date(adInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   return (
     <div className="mx-auto max-w-screen-md px-4 py-6">
@@ -173,9 +178,20 @@ export default function UpgradeAdPage() {
             {currentProductName}
             <Badge variant="secondary">{adInfo.title}</Badge>
           </CardTitle>
-          <p className="text-sm text-amber-400 mt-1">
-            ※ 현재 광고의 잔여 기간이 끝난 후 새 등급이 자동으로 시작됩니다.
-          </p>
+          {!isFreeAd && daysLeft !== null && daysLeft > 0 ? (
+            <div className="mt-2 rounded-lg border border-red-500/25 bg-red-500/8 px-3 py-2.5">
+              <p className="text-sm font-semibold text-red-400">
+                업그레이드 시 현재 잔여기간이 소멸됩니다
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                현재 광고 잔여 <span className="font-bold text-amber-400">{daysLeft}일</span>이 즉시 종료되고, 새 등급의 기간이 처음부터 시작됩니다.
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-400 mt-1">
+              ※ 업그레이드 시 새 등급의 기간이 시작됩니다.
+            </p>
+          )}
         </CardHeader>
       </Card>
 

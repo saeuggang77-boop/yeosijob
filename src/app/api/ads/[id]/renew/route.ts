@@ -5,6 +5,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
 import type { AdOptionId, PaymentMethod } from "@/generated/prisma/client";
 import crypto from "node:crypto";
+import { sendPushNotification } from "@/lib/push-notification";
 
 export async function POST(
   request: NextRequest,
@@ -130,6 +131,30 @@ export async function POST(
         itemSnapshot,
       },
     });
+
+    // 관리자에게 알림 + 푸시 (fire and forget)
+    prisma.user
+      .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+      .then((admins) => {
+        if (admins.length > 0) {
+          prisma.notification.createMany({
+            data: admins.map((admin) => ({
+              userId: admin.id,
+              title: "새 입금 대기 (연장)",
+              message: `${ad.businessName}에서 ${product.name} 연장 결제를 신청했습니다 (${totalAmount.toLocaleString()}원)`,
+              link: "/admin/payments",
+            })),
+          }).catch(() => {});
+          admins.forEach((admin) => {
+            sendPushNotification(admin.id, {
+              title: "새 입금 대기 (연장)",
+              body: `${ad.businessName}에서 ${product.name} 연장 결제를 신청했습니다 (${totalAmount.toLocaleString()}원)`,
+              url: "/admin/payments",
+            }).catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
 
     return NextResponse.json({
       adId: ad.id,

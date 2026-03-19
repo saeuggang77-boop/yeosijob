@@ -46,19 +46,6 @@ export async function POST(
 
       // 광고 활성화
       if (payment.adId && payment.ad) {
-        const snapshot = payment.itemSnapshot as Record<string, unknown> | null;
-        const isUpgrade = snapshot?.type === "upgrade";
-
-        // 업그레이드 + 현재 ACTIVE → 잔여기간 유지, 만료 후 자동 전환 (B안)
-        if (isUpgrade && payment.ad.status === "ACTIVE") {
-          const productName = (snapshot?.product as { name?: string })?.name || "상위 등급";
-          return {
-            type: "ad_upgrade_scheduled" as const,
-            productName,
-            endDate: payment.ad.endDate,
-          };
-        }
-
         return { type: "ad" as const, activation: await activateAd(tx, payment, now) };
       }
 
@@ -93,16 +80,7 @@ export async function POST(
     });
 
     // 알림 발송
-    if (result?.type === "ad_upgrade_scheduled" && payment.ad) {
-      await prisma.notification.create({
-        data: {
-          userId: payment.ad.userId,
-          title: "입금이 확인되었습니다",
-          message: `현재 광고 만료 후 '${result.productName}'으로 자동 전환됩니다.`,
-          link: "/business/dashboard",
-        },
-      });
-    } else if (result?.type === "ad" && result.activation) {
+    if (result?.type === "ad" && result.activation) {
       await sendPaymentNotification(payment, "입금이 확인되었습니다", result.activation);
     } else if (result?.type === "partner" && payment.partner) {
       await prisma.notification.create({
@@ -119,10 +97,7 @@ export async function POST(
     let smsPhone = "";
     let smsText = "";
 
-    if (result?.type === "ad_upgrade_scheduled") {
-      smsPhone = payment.ad?.contactPhone?.replace(/[^0-9]/g, "") || "";
-      smsText = `[여시잡] 입금 확인. 현재 광고 만료 후 ${result.productName}으로 자동 전환됩니다. (${payment.amount.toLocaleString()}원)`;
-    } else if (result?.type === "ad") {
+    if (result?.type === "ad") {
       smsPhone = payment.ad?.contactPhone?.replace(/[^0-9]/g, "") || "";
       smsText = `[여시잡] 입금이 확인되었습니다. 광고가 게재되었습니다. (${payment.amount.toLocaleString()}원)`;
     } else if (result?.type === "partner") {
@@ -145,14 +120,11 @@ export async function POST(
       adId: payment.adId,
       partnerId: payment.partnerId,
       startDate: now.toISOString(),
-      scheduledUpgrade: result?.type === "ad_upgrade_scheduled" || undefined,
-      endDate: result?.type === "ad_upgrade_scheduled"
-        ? (result.endDate?.toISOString() ?? now.toISOString())
-        : result?.type === "ad"
-          ? (result.activation?.endDate.toISOString() ?? now.toISOString())
-          : result?.type === "partner"
-            ? result.endDate.toISOString()
-            : now.toISOString(),
+      endDate: result?.type === "ad"
+        ? (result.activation?.endDate.toISOString() ?? now.toISOString())
+        : result?.type === "partner"
+          ? result.endDate.toISOString()
+          : now.toISOString(),
     });
   } catch (error) {
     console.error("Payment approve error:", error);

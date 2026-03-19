@@ -77,59 +77,49 @@ export async function verifyBusinessNumber(
   }
 
   try {
-    // ownerName이 있으면 진위확인 API 사용
+    // ownerName이 있으면 진위확인 API 시도 → 실패 시 상태조회로 폴백
     if (ownerName) {
-      const url = `https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=${apiKey}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          businesses: [{
-            b_no: bizNum,
-            p_nm: ownerName,
-            start_dt: "",
-            p_nm2: "", b_nm: "", corp_no: "", b_sector: "", b_type: "", b_adr: "",
-          }],
-        }),
-      });
+      try {
+        const validateUrl = `https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=${apiKey}`;
+        const validateRes = await fetch(validateUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businesses: [{
+              b_no: bizNum,
+              p_nm: ownerName,
+              start_dt: "",
+              p_nm2: "", b_nm: "", corp_no: "", b_sector: "", b_type: "", b_adr: "",
+            }],
+          }),
+        });
 
-      if (!response.ok) {
-        return {
-          valid: false,
-          status: "error",
-          message: `API 호출 실패: ${response.status}`,
-        };
-      }
+        if (validateRes.ok) {
+          const data = await validateRes.json();
+          const result = data.data?.[0];
 
-      const data = await response.json();
-      const result = data.data?.[0];
-
-      if (!result) {
-        return {
-          valid: false,
-          status: "not_found",
-          message: "조회 결과가 없습니다",
-        };
-      }
-
-      if (result.valid === "01") {
-        return {
-          valid: true,
-          status: "active",
-          message: "사업자 진위확인이 완료되었습니다",
-        };
-      } else {
-        return {
-          valid: false,
-          status: "not_found",
-          message: "사업자등록번호와 대표자명이 일치하지 않습니다",
-        };
+          if (result?.valid === "01") {
+            return {
+              valid: true,
+              status: "active",
+              message: "사업자 진위확인이 완료되었습니다",
+            };
+          } else if (result) {
+            return {
+              valid: false,
+              status: "not_found",
+              message: "사업자등록번호와 대표자명이 일치하지 않습니다",
+            };
+          }
+        }
+        // 진위확인 API 실패(500 등) → 상태조회로 폴백
+        console.warn("진위확인 API 실패, 상태조회로 폴백:", validateRes.status);
+      } catch (e) {
+        console.warn("진위확인 API 오류, 상태조회로 폴백:", e);
       }
     }
 
-    // 기존 상태조회 API
+    // 상태조회 API (기본 또는 폴백)
     const url = `https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",

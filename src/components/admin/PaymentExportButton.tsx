@@ -7,7 +7,7 @@ export function PaymentExportButton() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [type, setType] = useState<"TAX_INVOICE" | "CASH_RECEIPT" | "ALL">("TAX_INVOICE");
+  const [type, setType] = useState<"TAX_INVOICE" | "CASH_RECEIPT" | "ALL">("ALL");
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {

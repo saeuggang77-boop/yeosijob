@@ -115,6 +115,17 @@ export async function GET(request: NextRequest) {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
 
+    // 숫자 컬럼(공급가액=L, 세액=M, 합계금액=N)에 콤마 서식 적용
+    const numCols = ["L", "M", "N"];
+    for (const col of numCols) {
+      for (let r = 2; r <= rows.length + 1; r++) {
+        const cell = ws[`${col}${r}`];
+        if (cell && typeof cell.v === "number") {
+          cell.z = "#,##0";
+        }
+      }
+    }
+
     // 열 너비 설정
     ws["!cols"] = [
       { wch: 5 },   // No

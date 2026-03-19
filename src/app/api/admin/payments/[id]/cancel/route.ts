@@ -32,7 +32,6 @@ export async function POST(
       where: { id },
       include: {
         ad: true,
-        user: { select: { id: true, phone: true } },
       },
     });
 
@@ -87,12 +86,13 @@ export async function POST(
       }
     });
 
-    // SMS 발송 (fire-and-forget — 실패해도 취소 처리는 정상 완료)
-    if (payment.user?.phone) {
+    // SMS 발송 (광고 연락처로 발송, fire-and-forget)
+    const adContact = payment.ad?.contactPhone?.replace(/[^0-9]/g, "");
+    if (adContact) {
       const smsText = isRefund
         ? `[여시알바] 환불 처리 완료\n주문번호: ${payment.orderId}\n환불금액: ${refundAmount?.toLocaleString() ?? 0}원\n사유: ${reason}`
         : `[여시알바] 결제가 취소되었습니다.\n주문번호: ${payment.orderId}\n사유: ${reason}`;
-      sendSms(payment.user.phone, smsText).catch(() => {});
+      sendSms(adContact, smsText).catch(() => {});
     }
 
     return NextResponse.json({

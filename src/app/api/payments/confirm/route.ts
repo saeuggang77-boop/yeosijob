@@ -115,24 +115,19 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // SMS 입금안내 발송 (광고 연락처로 발송)
+    // SMS 입금안내 발송 (광고 연락처로 발송, fire and forget)
     const adContact = payment.ad?.contactPhone?.replace(/[^0-9]/g, "");
-    let smsStatus = "";
     if (adContact) {
-      const smsResult = await sendSms(
+      sendSms(
         adContact,
         `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n입금자명: ${depositorName}\n\n입금 확인 후 광고가 게재됩니다.`
-      );
-      smsStatus = smsResult.success ? "sent" : `failed:${smsResult.error}`;
-    } else {
-      smsStatus = `no_phone:adId=${payment.adId},hasAd=${!!payment.ad},contactPhone=${payment.ad?.contactPhone}`;
+      ).catch(() => {});
     }
 
     return NextResponse.json({
       message: "결제 신청이 완료되었습니다",
       adId: payment.adId,
       orderId,
-      _smsDebug: smsStatus,
       bankAccount: {
         bank: BANK_NAME,
         accountNumber: ACCOUNT_NUMBER,

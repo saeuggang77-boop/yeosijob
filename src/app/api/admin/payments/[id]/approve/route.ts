@@ -49,15 +49,27 @@ export async function POST(
         return { type: "ad" as const, activation: await activateAd(tx, payment, now) };
       }
 
-      // 제휴업체 활성화
+      // 제휴업체 활성화 (ACTIVE 상태면 기존 endDate에 누적)
       if (payment.partnerId && payment.partner) {
         const durationDays = payment.partner.durationDays || 30;
-        const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        let endDate: Date;
+
+        // ACTIVE + 잔여기간 있으면 기존 endDate에 기간 누적 (B안)
+        if (
+          payment.partner.status === "ACTIVE" &&
+          payment.partner.endDate &&
+          payment.partner.endDate > now
+        ) {
+          endDate = new Date(payment.partner.endDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        } else {
+          endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        }
+
         await tx.partner.update({
           where: { id: payment.partnerId },
           data: {
             status: "ACTIVE",
-            startDate: now,
+            ...(payment.partner.status !== "ACTIVE" ? { startDate: now } : {}),
             endDate,
           },
         });
@@ -81,15 +93,25 @@ export async function POST(
       });
     }
 
-    // SMS 입금확인 발송 (광고 연락처로 발송, fire and forget)
-    const adContact = payment.ad?.contactPhone?.replace(/[^0-9]/g, "");
-    if (adContact) {
-      const smsText = result?.type === "ad"
-        ? `[여시잡] 입금이 확인되었습니다. 광고가 게재되었습니다. (${payment.amount.toLocaleString()}원)`
-        : result?.type === "partner"
-          ? `[여시잡] 입금이 확인되었습니다. 제휴업체가 활성화되었습니다. (${payment.amount.toLocaleString()}원)`
-          : `[여시잡] 입금이 확인되었습니다. (${payment.amount.toLocaleString()}원)`;
-      sendSms(adContact, smsText).catch(() => {});
+    // SMS 입금확인 발송 (fire and forget)
+    let smsPhone = "";
+    let smsText = "";
+
+    if (result?.type === "ad") {
+      smsPhone = payment.ad?.contactPhone?.replace(/[^0-9]/g, "") || "";
+      smsText = `[여시잡] 입금이 확인되었습니다. 광고가 게재되었습니다. (${payment.amount.toLocaleString()}원)`;
+    } else if (result?.type === "partner") {
+      // 제휴업체: 소유자 전화번호로 SMS 발송
+      const owner = await prisma.user.findUnique({
+        where: { id: payment.userId },
+        select: { phone: true },
+      });
+      smsPhone = owner?.phone?.replace(/[^0-9]/g, "") || "";
+      smsText = `[여시잡] 입금이 확인되었습니다. '${payment.partner?.name}' 제휴업체가 활성화되었습니다. (${payment.amount.toLocaleString()}원)`;
+    }
+
+    if (smsPhone) {
+      sendSms(smsPhone, smsText).catch(() => {});
     }
 
     return NextResponse.json({

@@ -173,6 +173,9 @@ export default function UpgradeAdPage() {
             {currentProductName}
             <Badge variant="secondary">{adInfo.title}</Badge>
           </CardTitle>
+          <p className="text-sm text-amber-400 mt-1">
+            ※ 업그레이드 시 기존 잔여 기간은 새 기간으로 대체됩니다.
+          </p>
         </CardHeader>
       </Card>
 

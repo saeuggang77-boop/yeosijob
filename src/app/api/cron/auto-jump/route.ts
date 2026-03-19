@@ -22,12 +22,15 @@ export async function GET(request: NextRequest) {
 
     // 10분 간격 = 하루 144 슬롯, 영업/비영업 각 72 슬롯
 
-    // ACTIVE 광고 중 기간 내인 것 조회
+    // ACTIVE 광고 중 기간 내인 것 조회 (FREE 광고는 endDate=null이므로 OR 조건)
     const ads = await prisma.ad.findMany({
       where: {
         status: "ACTIVE",
         startDate: { lte: now },
-        endDate: { gte: now },
+        OR: [
+          { endDate: { gte: now } },
+          { endDate: null },
+        ],
         autoJumpPerDay: { gt: 0 },
       },
       select: {

@@ -110,6 +110,15 @@ export async function POST(
       },
     };
 
+    // 기존 PENDING 결제 자동취소 (중복 방지 — upgrade와 동일 로직)
+    await prisma.payment.updateMany({
+      where: {
+        adId: ad.id,
+        status: "PENDING",
+      },
+      data: { status: "CANCELLED" },
+    });
+
     const payment = await prisma.payment.create({
       data: {
         userId: session.user.id,

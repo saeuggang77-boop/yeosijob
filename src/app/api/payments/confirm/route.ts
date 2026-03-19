@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
 import { sendSms } from "@/lib/sms";
+import { sendPushNotification } from "@/lib/push-notification";
 import { z } from "zod";
 
 const receiptSchema = z.object({
@@ -123,6 +124,31 @@ export async function POST(request: NextRequest) {
         `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n입금자명: ${depositorName}\n\n입금 확인 후 광고가 게재됩니다.`
       ).catch(() => {});
     }
+
+    // 관리자에게 알림 + 푸시 (fire and forget)
+    const adName = payment.ad?.businessName || "알 수 없음";
+    prisma.user
+      .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+      .then((admins) => {
+        if (admins.length > 0) {
+          prisma.notification.createMany({
+            data: admins.map((admin) => ({
+              userId: admin.id,
+              title: "새 입금 대기",
+              message: `${adName}에서 결제를 신청했습니다 (${payment.amount.toLocaleString()}원)`,
+              link: "/admin/payments",
+            })),
+          }).catch(() => {});
+          admins.forEach((admin) => {
+            sendPushNotification(admin.id, {
+              title: "새 입금 대기",
+              body: `${adName}에서 결제를 신청했습니다 (${payment.amount.toLocaleString()}원)`,
+              url: "/admin/payments",
+            }).catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
 
     return NextResponse.json({
       message: "결제 신청이 완료되었습니다",

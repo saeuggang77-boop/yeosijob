@@ -298,8 +298,10 @@ model AgeVerification {
   name      String
   birthDate String
   phone     String
-  carrier   String?
-  impUid    String   @unique
+  sexCode   String?
+  certNo    String   @unique
+  ci        String?
+  di        String?
   userId    String?
   verified  Boolean  @default(true)
   expiresAt DateTime

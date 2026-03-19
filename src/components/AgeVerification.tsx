@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
-const STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
-const CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
-const HAS_PORTONE = !!(STORE_ID && CHANNEL_KEY);
+const KCP_SITE_CD = process.env.NEXT_PUBLIC_KCP_SITE_CD || "";
+const HAS_KCP = !!KCP_SITE_CD;
 
-// localStorage 폴백용 (PortOne 키 미설정 시 개발 편의)
+// localStorage 폴백용 (KCP 미설정 시 개발 편의)
 const AGE_VERIFIED_KEY = "age_verified";
 
 export function AgeVerification() {
@@ -28,7 +27,7 @@ export function AgeVerification() {
       setIsMounted(true);
     });
 
-    if (HAS_PORTONE) {
+    if (HAS_KCP) {
       // 쿠키 기반: 서버에서 상태 확인
       fetch("/api/auth/verify-age/status")
         .then((res) => res.json())
@@ -58,25 +57,42 @@ export function AgeVerification() {
     }
   }, []);
 
-  const handlePortOneVerify = useCallback(async () => {
+  const handleKcpVerify = useCallback(async () => {
     setIsLoading(true);
     setError("");
 
     try {
-      const PortOne = await import("@portone/browser-sdk/v2");
-
-      const identityVerificationId = `identity-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      const redirectUrl = `${window.location.origin}/verify-age/callback`;
-
-      // 리다이렉트 방식: 팝업 차단 문제 없음
-      await PortOne.requestIdentityVerification({
-        storeId: STORE_ID,
-        identityVerificationId,
-        channelKey: CHANNEL_KEY,
-        redirectUrl,
+      const res = await fetch("/api/auth/verify-age/init", {
+        method: "POST",
       });
-    } catch (err) {
-      console.error("PortOne verification error:", err);
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "본인인증 초기화에 실패했습니다");
+        setIsLoading(false);
+        return;
+      }
+
+      const { actionUrl, formData } = await res.json();
+
+      // 히든 폼 생성 후 KCP 인증 페이지로 submit
+      const form = document.createElement("form");
+      form.method = "post";
+      form.action = actionUrl;
+      form.acceptCharset = "EUC-KR";
+      form.style.display = "none";
+
+      for (const [key, value] of Object.entries(formData)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value as string;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch {
       setError("본인인증 처리 중 오류가 발생했습니다");
       setIsLoading(false);
     }
@@ -125,7 +141,7 @@ export function AgeVerification() {
               성인만 이용 가능합니다.
             </p>
             <p className="text-sm text-muted-foreground">
-              {HAS_PORTONE
+              {HAS_KCP
                 ? "휴대폰 본인인증을 통해 성인 여부를 확인합니다."
                 : "만 19세 이상이십니까?"}
             </p>
@@ -138,9 +154,9 @@ export function AgeVerification() {
           )}
 
           <div className="space-y-3">
-            {HAS_PORTONE ? (
+            {HAS_KCP ? (
               <Button
-                onClick={handlePortOneVerify}
+                onClick={handleKcpVerify}
                 disabled={isLoading}
                 className="h-12 w-full bg-[#D4A853] text-base font-semibold text-black hover:bg-[#C49A48]"
                 size="lg"
@@ -174,7 +190,7 @@ export function AgeVerification() {
             </Button>
           </div>
 
-          {HAS_PORTONE && (
+          {HAS_KCP && (
             <p className="text-center text-xs text-muted-foreground">
               인증 정보는 성인 확인 목적으로만 사용되며,
               <br />

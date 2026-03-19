@@ -73,6 +73,7 @@ export function PaymentWidget({
       });
 
       const data = await res.json();
+      console.log("[결제 응답]", data);
       if (!res.ok) {
         throw new Error(data.error || "결제 신청에 실패했습니다");
       }

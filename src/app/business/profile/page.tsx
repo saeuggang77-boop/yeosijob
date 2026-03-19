@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, BarChart3, Bell, PenSquare } from "lucide-react";
+import { ChevronRight, BarChart3, Bell, PenSquare, Handshake } from "lucide-react";
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
@@ -38,12 +38,19 @@ export default async function BusinessProfilePage() {
     redirect("/");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { hashedPassword: true, name: true, phone: true, businessName: true, isVerifiedBiz: true },
-  });
+  const [user, adCount, partnerCount] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { hashedPassword: true, name: true, phone: true, businessName: true, isVerifiedBiz: true },
+    }),
+    prisma.ad.count({ where: { userId: session.user.id } }),
+    prisma.partner.count({ where: { userId: session.user.id } }),
+  ]);
   const hasPassword = !!user?.hashedPassword;
   const isVerified = !!user?.isVerifiedBiz;
+  // 현재 사용 중이 아닌 서비스 진입점 표시
+  const showAdEntry = adCount === 0 && partnerCount > 0;
+  const showPartnerEntry = partnerCount === 0 && adCount > 0;
 
   return (
     <div className="mx-auto max-w-screen-lg px-4 py-6">
@@ -83,6 +90,44 @@ export default async function BusinessProfilePage() {
             </Card>
           </Link>
         </div>
+
+        {/* 다른 서비스 시작하기 */}
+        {showAdEntry && (
+          <Link href="/business/ads/new" className="block">
+            <Card className="border-dashed border-primary/30 transition-shadow hover:shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <PenSquare className="size-5 text-primary" />
+                    <div>
+                      <span className="font-medium">구인광고도 등록하기</span>
+                      <span className="block text-[11px] text-muted-foreground">유흥업소 채용공고를 등록할 수 있습니다</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-5 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+        {showPartnerEntry && (
+          <Link href="/business/partner" className="block">
+            <Card className="border-dashed border-primary/30 transition-shadow hover:shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Handshake className="size-5 text-primary" />
+                    <div>
+                      <span className="font-medium">제휴업체도 등록하기</span>
+                      <span className="block text-[11px] text-muted-foreground">성형·미용·렌탈·금융 업체를 등록할 수 있습니다</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-5 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
 
         {/* 알림 설정 */}
         <Link href="/settings/notifications" className="block">

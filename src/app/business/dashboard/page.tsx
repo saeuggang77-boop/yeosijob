@@ -200,7 +200,7 @@ export default async function DashboardPage() {
                         </Link>
                         {ad.productId !== "BANNER" && (
                           <Link href={`/business/ads/${ad.id}/upgrade`}>
-                            <Button size="sm" variant="outline" className="text-xs border-purple-500/40 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20">
+                            <Button size="sm" className="text-xs bg-primary text-primary-foreground font-bold hover:bg-primary/90">
                               업그레이드
                             </Button>
                           </Link>

@@ -16,6 +16,7 @@ interface BizVerifyModalProps {
 
 export function BizVerifyModal({ isOpen, onClose, onVerified }: BizVerifyModalProps) {
   const [businessNumber, setBusinessNumber] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -38,6 +39,12 @@ export function BizVerifyModal({ isOpen, onClose, onVerified }: BizVerifyModalPr
       return;
     }
 
+    if (!ownerName.trim()) {
+      setMessage("대표자명을 입력해주세요");
+      setIsSuccess(false);
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
@@ -45,7 +52,7 @@ export function BizVerifyModal({ isOpen, onClose, onVerified }: BizVerifyModalPr
       const res = await fetch("/api/auth/verify-business", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessNumber }),
+        body: JSON.stringify({ businessNumber, ownerName: ownerName.trim() }),
       });
 
       const data = await res.json();
@@ -117,6 +124,18 @@ export function BizVerifyModal({ isOpen, onClose, onVerified }: BizVerifyModalPr
               <p className="text-xs text-muted-foreground">
                 10자리 숫자를 입력해주세요 (하이픈 제외)
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ownerName">대표자명</Label>
+              <Input
+                id="ownerName"
+                type="text"
+                placeholder="홍길동"
+                value={ownerName}
+                onChange={(e) => { setOwnerName(e.target.value); setMessage(""); }}
+                disabled={loading}
+              />
             </div>
 
             {message && (

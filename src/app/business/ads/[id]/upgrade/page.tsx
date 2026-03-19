@@ -174,7 +174,7 @@ export default function UpgradeAdPage() {
             <Badge variant="secondary">{adInfo.title}</Badge>
           </CardTitle>
           <p className="text-sm text-amber-400 mt-1">
-            ※ 업그레이드 시 기존 잔여 기간은 새 기간으로 대체됩니다.
+            ※ 현재 광고의 잔여 기간이 끝난 후 새 등급이 자동으로 시작됩니다.
           </p>
         </CardHeader>
       </Card>

@@ -204,9 +204,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
               variant: "outline" as const,
             };
             const snapshot = payment.itemSnapshot as {
+              type?: string;
               product?: { name: string };
               duration?: number;
             } | null;
+            const isScheduledUpgrade = snapshot?.type === "upgrade" && payment.status === "APPROVED";
 
             return (
               <Card
@@ -221,6 +223,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                         <Badge variant={statusInfo.variant}>
                           {statusInfo.label}
                         </Badge>
+                        {isScheduledUpgrade && (
+                          <Badge variant="outline" className="border-amber-500 text-amber-500">
+                            예약 업그레이드
+                          </Badge>
+                        )}
                       </div>
                       <span className="shrink-0 text-lg font-bold">
                         {payment.amount.toLocaleString()}원

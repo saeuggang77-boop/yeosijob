@@ -115,14 +115,11 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // SMS 입금안내 발송 (fire and forget)
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { phone: true },
-    });
-    if (user?.phone) {
+    // SMS 입금안내 발송 (광고 연락처로 발송, fire and forget)
+    const adContact = payment.ad?.contactPhone?.replace(/[^0-9]/g, "");
+    if (adContact) {
       sendSms(
-        user.phone,
+        adContact,
         `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n입금자명: ${depositorName}\n\n입금 확인 후 광고가 게재됩니다.`
       ).catch(() => {});
     }

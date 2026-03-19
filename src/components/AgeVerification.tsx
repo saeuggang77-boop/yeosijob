@@ -13,8 +13,6 @@ import { Loader2 } from "lucide-react";
 const KCP_SITE_CD = process.env.NEXT_PUBLIC_KCP_SITE_CD || "";
 const HAS_KCP = !!KCP_SITE_CD;
 
-// localStorage 폴백용 (KCP 미설정 시 개발 편의)
-const AGE_VERIFIED_KEY = "age_verified";
 
 export function AgeVerification() {
   const [isVisible, setIsVisible] = useState(false);
@@ -27,34 +25,26 @@ export function AgeVerification() {
       setIsMounted(true);
     });
 
-    if (HAS_KCP) {
-      // 쿠키 기반: 서버에서 상태 확인
-      fetch("/api/auth/verify-age/status")
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data.verified) {
-            queueMicrotask(() => {
-              setIsVisible(true);
-              document.body.style.overflow = "hidden";
-            });
-          }
-        })
-        .catch(() => {
+    // KCP 미설정 시 인증 모달 비활성화 (나중에 KCP 환경변수 추가하면 자동 활성화)
+    if (!HAS_KCP) return;
+
+    // 쿠키 기반: 서버에서 상태 확인
+    fetch("/api/auth/verify-age/status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.verified) {
           queueMicrotask(() => {
             setIsVisible(true);
             document.body.style.overflow = "hidden";
           });
-        });
-    } else {
-      // 폴백: localStorage 기반 (개발용)
-      const isVerified = localStorage.getItem(AGE_VERIFIED_KEY);
-      if (!isVerified) {
+        }
+      })
+      .catch(() => {
         queueMicrotask(() => {
           setIsVisible(true);
           document.body.style.overflow = "hidden";
         });
-      }
-    }
+      });
   }, []);
 
   const handleKcpVerify = useCallback(async () => {
@@ -98,12 +88,6 @@ export function AgeVerification() {
     }
   }, []);
 
-  const handleFallbackConfirm = () => {
-    localStorage.setItem(AGE_VERIFIED_KEY, "true");
-    setIsVisible(false);
-    document.body.style.overflow = "unset";
-  };
-
   const handleDeny = () => {
     window.location.href = "https://www.google.com";
   };
@@ -141,9 +125,7 @@ export function AgeVerification() {
               성인만 이용 가능합니다.
             </p>
             <p className="text-sm text-muted-foreground">
-              {HAS_KCP
-                ? "휴대폰 본인인증을 통해 성인 여부를 확인합니다."
-                : "만 19세 이상이십니까?"}
+              휴대폰 본인인증을 통해 성인 여부를 확인합니다.
             </p>
           </div>
 
@@ -154,31 +136,21 @@ export function AgeVerification() {
           )}
 
           <div className="space-y-3">
-            {HAS_KCP ? (
-              <Button
-                onClick={handleKcpVerify}
-                disabled={isLoading}
-                className="h-12 w-full bg-[#D4A853] text-base font-semibold text-black hover:bg-[#C49A48]"
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    인증 진행 중...
-                  </>
-                ) : (
-                  "휴대폰 본인인증하기"
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleFallbackConfirm}
-                className="h-12 w-full bg-[#D4A853] text-base font-semibold text-black hover:bg-[#C49A48]"
-                size="lg"
-              >
-                예, 19세 이상입니다
-              </Button>
-            )}
+            <Button
+              onClick={handleKcpVerify}
+              disabled={isLoading}
+              className="h-12 w-full bg-[#D4A853] text-base font-semibold text-black hover:bg-[#C49A48]"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  인증 진행 중...
+                </>
+              ) : (
+                "휴대폰 본인인증하기"
+              )}
+            </Button>
 
             <Button
               onClick={handleDeny}
@@ -190,13 +162,11 @@ export function AgeVerification() {
             </Button>
           </div>
 
-          {HAS_KCP && (
-            <p className="text-center text-xs text-muted-foreground">
-              인증 정보는 성인 확인 목적으로만 사용되며,
-              <br />
-              30일간 유효합니다.
-            </p>
-          )}
+          <p className="text-center text-xs text-muted-foreground">
+            인증 정보는 성인 확인 목적으로만 사용되며,
+            <br />
+            30일간 유효합니다.
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -10,7 +10,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function AnnouncementBar() {
   const [visible, setVisible] = useState(false);
-  const [mode, setMode] = useState<"promo" | "install-android" | "install-ios" | null>(null);
+  const [mode, setMode] = useState<"install-android" | "install-ios" | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -25,15 +25,7 @@ export function AnnouncementBar() {
     const dismissed = localStorage.getItem("pwa-bar-dismissed");
     if (dismissed) {
       const days = (Date.now() - new Date(dismissed).getTime()) / (1000 * 60 * 60 * 24);
-      if (days < 7) {
-        // PWA bar dismissed recently → show promo instead
-        const promoDismissed = localStorage.getItem("announcement-dismissed");
-        if (!promoDismissed) {
-          setMode("promo");
-          setVisible(true);
-        }
-        return;
-      }
+      if (days < 7) return;
     }
 
     const isIOSDevice = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
@@ -53,20 +45,8 @@ export function AnnouncementBar() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Fallback: if no beforeinstallprompt after 2s, show promo
-    const timeout = setTimeout(() => {
-      if (!deferredPrompt) {
-        const promoDismissed = localStorage.getItem("announcement-dismissed");
-        if (!promoDismissed) {
-          setMode("promo");
-          setVisible(true);
-        }
-      }
-    }, 2000);
-
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
-      clearTimeout(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -83,30 +63,10 @@ export function AnnouncementBar() {
 
   const dismiss = () => {
     setVisible(false);
-    if (mode === "promo") {
-      localStorage.setItem("announcement-dismissed", "1");
-    } else {
-      localStorage.setItem("pwa-bar-dismissed", new Date().toISOString());
-    }
+    localStorage.setItem("pwa-bar-dismissed", new Date().toISOString());
   };
 
   if (!visible || !mode) return null;
-
-  // Promo banner
-  if (mode === "promo") {
-    return (
-      <div className="relative bg-gradient-to-r from-primary to-accent px-4 py-2 text-center text-sm font-medium text-primary-foreground">
-        <span>여시잡에서 유흥업소 채용정보와 인재를 만나보세요!</span>
-        <button
-          onClick={dismiss}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-black/10"
-          aria-label="닫기"
-        >
-          ✕
-        </button>
-      </div>
-    );
-  }
 
   // PWA install banner
   return (

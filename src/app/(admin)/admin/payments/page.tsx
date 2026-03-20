@@ -69,6 +69,8 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
       { orderId: { contains: search, mode: "insensitive" } },
       { ad: { title: { contains: search, mode: "insensitive" } } },
       { ad: { businessName: { contains: search, mode: "insensitive" } } },
+      { depositorName: { contains: search, mode: "insensitive" } },
+      { user: { name: { contains: search, mode: "insensitive" } } },
     ];
   }
 

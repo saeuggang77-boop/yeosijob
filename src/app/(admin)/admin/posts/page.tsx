@@ -30,6 +30,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
       { content: { contains: search, mode: "insensitive" } },
+      { author: { name: { contains: search, mode: "insensitive" } } },
     ];
   }
 

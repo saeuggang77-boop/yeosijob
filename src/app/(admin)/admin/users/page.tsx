@@ -31,6 +31,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
       { phone: { contains: search, mode: "insensitive" } },
+      { bizOwnerName: { contains: search, mode: "insensitive" } },
+      { businessName: { contains: search, mode: "insensitive" } },
     ];
   }
 

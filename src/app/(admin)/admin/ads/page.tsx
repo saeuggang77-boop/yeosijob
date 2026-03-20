@@ -35,6 +35,8 @@ export default async function AdminAdsPage({ searchParams }: PageProps) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
       { businessName: { contains: search, mode: "insensitive" } },
+      { contactPhone: { contains: search, mode: "insensitive" } },
+      { user: { name: { contains: search, mode: "insensitive" } } },
     ];
   }
 

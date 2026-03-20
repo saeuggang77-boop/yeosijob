@@ -50,6 +50,11 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         bizOwnerName: true,
         isActive: true,
         createdAt: true,
+        ads: {
+          select: { contactPhone: true },
+          where: { contactPhone: { not: undefined } },
+          take: 1,
+        },
       },
     }),
     prisma.user.count({ where }),
@@ -136,7 +141,16 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                   )}
                 </td>
                 <td className="py-3 text-muted-foreground">{user.email}</td>
-                <td className="py-3 text-muted-foreground">{user.phone ? user.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3") : "-"}</td>
+                <td className="py-3 text-muted-foreground">
+                  {user.phone ? (
+                    user.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3")
+                  ) : user.ads?.[0]?.contactPhone ? (
+                    <div>
+                      <div className="text-primary">{user.ads[0].contactPhone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3")}</div>
+                      <span className="text-[10px] text-muted-foreground/70 border border-primary/30 bg-primary/10 px-1 py-0.5 rounded">광고 연락처</span>
+                    </div>
+                  ) : "-"}
+                </td>
                 <td className="py-3">
                   <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
                     {roleLabels[user.role]}

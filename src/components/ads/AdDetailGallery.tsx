@@ -45,7 +45,7 @@ export function AdDetailGallery({ images }: Props) {
         상세 이미지 ({images.length})
       </h4>
 
-      <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+      <div className="grid grid-cols-1 gap-2">
         {images.map((url, i) => (
           <button
             key={url}

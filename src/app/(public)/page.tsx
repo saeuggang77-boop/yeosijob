@@ -602,7 +602,7 @@ export default async function HomePage() {
                   <div className="px-4 py-3 text-sm md:hidden">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate font-medium">{ad.businessName}</span>
-                      <span className="shrink-0 font-medium text-success">{ad.salaryText}</span>
+                      <span className="max-w-[45%] shrink-0 truncate font-medium text-success" title={ad.salaryText}>{ad.salaryText}</span>
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span className="shrink-0">{regionLabels}</span>
@@ -622,7 +622,7 @@ export default async function HomePage() {
                     <span className="text-muted-foreground">|</span>
                     <span className="min-w-0 flex-1 truncate">{ad.title}</span>
                     <span className="text-muted-foreground">|</span>
-                    <span className="w-24 shrink-0 text-right font-medium text-success">
+                    <span className="w-36 shrink-0 truncate text-right font-medium text-success" title={ad.salaryText}>
                       {ad.salaryText}
                     </span>
                     <span className="text-muted-foreground">|</span>
@@ -659,7 +659,7 @@ export default async function HomePage() {
                   <div className="px-4 py-2.5 text-sm text-muted-foreground md:hidden">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate">{ad.businessName}</span>
-                      <span className="shrink-0 text-xs">{ad.salaryText}</span>
+                      <span className="max-w-[45%] shrink-0 truncate text-xs" title={ad.salaryText}>{ad.salaryText}</span>
                     </div>
                     <div className="mt-0.5 flex items-center gap-1.5 text-xs">
                       <span className="shrink-0">{regionLabels}</span>
@@ -674,7 +674,7 @@ export default async function HomePage() {
                     <span className="w-16 shrink-0 text-xs">{regionLabels}</span>
                     <span>|</span>
                     <span className="min-w-0 flex-1 truncate text-foreground">{ad.title}</span>
-                    <span className="w-20 shrink-0 text-right text-xs">{ad.salaryText}</span>
+                    <span className="w-36 shrink-0 truncate text-right text-xs" title={ad.salaryText}>{ad.salaryText}</span>
                   </div>
                 </Link>
               );

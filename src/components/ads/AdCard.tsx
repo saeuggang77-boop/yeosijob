@@ -134,7 +134,7 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-[14px] font-medium text-success">{ad.salaryText}</p>
+          <p className="max-w-[180px] truncate text-[14px] font-medium text-success" title={ad.salaryText}>{ad.salaryText}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {timeAgo(ad.lastJumpedAt)}
           </p>

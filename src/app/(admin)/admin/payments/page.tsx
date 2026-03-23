@@ -6,6 +6,7 @@ import { PaymentActions } from "@/components/admin/PaymentActions";
 import { PaymentDeleteButton } from "@/components/admin/PaymentDeleteButton";
 import { PaymentFilters } from "@/components/admin/PaymentFilters";
 import { PaymentExportButton } from "@/components/admin/PaymentExportButton";
+import { PaymentMemo } from "@/components/admin/PaymentMemo";
 import Link from "next/link";
 
 const STATUS_LABELS: Record<
@@ -265,6 +266,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                       <PaymentDeleteButton paymentId={payment.id} />
                     </div>
                   )}
+                  <PaymentMemo paymentId={payment.id} initialMemo={payment.adminMemo} />
                 </CardContent>
               </Card>
             );

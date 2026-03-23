@@ -84,9 +84,6 @@ export async function POST(
       return NextResponse.json({ error: "유효하지 않은 결제 토큰입니다" }, { status: 400 });
     }
 
-    // 고유 입금자명 (orderId 마지막 4자리)
-    const depositorName = orderId.slice(-4).toUpperCase();
-
     // C2 + H7 + M3: Transaction with payment update + token invalidation
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
@@ -95,7 +92,6 @@ export async function POST(
           method: "BANK_TRANSFER",
           bankName: BANK_NAME,
           accountNumber: ACCOUNT_NUMBER,
-          depositorName,
           receiptType: receiptType || "NONE",
           taxEmail: receiptType === "TAX_INVOICE" ? taxEmail : null,
           cashReceiptNo: receiptType === "CASH_RECEIPT" ? cashReceiptNo : null,

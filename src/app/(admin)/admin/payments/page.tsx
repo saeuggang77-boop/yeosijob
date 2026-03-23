@@ -71,6 +71,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
       { ad: { businessName: { contains: search, mode: "insensitive" } } },
       { depositorName: { contains: search, mode: "insensitive" } },
       { user: { name: { contains: search, mode: "insensitive" } } },
+      { user: { bizOwnerName: { contains: search, mode: "insensitive" } } },
     ];
   }
 
@@ -108,7 +109,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
       skip: (currentPage - 1) * itemsPerPage,
       take: itemsPerPage,
       include: {
-        user: { select: { email: true, name: true, businessName: true } },
+        user: { select: { email: true, name: true, businessName: true, bizOwnerName: true } },
         ad: { select: { id: true, title: true, businessName: true, durationDays: true } },
         partner: { select: { id: true, name: true, grade: true } },
       },
@@ -232,9 +233,11 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    {payment.depositorName && payment.status === "PENDING" && (
-                      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
-                        입금자명: {payment.depositorName}
+                    {(payment.user?.name || payment.user?.bizOwnerName) && (
+                      <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        {payment.user?.name ? `본명: ${payment.user.name}` : ""}
+                        {payment.user?.name && payment.user?.bizOwnerName ? " / " : ""}
+                        {payment.user?.bizOwnerName ? `대표자: ${payment.user.bizOwnerName}` : ""}
                       </p>
                     )}
                     <p className="truncate">

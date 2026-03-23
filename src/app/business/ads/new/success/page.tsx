@@ -52,7 +52,6 @@ export default function PaymentSuccessPage() {
   }
 
   // 유료 결제 - 입금 안내 표시
-  const depositorCode = orderId ? orderId.slice(-4).toUpperCase() : "";
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-8">
@@ -82,14 +81,6 @@ export default function PaymentSuccessPage() {
             <span className="text-muted-foreground">예금주</span>
             <span className="font-medium">{ACCOUNT_HOLDER}</span>
           </div>
-          {depositorCode && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">입금자명</span>
-              <span className="font-bold text-amber-600 dark:text-amber-400">
-                {depositorCode}
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -97,7 +88,6 @@ export default function PaymentSuccessPage() {
         <CardContent className="py-4">
           <p className="text-sm text-amber-600 dark:text-amber-400">
             입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간).
-            입금자명을 반드시 위에 안내된 이름으로 기재해주세요.
           </p>
         </CardContent>
       </Card>

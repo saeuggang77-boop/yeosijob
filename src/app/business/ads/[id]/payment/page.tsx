@@ -76,9 +76,6 @@ export default async function PaymentInfoPage({
             <div className="rounded-lg bg-muted p-4 text-center">
               <p className="text-sm text-muted-foreground">입금 계좌</p>
               <p className="mt-1 text-lg font-bold">{payment.bankName} {payment.accountNumber}</p>
-              {payment.depositorName && (
-                <p className="text-sm text-muted-foreground">예금주: {payment.depositorName}</p>
-              )}
             </div>
           )}
 
@@ -110,7 +107,6 @@ export default async function PaymentInfoPage({
               <p className="font-medium">안내 사항</p>
               <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs">
                 <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간)</li>
-                <li>입금자명을 반드시 안내된 이름으로 기재해주세요</li>
               </ul>
             </div>
           )}

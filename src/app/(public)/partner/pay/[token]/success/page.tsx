@@ -10,7 +10,6 @@ import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-
 export default function PartnerPaymentSuccessPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const depositorCode = orderId ? orderId.slice(-4).toUpperCase() : "";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -40,19 +39,10 @@ export default function PartnerPaymentSuccessPage() {
               <span className="text-muted-foreground text-sm">예금주</span>
               <span className="font-medium">{ACCOUNT_HOLDER}</span>
             </div>
-            {depositorCode && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">입금자명</span>
-                <span className="font-bold text-amber-600 dark:text-amber-400">
-                  {depositorCode}
-                </span>
-              </div>
-            )}
           </div>
 
           <div className="mt-4 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
             입금 확인 후 서비스가 활성화됩니다 (영업시간 내 최대 1시간).
-            입금자명을 반드시 위에 안내된 이름으로 기재해주세요.
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">

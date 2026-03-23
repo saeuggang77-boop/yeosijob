@@ -40,8 +40,6 @@ export function PaymentWidget({
   const [cashReceiptType, setCashReceiptType] = useState<CashReceiptType>("PHONE");
   const [cashReceiptNo, setCashReceiptNo] = useState("");
 
-  // 고유 입금자명 (orderId 마지막 4자리)
-  const depositorCode = orderId.slice(-4).toUpperCase();
 
   async function handleSubmit() {
     // 유효성 검사
@@ -235,15 +233,6 @@ export function PaymentWidget({
                 </span>
               </div>
             </div>
-            <div className="rounded-lg bg-amber-500/10 p-3 text-center">
-              <p className="text-xs text-muted-foreground">입금자명</p>
-              <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                {depositorCode}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                입금 시 위 입금자명을 반드시 기재해주세요
-              </p>
-            </div>
           </CardContent>
         </Card>
 
@@ -252,7 +241,6 @@ export function PaymentWidget({
           <CardContent className="py-4">
             <ul className="list-inside list-disc space-y-1 text-sm text-amber-600 dark:text-amber-400">
               <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간)</li>
-              <li>입금자명을 반드시 위에 안내된 이름으로 기재해주세요</li>
               <li>입금 금액이 다를 경우 처리가 지연될 수 있습니다</li>
             </ul>
           </CardContent>

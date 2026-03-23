@@ -88,9 +88,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 고유 입금자명 (orderId 마지막 4자리)
-    const depositorName = orderId.slice(-4).toUpperCase();
-
     // Payment 업데이트: 계좌이체 정보 + 증빙서류 저장
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
@@ -99,7 +96,6 @@ export async function POST(request: NextRequest) {
           method: "BANK_TRANSFER",
           bankName: BANK_NAME,
           accountNumber: ACCOUNT_NUMBER,
-          depositorName,
           receiptType: receiptType || "NONE",
           taxEmail: receiptType === "TAX_INVOICE" ? taxEmail : null,
           cashReceiptNo: receiptType === "CASH_RECEIPT" ? cashReceiptNo : null,
@@ -121,7 +117,7 @@ export async function POST(request: NextRequest) {
     if (adContact) {
       sendSms(
         adContact,
-        `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n입금자명: ${depositorName}\n\n입금 확인 후 광고가 게재됩니다.`
+        `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n\n입금 확인 후 광고가 게재됩니다.`
       ).catch(() => {});
     }
 

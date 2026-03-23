@@ -106,7 +106,7 @@ export default async function PaymentInfoPage({
             <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
               <p className="font-medium">안내 사항</p>
               <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs">
-                <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간)</li>
+                <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 24시간)</li>
               </ul>
             </div>
           )}

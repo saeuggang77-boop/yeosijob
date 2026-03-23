@@ -240,7 +240,7 @@ export function PaymentWidget({
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="py-4">
             <ul className="list-inside list-disc space-y-1 text-sm text-amber-600 dark:text-amber-400">
-              <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간)</li>
+              <li>입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 24시간)</li>
               <li>입금 금액이 다를 경우 처리가 지연될 수 있습니다</li>
             </ul>
           </CardContent>

@@ -42,7 +42,7 @@ export default function PartnerPaymentSuccessPage() {
           </div>
 
           <div className="mt-4 rounded-lg bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
-            입금 확인 후 서비스가 활성화됩니다 (영업시간 내 최대 1시간).
+            입금 확인 후 서비스가 활성화됩니다 (영업시간 내 최대 24시간).
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">

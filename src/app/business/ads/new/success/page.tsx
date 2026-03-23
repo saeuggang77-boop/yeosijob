@@ -87,7 +87,7 @@ export default function PaymentSuccessPage() {
       <Card className="mt-4 border-amber-500/30 bg-amber-500/5">
         <CardContent className="py-4">
           <p className="text-sm text-amber-600 dark:text-amber-400">
-            입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 1시간).
+            입금 확인 후 광고가 게재됩니다 (영업시간 내 최대 24시간).
           </p>
         </CardContent>
       </Card>

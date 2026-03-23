@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
         "공급가액": supplyAmount,
         "세액": vat,
         "합계금액": p.amount,
+        "관리자메모": p.adminMemo || "",
       };
     });
 
@@ -108,6 +109,7 @@ export async function GET(request: NextRequest) {
         "공급가액": totalSupply,
         "세액": totalVat,
         "합계금액": totalAmount,
+        "관리자메모": "",
       });
     }
 
@@ -142,6 +144,7 @@ export async function GET(request: NextRequest) {
       { wch: 12 },  // 공급가액
       { wch: 10 },  // 세액
       { wch: 12 },  // 합계금액
+      { wch: 25 },  // 관리자메모
     ];
 
     const typeLabel = type === "TAX_INVOICE" ? "세금계산서" : type === "CASH_RECEIPT" ? "현금영수증" : "전체";

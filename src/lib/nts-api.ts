@@ -21,25 +21,58 @@ export async function verifyBusinessNumber(bizNo: string, ownerName?: string): P
     return { valid: false, status: "미확인", statusCode: "" };
   }
 
-  try {
+  const attempt = async (): Promise<NtsResult> => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    // ownerName이 있으면 진위확인 API 사용
-    if (ownerName) {
+    try {
+      // ownerName이 있으면 진위확인 API 사용
+      if (ownerName) {
+        const res = await fetch(
+          `https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=${encodeURIComponent(apiKey)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              businesses: [{
+                b_no: cleaned,
+                p_nm: ownerName,
+                start_dt: "",
+                p_nm2: "", b_nm: "", corp_no: "", b_sector: "", b_type: "", b_adr: "",
+              }],
+            }),
+            signal: controller.signal,
+          }
+        );
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          console.error("NTS API error:", res.status, await res.text());
+          return { valid: false, status: "확인불가", statusCode: "" };
+        }
+
+        const json = await res.json();
+        const data = json.data?.[0];
+
+        if (!data) {
+          return { valid: false, status: "확인불가", statusCode: "" };
+        }
+
+        if (data.valid === "01") {
+          return { valid: true, status: "확인완료", statusCode: "01" };
+        } else {
+          return { valid: false, status: "불일치", statusCode: "02" };
+        }
+      }
+
+      // 기존 상태조회 API
       const res = await fetch(
-        `https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=${encodeURIComponent(apiKey)}`,
+        `https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${encodeURIComponent(apiKey)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            businesses: [{
-              b_no: cleaned,
-              p_nm: ownerName,
-              start_dt: "",
-              p_nm2: "", b_nm: "", corp_no: "", b_sector: "", b_type: "", b_adr: "",
-            }],
-          }),
+          body: JSON.stringify({ b_no: [cleaned] }),
           signal: controller.signal,
         }
       );
@@ -58,48 +91,29 @@ export async function verifyBusinessNumber(bizNo: string, ownerName?: string): P
         return { valid: false, status: "확인불가", statusCode: "" };
       }
 
-      if (data.valid === "01") {
-        return { valid: true, status: "확인완료", statusCode: "01" };
-      } else {
-        return { valid: false, status: "불일치", statusCode: "02" };
-      }
+      const statusCode = data.b_stt_cd || "";
+      const status = data.b_stt || "미확인";
+
+      return {
+        valid: statusCode === "01",
+        status,
+        statusCode,
+      };
+    } catch (error) {
+      clearTimeout(timeout);
+      throw error;
     }
+  };
 
-    // 기존 상태조회 API
-    const res = await fetch(
-      `https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ b_no: [cleaned] }),
-        signal: controller.signal,
-      }
-    );
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      console.error("NTS API error:", res.status, await res.text());
-      return { valid: false, status: "확인불가", statusCode: "" };
-    }
-
-    const json = await res.json();
-    const data = json.data?.[0];
-
-    if (!data) {
-      return { valid: false, status: "확인불가", statusCode: "" };
-    }
-
-    const statusCode = data.b_stt_cd || "";
-    const status = data.b_stt || "미확인";
-
-    return {
-      valid: statusCode === "01",
-      status,
-      statusCode,
-    };
+  try {
+    return await attempt();
   } catch (error) {
-    console.error("NTS API call failed:", error);
-    return { valid: false, status: "확인불가", statusCode: "" };
+    console.warn("NTS API 1차 시도 실패, 재시도:", error);
+    try {
+      return await attempt();
+    } catch (retryError) {
+      console.error("NTS API 재시도도 실패:", retryError);
+      return { valid: false, status: "국세청 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요", statusCode: "" };
+    }
   }
 }

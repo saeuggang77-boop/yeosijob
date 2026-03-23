@@ -6,6 +6,7 @@ import { FontSizeProvider } from "@/components/FontSizeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AgeVerification } from "@/components/AgeVerification";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { SentryUserContext } from "@/components/SentryUserContext";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -82,6 +83,7 @@ export default function RootLayout({
         <FontSizeProvider>
           <ThemeProvider>
             <SessionProvider>
+              <SentryUserContext />
               <AgeVerification />
               {children}
               <Toaster />

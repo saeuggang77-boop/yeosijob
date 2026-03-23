@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
     if (adContact) {
       sendSms(
         adContact,
-        `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n\n입금 확인 후 광고가 게재됩니다.`
+        `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n\n입금 확인 후 광고가 게재됩니다.`,
+        "[여시잡] 입금안내"
       ).catch(() => {});
     }
 

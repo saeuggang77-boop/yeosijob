@@ -19,7 +19,8 @@ function getAuthHeader(): string {
  */
 export async function sendSms(
   to: string,
-  text: string
+  text: string,
+  subject?: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!API_KEY || !API_SECRET || !SENDER) {
     console.warn("SMS 환경변수 미설정, 발송 건너뜀");
@@ -44,6 +45,7 @@ export async function sendSms(
           to: phone,
           from: SENDER,
           text,
+          ...(subject ? { type: "LMS", subject } : {}),
         },
       }),
     });

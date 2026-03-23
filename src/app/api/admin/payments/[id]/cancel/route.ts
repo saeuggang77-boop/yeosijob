@@ -92,7 +92,7 @@ export async function POST(
       const smsText = isRefund
         ? `[여시알바] 환불 처리 완료\n주문번호: ${payment.orderId}\n환불금액: ${refundAmount?.toLocaleString() ?? 0}원\n사유: ${reason}`
         : `[여시알바] 결제가 취소되었습니다.\n주문번호: ${payment.orderId}\n사유: ${reason}`;
-      sendSms(adContact, smsText).catch(() => {});
+      sendSms(adContact, smsText, isRefund ? "[여시알바] 환불안내" : "[여시알바] 결제취소").catch(() => {});
     }
 
     return NextResponse.json({

@@ -111,7 +111,7 @@ export async function POST(
     }
 
     if (smsPhone) {
-      sendSms(smsPhone, smsText).catch(() => {});
+      sendSms(smsPhone, smsText, "[여시잡] 입금확인").catch(() => {});
     }
 
     return NextResponse.json({

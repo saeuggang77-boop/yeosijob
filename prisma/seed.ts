@@ -1378,7 +1378,7 @@ async function main() {
         lastJumpedAt: lastJumped,
         isVerified: i < 5,
         viewCount: Math.floor(Math.random() * 500),
-        maxEdits: isFreeAd ? 999 : 1,
+        maxEdits: 5,
       },
     });
   }

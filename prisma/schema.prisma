@@ -376,7 +376,7 @@ model Ad {
 
   // 수정
   editCount Int @default(0)
-  maxEdits  Int @default(1)
+  maxEdits  Int @default(5)
 
   // 인증
   isVerified Boolean @default(false)

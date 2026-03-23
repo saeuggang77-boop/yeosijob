@@ -216,6 +216,10 @@ export function Step4Payment({ data, onBack, onSubmit, loading, eventInfo }: Pro
           결제를 진행하면 이용약관 및 개인정보처리방침에 동의하는 것으로
           간주합니다.
         </p>
+        <div className="mb-3 flex items-center gap-2 rounded-lg bg-blue-500/10 p-3 text-xs text-blue-400">
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          등록 후 광고 수정은 5회까지 가능합니다 (연장 시 초기화)
+        </div>
         <div className="flex gap-3">
           <Button variant="outline" className="flex-1" onClick={onBack}>
             이전

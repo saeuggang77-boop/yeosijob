@@ -92,11 +92,22 @@ export default async function AdDetailPage({ params }: PageProps) {
         </div>
         <div className="flex gap-2">
           <Link href={`/business/ads/${id}/edit`}>
-            <Button variant="outline">
+            <Button variant="outline" disabled={ad.editCount >= ad.maxEdits}>
               <Edit className="w-4 h-4 mr-2" />
-              {isFree ? "수정 (무제한)" : "수정"}
+              수정
             </Button>
           </Link>
+          {ad.maxEdits > 0 && (
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              ad.editCount >= ad.maxEdits
+                ? "bg-red-500/15 text-red-400 border border-red-500/30"
+                : "bg-amber-500/15 text-amber-500 border border-amber-500/30"
+            }`}>
+              {ad.editCount >= ad.maxEdits
+                ? `수정 횟수 소진 (${ad.editCount}/${ad.maxEdits}회)`
+                : `남은 수정 ${ad.maxEdits - ad.editCount}/${ad.maxEdits}회`}
+            </span>
+          )}
           <Link href={`/business/ads/${id}/stats`}>
             <Button variant="outline">
               <BarChart3 className="w-4 h-4 mr-2" />

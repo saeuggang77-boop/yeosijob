@@ -9,6 +9,7 @@ import { PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partn
 import { REGIONS } from "@/lib/constants/regions";
 import { PartnerRenewButton } from "@/components/partners/PartnerRenewButton";
 import { PartnerRegisterForm } from "@/components/partners/PartnerRegisterForm";
+import { PartnerCancelButton } from "@/components/partners/PartnerCancelButton";
 import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
 
 export default async function BusinessPartnerPage() {
@@ -145,6 +146,7 @@ export default async function BusinessPartnerPage() {
                             </Link>
                           </Button>
                         )}
+                        <PartnerCancelButton partnerId={partner.id} />
                       </>
                     )}
                   </div>

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         status: "PENDING",
         createdAt: { lt: cutoff48h },
       },
-      select: { id: true, adId: true },
+      select: { id: true, adId: true, partnerId: true },
     });
 
     if (expiredPayments.length === 0) {
@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
     const paymentIds = expiredPayments.map((p) => p.id);
     const adIds = expiredPayments
       .map((p) => p.adId)
+      .filter((id): id is string => id !== null);
+    const partnerIds = expiredPayments
+      .map((p) => p.partnerId)
       .filter((id): id is string => id !== null);
 
     await prisma.$transaction(async (tx) => {
@@ -56,12 +59,24 @@ export async function GET(request: NextRequest) {
           data: { status: "CANCELLED" },
         });
       }
+
+      // 관련 제휴업체도 취소 (PENDING_PAYMENT 상태인 경우만)
+      if (partnerIds.length > 0) {
+        await tx.partner.updateMany({
+          where: {
+            id: { in: partnerIds },
+            status: "PENDING_PAYMENT",
+          },
+          data: { status: "CANCELLED" },
+        });
+      }
     });
 
     return NextResponse.json({
       message: "Expire-pending completed",
       cancelledPayments: paymentIds.length,
       cancelledAds: adIds.length,
+      cancelledPartners: partnerIds.length,
     });
   } catch (error) {
     console.error("Expire-pending cron error:", error);

@@ -1018,8 +1018,8 @@ model Partner {
   websiteUrl    String?
   businessHours String?
 
-  // 등급/금액 (관리자 설정)
-  grade        PartnerGrade
+  // 등급 (레거시, 신규 등록은 null) / 금액
+  grade        PartnerGrade?
   monthlyPrice Int
 
   // 기간

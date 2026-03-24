@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import crypto from "node:crypto";
+import { calculatePartnerPrice, PARTNER_CATEGORY_PRICES } from "@/lib/constants/partners";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [{ grade: "asc" }, { createdAt: "desc" }],
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json({ partners });
@@ -44,11 +45,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userEmail, grade, isFree } = body;
+    const { userEmail, category, durationDays = 30, isFree } = body;
 
-    // Validate required fields (관리자는 이메일 + 등급만 필수)
-    if (!userEmail || !grade) {
-      return NextResponse.json({ error: "이메일과 등급은 필수입니다" }, { status: 400 });
+    // Validate required fields
+    if (!userEmail || !category) {
+      return NextResponse.json({ error: "이메일과 업종은 필수입니다" }, { status: 400 });
+    }
+
+    if (!PARTNER_CATEGORY_PRICES[category]) {
+      return NextResponse.json({ error: "유효하지 않은 업종입니다" }, { status: 400 });
     }
 
     // Resolve userId from email
@@ -64,9 +69,8 @@ export async function POST(request: NextRequest) {
     }
     const resolvedUserId = user.id;
 
-    // 등급별 가격 자동 설정
-    const GRADE_PRICES: Record<string, number> = { A: 3_000_000, B: 2_000_000, C: 1_000_000, D: 500_000 };
-    const monthlyPrice = isFree ? 0 : (GRADE_PRICES[grade] || 500_000);
+    // 업종별 가격 계산
+    const monthlyPrice = isFree ? 0 : calculatePartnerPrice(category, durationDays);
 
     if (isFree) {
       // 무료 입점: 결제 없이 바로 ACTIVE, 프로필 완성 대기
@@ -75,13 +79,12 @@ export async function POST(request: NextRequest) {
         data: {
           userId: resolvedUserId,
           name: "미등록 업체",
-          category: "OTHER",
+          category,
           region: "SEOUL",
           description: "",
-          grade,
           monthlyPrice: 0,
           status: "ACTIVE",
-          durationDays: 30,
+          durationDays,
           startDate: now,
           endDate: null,
           isProfileComplete: false,
@@ -98,13 +101,12 @@ export async function POST(request: NextRequest) {
       data: {
         userId: resolvedUserId,
         name: "미등록 업체",
-        category: "OTHER",
+        category,
         region: "SEOUL",
         description: "",
-        grade,
         monthlyPrice,
         status: "PENDING_PAYMENT",
-        durationDays: 30,
+        durationDays,
         paymentToken,
         isProfileComplete: false,
       },

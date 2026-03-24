@@ -32,7 +32,7 @@ export async function GET(
       partner: {
         id: partner.id,
         name: partner.name,
-        grade: partner.grade,
+        grade: partner.grade || null,
         category: partner.category,
         amount: partner.monthlyPrice,
         status: partner.status,
@@ -84,7 +84,6 @@ export async function POST(
             type: "partner",
             partnerId: partner.id,
             name: partner.name,
-            grade: partner.grade,
             category: partner.category,
           },
           partnerId: partner.id,

@@ -1,0 +1,164 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { calculatePartnerPrice, PARTNER_CATEGORY_PRICES, PARTNER_DURATION_OPTIONS } from "@/lib/constants/partners";
+import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
+import { sendPushNotification } from "@/lib/push-notification";
+import crypto from "node:crypto";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  category: z.enum(["PLASTIC_SURGERY", "BEAUTY", "RENTAL", "FINANCE", "OTHER"]),
+  durationDays: z.number().refine((v) => [30, 90, 180].includes(v), "유효하지 않은 기간"),
+  receiptType: z.enum(["TAX_INVOICE", "CASH_RECEIPT", "NONE"]),
+  taxEmail: z.string().email().optional(),
+  cashReceiptNo: z.string().regex(/^\d{10,13}$/).optional(),
+  cashReceiptType: z.enum(["PHONE", "BIZ"]).optional(),
+}).refine(
+  (data) => {
+    if (data.receiptType === "TAX_INVOICE") return !!data.taxEmail;
+    return true;
+  },
+  { message: "세금계산서 선택 시 이메일은 필수입니다", path: ["taxEmail"] }
+).refine(
+  (data) => {
+    if (data.receiptType === "CASH_RECEIPT") return !!data.cashReceiptNo && !!data.cashReceiptType;
+    return true;
+  },
+  { message: "현금영수증 선택 시 발급번호와 타입은 필수입니다", path: ["cashReceiptNo"] }
+);
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session || (session.user.role !== "BUSINESS" && session.user.role !== "ADMIN")) {
+      return NextResponse.json({ error: "사장님 계정으로 로그인해주세요" }, { status: 401 });
+    }
+
+    // Rate limiting
+    const { success: rateLimitOk } = await checkRateLimit(`partner-register:${session.user.id}`, 3, 60_000);
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
+    }
+
+    const body = await request.json();
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "입력값이 올바르지 않습니다", details: validation.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { category, durationDays, receiptType, taxEmail, cashReceiptNo, cashReceiptType } = validation.data;
+
+    // 가격 계산
+    const amount = calculatePartnerPrice(category, durationDays);
+    if (amount <= 0) {
+      return NextResponse.json({ error: "가격 계산 오류" }, { status: 400 });
+    }
+
+    // 이미 ACTIVE/PENDING 제휴업체가 있는지 확인
+    const existingActive = await prisma.partner.findFirst({
+      where: {
+        userId: session.user.id,
+        status: { in: ["ACTIVE", "PENDING_PAYMENT"] },
+        category: category as any,
+      },
+    });
+    if (existingActive) {
+      return NextResponse.json(
+        { error: "이미 해당 업종에 등록된(또는 결제 대기 중인) 제휴업체가 있습니다" },
+        { status: 409 }
+      );
+    }
+
+    // Transaction: Partner + Payment 생성
+    const paymentToken = crypto.randomUUID();
+    const orderId = `PARTNER-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const partner = await tx.partner.create({
+        data: {
+          userId: session.user.id,
+          name: "미등록 업체",
+          category: category as any,
+          region: "SEOUL",
+          description: "",
+          grade: null,
+          monthlyPrice: PARTNER_CATEGORY_PRICES[category] || 500_000,
+          durationDays,
+          status: "PENDING_PAYMENT",
+          paymentToken,
+          isProfileComplete: false,
+        },
+      });
+
+      const payment = await tx.payment.create({
+        data: {
+          orderId,
+          userId: session.user.id,
+          partnerId: partner.id,
+          amount,
+          method: "BANK_TRANSFER",
+          status: "PENDING",
+          bankName: BANK_NAME,
+          accountNumber: ACCOUNT_NUMBER,
+          receiptType: receiptType || "NONE",
+          taxEmail: receiptType === "TAX_INVOICE" ? taxEmail : null,
+          cashReceiptNo: receiptType === "CASH_RECEIPT" ? cashReceiptNo : null,
+          cashReceiptType: receiptType === "CASH_RECEIPT" ? cashReceiptType : null,
+          itemSnapshot: {
+            type: "partner",
+            partnerId: partner.id,
+            category,
+            durationDays,
+          },
+        },
+      });
+
+      return { partner, payment };
+    });
+
+    // 관리자에게 알림 (fire and forget)
+    const categoryLabel = { PLASTIC_SURGERY: "성형/시술", BEAUTY: "미용/네일", RENTAL: "렌탈", FINANCE: "금융", OTHER: "기타" }[category] || category;
+    prisma.user
+      .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+      .then((admins) => {
+        if (admins.length > 0) {
+          prisma.notification.createMany({
+            data: admins.map((admin) => ({
+              userId: admin.id,
+              title: "새 제휴업체 입금 대기",
+              message: `${categoryLabel} 업종 제휴업체 등록 (${amount.toLocaleString()}원 / ${durationDays}일)`,
+              link: "/admin/payments",
+            })),
+          }).catch(() => {});
+          admins.forEach((admin) => {
+            sendPushNotification(admin.id, {
+              title: "새 제휴업체 입금 대기",
+              body: `${categoryLabel} 업종 (${amount.toLocaleString()}원)`,
+              url: "/admin/payments",
+            }).catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
+
+    return NextResponse.json({
+      success: true,
+      partnerId: result.partner.id,
+      orderId: result.payment.orderId,
+      amount,
+      bankAccount: {
+        bank: BANK_NAME,
+        accountNumber: ACCOUNT_NUMBER,
+        holder: ACCOUNT_HOLDER,
+      },
+    });
+  } catch (error) {
+    console.error("Partner register error:", error);
+    return NextResponse.json({ error: "제휴업체 등록에 실패했습니다" }, { status: 500 });
+  }
+}

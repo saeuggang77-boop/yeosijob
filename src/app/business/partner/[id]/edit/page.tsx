@@ -53,7 +53,7 @@ interface PartnerData {
   contactKakao: string | null;
   websiteUrl: string | null;
   businessHours: string | null;
-  grade: string;
+  grade: string | null;
   status: string;
   isProfileComplete: boolean;
   businessNumber: string | null;

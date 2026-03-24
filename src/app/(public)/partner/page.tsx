@@ -44,19 +44,12 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
       description: true,
       highlight: true,
       thumbnailUrl: true,
-      grade: true,
       viewCount: true,
     },
   });
 
-  // Group by grade
-  const gradeOrder = ["A", "B", "C", "D"] as const;
-  const grouped = gradeOrder.map((grade) =>
-    partners.filter((p) => p.grade === grade)
-  );
-
-  // Shuffle within each grade, then concatenate
-  const sorted = grouped.flatMap((group) => shuffleArray(group));
+  // 모든 유료 업체 동등 노출 - 랜덤 셔플
+  const sorted = shuffleArray(partners);
 
   const categories = [
     { value: "", label: "전체" },
@@ -111,15 +104,11 @@ export default async function PartnerListPage({ searchParams }: PageProps) {
       <div className="mt-12 rounded-lg border bg-gradient-to-r from-primary/5 to-transparent p-6 text-center">
         <h2 className="text-xl font-bold">입점을 원하시나요?</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          여시잡과 함께 성장하세요
+          사장님 계정으로 로그인 후 바로 등록할 수 있습니다
         </p>
-        <Link
-          href="https://pf.kakao.com/_zEqYG/chat"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link href="/business/partner">
           <Button className="mt-4" size="lg">
-            카카오톡 문의하기
+            제휴업체 등록하기
           </Button>
         </Link>
       </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PARTNER_GRADES, PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import type { PartnerStatus } from "@/generated/prisma/client";
 
@@ -97,10 +97,10 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
           </Card>
         ) : (
           partners.map((partner) => {
-            const gradeInfo = PARTNER_GRADES[partner.grade];
             const categoryInfo = PARTNER_CATEGORIES[partner.category];
             const statusInfo = PARTNER_STATUS_LABELS[partner.status];
             const regionInfo = REGIONS[partner.region];
+            const catColor = categoryInfo?.color || "#6b7280";
 
             return (
               <Link key={partner.id} href={`/admin/partners/${partner.id}`}>
@@ -113,12 +113,12 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                           <Badge variant={statusInfo.variant as any}>
                             {statusInfo.label}
                           </Badge>
-                          <Badge style={{ backgroundColor: gradeInfo.color }}>
-                            {gradeInfo.label}
+                          <Badge style={{ backgroundColor: catColor }} className="text-white border-0">
+                            {categoryInfo?.emoji} {categoryInfo?.label}
                           </Badge>
                         </div>
                         <span className="shrink-0 text-lg font-bold">
-                          {partner.monthlyPrice.toLocaleString()}원/월
+                          {partner.monthlyPrice.toLocaleString()}원
                         </span>
                       </div>
                     </CardTitle>
@@ -126,8 +126,8 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                   <CardContent>
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <p>
-                        <span className="mr-2">{categoryInfo.emoji}</span>
-                        {categoryInfo.label} · {regionInfo.label}
+                        <span className="mr-2">{categoryInfo?.emoji}</span>
+                        {categoryInfo?.label} · {regionInfo.label}
                       </p>
                       <p className="truncate">
                         사업자: {partner.user.businessName || partner.user.name || partner.user.email}

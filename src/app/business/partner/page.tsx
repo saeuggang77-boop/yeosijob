@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PARTNER_GRADES, PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import { PartnerRenewButton } from "@/components/partners/PartnerRenewButton";
+import { PartnerRegisterForm } from "@/components/partners/PartnerRegisterForm";
 
 export default async function BusinessPartnerPage() {
   const session = await auth();
@@ -44,54 +45,10 @@ export default async function BusinessPartnerPage() {
     <div>
       <h1 className="text-2xl font-bold">제휴업체 관리</h1>
 
-      <div className="mt-6 space-y-4">
-        {partners.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <div className="text-5xl mb-4">🤝</div>
-              <p className="text-lg font-semibold">아직 업체가 등록되지 않았어요</p>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                성형·미용·렌탈·금융 업체라면<br />
-                여시잡 구직자에게 직접 홍보하세요
-              </p>
-
-              {/* 입점 절차 안내 */}
-              <div className="mt-6 flex items-start justify-center gap-0">
-                <div className="flex flex-col items-center gap-2 w-20">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 border border-primary/35 text-lg">💬</div>
-                  <span className="text-[11px] font-medium text-primary">입점 문의</span>
-                </div>
-                <span className="text-muted-foreground text-sm mt-3 px-1.5">→</span>
-                <div className="flex flex-col items-center gap-2 w-20">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-lg">📝</div>
-                  <span className="text-[11px] font-medium text-muted-foreground">업체 등록</span>
-                </div>
-                <span className="text-muted-foreground text-sm mt-3 px-1.5">→</span>
-                <div className="flex flex-col items-center gap-2 w-20">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-lg">📢</div>
-                  <span className="text-[11px] font-medium text-muted-foreground leading-tight">구직자에게<br />노출</span>
-                </div>
-              </div>
-
-              <a
-                href="https://pf.kakao.com/_zEqYG/chat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#FEE500] px-6 py-3 text-sm font-semibold text-[#3C1E1E] transition-opacity hover:opacity-85"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
-                  <path d="M12 3C6.48 3 2 6.58 2 10.9c0 2.78 1.86 5.22 4.66 6.6l-.86 3.18c-.05.2.17.36.34.25l3.77-2.5c.67.1 1.36.16 2.09.16 5.52 0 10-3.58 10-7.99S17.52 3 12 3z"/>
-                </svg>
-                카카오톡으로 입점 문의하기
-              </a>
-              <Link href="/partner" className="mt-4 block text-sm text-primary hover:underline">
-                제휴업체 페이지 둘러보기 →
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          partners.map((partner) => {
-            const gradeInfo = PARTNER_GRADES[partner.grade];
+      {/* 기존 제휴업체 목록 */}
+      {partners.length > 0 && (
+        <div className="mt-6 space-y-4">
+          {partners.map((partner) => {
             const categoryInfo = PARTNER_CATEGORIES[partner.category];
             const statusInfo = PARTNER_STATUS_LABELS[partner.status];
             const regionInfo = REGIONS[partner.region];
@@ -110,8 +67,8 @@ export default async function BusinessPartnerPage() {
                       <Badge variant={statusInfo.variant as any}>
                         {statusInfo.label}
                       </Badge>
-                      <Badge style={{ backgroundColor: gradeInfo.color }}>
-                        {gradeInfo.label}
+                      <Badge style={{ backgroundColor: categoryInfo.color }} className="text-white border-0">
+                        {categoryInfo.emoji} {categoryInfo.label}
                       </Badge>
                       {partner.isVerifiedBiz ? (
                         <Badge className="bg-green-100 text-green-700 text-[10px]">인증</Badge>
@@ -128,7 +85,7 @@ export default async function BusinessPartnerPage() {
                       {categoryInfo.emoji} {categoryInfo.label} · {regionInfo.label}
                     </p>
                     <p>
-                      <span className="text-muted-foreground">월 금액:</span>{" "}
+                      <span className="text-muted-foreground">금액:</span>{" "}
                       {partner.monthlyPrice.toLocaleString()}원
                     </p>
                     {partner.status === "ACTIVE" && !partner.endDate && partner.startDate && (
@@ -230,15 +187,25 @@ export default async function BusinessPartnerPage() {
                   {/* Payment link for PENDING_PAYMENT */}
                   {partner.status === "PENDING_PAYMENT" && paymentLink && (
                     <div className="rounded-md border bg-muted/50 p-3">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">결제 대기 중</p>
-                      <p className="break-all font-mono text-xs">{paymentLink}</p>
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">결제 대기 중 - 아래 계좌로 입금해주세요</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
             );
-          })
-        )}
+          })}
+        </div>
+      )}
+
+      {/* 셀프 등록 폼 */}
+      <div className="mt-8">
+        <PartnerRegisterForm />
+      </div>
+
+      <div className="mt-4 text-center">
+        <Link href="/partner" className="text-sm text-primary hover:underline">
+          제휴업체 페이지 둘러보기 →
+        </Link>
       </div>
     </div>
   );

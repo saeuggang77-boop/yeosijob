@@ -30,14 +30,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Sort by grade (A first), then randomize within same grade
-    const gradeOrder = { A: 1, B: 2, C: 3, D: 4 };
-    const sorted = partners.sort((a, b) => {
-      const gradeCompare = gradeOrder[a.grade] - gradeOrder[b.grade];
-      if (gradeCompare !== 0) return gradeCompare;
-      // Random sort within same grade
-      return Math.random() - 0.5;
-    });
+    // 모든 유료 업체 동등 노출 - 랜덤 셔플
+    const sorted = partners.sort(() => Math.random() - 0.5);
 
     return NextResponse.json({ partners: sorted });
   } catch (error) {

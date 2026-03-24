@@ -63,7 +63,6 @@ export async function POST(
             type: "partner_renewal",
             partnerId: partner.id,
             name: partner.name,
-            grade: partner.grade,
             category: partner.category,
           },
           partnerId: partner.id,

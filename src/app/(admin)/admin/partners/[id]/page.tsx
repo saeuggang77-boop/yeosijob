@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PARTNER_GRADES, PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partners";
 import { REGIONS } from "@/lib/constants/regions";
 import { PartnerAdminActions } from "@/components/partners/PartnerAdminActions";
 
@@ -44,10 +44,10 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const gradeInfo = PARTNER_GRADES[partner.grade];
   const categoryInfo = PARTNER_CATEGORIES[partner.category];
   const statusInfo = PARTNER_STATUS_LABELS[partner.status];
   const regionInfo = REGIONS[partner.region];
+  const catColor = categoryInfo?.color || "#6b7280";
 
   const paymentLink = partner.paymentToken
     ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://yeosijob.com"}/partner/pay/${partner.paymentToken}`
@@ -65,7 +65,9 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
         <h1 className="text-2xl font-bold">{partner.name}</h1>
         <div className="flex items-center gap-2">
           <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
-          <Badge style={{ backgroundColor: gradeInfo.color }}>{gradeInfo.label}</Badge>
+          <Badge style={{ backgroundColor: catColor }} className="text-white border-0">
+            {categoryInfo?.emoji} {categoryInfo?.label}
+          </Badge>
         </div>
       </div>
 
@@ -177,7 +179,8 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            <span className="text-muted-foreground">등급:</span> {gradeInfo.label}
+            <span className="text-muted-foreground">업종:</span>{" "}
+            <span style={{ color: catColor }}>{categoryInfo?.emoji} {categoryInfo?.label}</span>
           </p>
           <p>
             <span className="text-muted-foreground">월 금액:</span> {partner.monthlyPrice.toLocaleString()}원

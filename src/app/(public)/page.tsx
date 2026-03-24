@@ -11,9 +11,9 @@ import { CommunitySection } from "@/components/community/CommunitySection";
 import { REGIONS } from "@/lib/constants/regions";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
-import { PARTNER_CATEGORIES, PARTNER_GRADES } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { getActiveEvent } from "@/lib/event";
-import type { PartnerGrade, PartnerCategory, Region } from "@/generated/prisma/client";
+import type { PartnerCategory, Region } from "@/generated/prisma/client";
 
 function isNewPost(createdAt: Date): boolean {
   return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
@@ -184,9 +184,9 @@ export default async function HomePage() {
         _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
       },
     }),
-    // 제휴업체 (메인 노출: A/B/C 등급만)
+    // 제휴업체 (모든 ACTIVE 업체 메인 노출)
     prisma.partner.findMany({
-      where: { status: "ACTIVE", grade: { in: ["A", "B", "C"] } },
+      where: { status: "ACTIVE", isProfileComplete: true },
       select: {
         id: true,
         name: true,
@@ -195,7 +195,6 @@ export default async function HomePage() {
         description: true,
         highlight: true,
         thumbnailUrl: true,
-        grade: true,
         tags: true,
         viewCount: true,
       },
@@ -203,16 +202,12 @@ export default async function HomePage() {
   ]);
 
 
-  // 제휴업체 같은 등급 내 랜덤 셔플
-  const gradeOrder: PartnerGrade[] = ["A", "B", "C"];
-  const shuffledPartners = gradeOrder.flatMap((g) => {
-    const group = partnerAds.filter((p) => p.grade === g);
-    for (let i = group.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [group[i], group[j]] = [group[j], group[i]];
-    }
-    return group;
-  });
+  // 제휴업체 랜덤 셔플 (동등 노출)
+  const shuffledPartners = [...partnerAds];
+  for (let i = shuffledPartners.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledPartners[i], shuffledPartners[j]] = [shuffledPartners[j], shuffledPartners[i]];
+  }
 
   return (
     <div className="mx-auto max-w-screen-xl">
@@ -360,23 +355,16 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {shuffledPartners.slice(0, 2).map((partner) => {
-                const gradeInfo = PARTNER_GRADES[partner.grade];
                 const catInfo = PARTNER_CATEGORIES[partner.category];
                 const regionLabel = REGIONS[partner.region]?.shortLabel || partner.region;
-                const isA = partner.grade === "A";
-                const isB = partner.grade === "B";
+                const catColor = catInfo?.color || "#6b7280";
 
                 return (
                   <Link
                     key={partner.id}
                     href={`/partner/${partner.id}`}
-                    className={`flex overflow-hidden rounded-xl border transition-colors hover:border-primary ${
-                      isA
-                        ? "border-[#D4A853]/40 bg-gradient-to-r from-[#1a1510] to-card"
-                        : isB
-                          ? "border-[#9CA3AF]/30 bg-card"
-                          : "border-border bg-card"
-                    }`}
+                    className="flex overflow-hidden rounded-xl border transition-colors hover:border-primary bg-card"
+                    style={{ borderColor: `${catColor}40` }}
                   >
                     {/* Thumbnail */}
                     <div className="relative h-auto w-[160px] shrink-0 overflow-hidden bg-muted md:w-[200px]">
@@ -397,7 +385,7 @@ export default async function HomePage() {
                         <span>{catInfo?.label}</span>
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-6">
-                        <span className={`text-sm font-bold ${isA ? "text-[#D4A853]" : "text-white"}`}>
+                        <span className="text-sm font-bold text-white">
                           {partner.name}
                         </span>
                       </div>
@@ -412,7 +400,7 @@ export default async function HomePage() {
                         </p>
                       )}
                       {partner.highlight && (
-                        <p className="text-[13px] font-semibold" style={{ color: gradeInfo?.color }}>
+                        <p className="text-[13px] font-semibold" style={{ color: catColor }}>
                           {partner.highlight}
                         </p>
                       )}
@@ -420,9 +408,9 @@ export default async function HomePage() {
                         <span
                           className="rounded border px-1.5 py-0.5 text-[11px]"
                           style={{
-                            borderColor: `${catInfo?.color}40`,
-                            color: catInfo?.color,
-                            background: `${catInfo?.color}15`,
+                            borderColor: `${catColor}40`,
+                            color: catColor,
+                            background: `${catColor}15`,
                           }}
                         >
                           {catInfo?.label}

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { PARTNER_GRADES } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentWidget } from "@/components/payment/PaymentWidget";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
     select: {
       id: true,
       name: true,
+      category: true,
       grade: true,
       monthlyPrice: true,
       durationDays: true,
@@ -41,7 +42,8 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
     redirect("/business/partner");
   }
 
-  const gradeInfo = PARTNER_GRADES[partner.grade];
+  const categoryInfo = PARTNER_CATEGORIES[partner.category];
+  const catColor = categoryInfo?.color || "#6b7280";
 
   // 기존 PENDING Payment 재사용 또는 새로 생성
   let payment = await prisma.payment.findFirst({
@@ -49,10 +51,12 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
       partnerId: partner.id,
       status: "PENDING",
     },
-    select: { orderId: true },
+    select: { orderId: true, amount: true },
   });
 
   if (!payment) {
+    // 가격은 이미 register에서 계산됨, partner.monthlyPrice * (durationDays/30)에서 할인 적용된 금액
+    // 기존 결제가 없으면 새로 생성 (레거시 플로우 호환)
     const orderId = `PARTNER-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     payment = await prisma.payment.create({
       data: {
@@ -65,15 +69,16 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
         itemSnapshot: {
           type: "partner",
           partnerId: partner.id,
-          grade: partner.grade,
+          category: partner.category,
         },
       },
-      select: { orderId: true },
+      select: { orderId: true, amount: true },
     });
   }
 
   const orderId = payment.orderId;
-  const orderName = `여시잡 제휴업체 ${gradeInfo.label} 입점`;
+  const amount = payment.amount;
+  const orderName = `여시잡 제휴업체 ${categoryInfo?.label || "입점"} (${partner.durationDays}일)`;
 
   const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/success`;
   const failUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/fail`;
@@ -88,9 +93,9 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">등급</span>
-            <Badge style={{ backgroundColor: gradeInfo.color }} className="text-white border-0">
-              {gradeInfo.label}
+            <span className="text-sm text-muted-foreground">업종</span>
+            <Badge style={{ backgroundColor: catColor }} className="text-white border-0">
+              {categoryInfo?.emoji} {categoryInfo?.label}
             </Badge>
           </div>
           <div className="flex justify-between">
@@ -100,7 +105,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
           <div className="flex justify-between border-t pt-3">
             <span className="text-base font-semibold">결제 금액</span>
             <span className="text-lg font-bold text-primary">
-              {partner.monthlyPrice.toLocaleString()}원
+              {amount.toLocaleString()}원
             </span>
           </div>
         </CardContent>
@@ -114,7 +119,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
           <PaymentWidget
             orderId={orderId}
             orderName={orderName}
-            amount={partner.monthlyPrice}
+            amount={amount}
             customerName={partner.user.name || "고객"}
             customerEmail={partner.user.email || ""}
             successUrl={successUrl}

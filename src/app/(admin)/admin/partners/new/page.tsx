@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PARTNER_GRADES } from "@/lib/constants/partners";
+import {
+  PARTNER_CATEGORIES,
+  PARTNER_DURATION_OPTIONS,
+  calculatePartnerPrice,
+} from "@/lib/constants/partners";
 import { toast } from "sonner";
 
 export default function AdminPartnerNewPage() {
@@ -26,9 +30,18 @@ export default function AdminPartnerNewPage() {
 
   const [formData, setFormData] = useState({
     userEmail: "",
-    grade: "",
+    category: "",
+    durationDays: 30,
     isFree: false,
   });
+
+  const selectedCategory = formData.category
+    ? PARTNER_CATEGORIES[formData.category as keyof typeof PARTNER_CATEGORIES]
+    : null;
+
+  const totalPrice = formData.category
+    ? calculatePartnerPrice(formData.category, formData.durationDays)
+    : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,19 +95,17 @@ export default function AdminPartnerNewPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {result.isFree ? (
-              <>
-                <div className="rounded-md border border-green-500/30 bg-green-500/10 p-4">
-                  <p className="font-medium text-green-500">
-                    무료 입점이 완료되었습니다
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    업체에 로그인 후 [제휴업체] 메뉴에서 정보를 입력하도록
-                    안내해주세요.
-                    <br />
-                    정보 입력 완료 시 제휴업체 페이지에 노출됩니다.
-                  </p>
-                </div>
-              </>
+              <div className="rounded-md border border-green-500/30 bg-green-500/10 p-4">
+                <p className="font-medium text-green-500">
+                  무료 입점이 완료되었습니다
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  업체에 로그인 후 [제휴업체] 메뉴에서 정보를 입력하도록
+                  안내해주세요.
+                  <br />
+                  정보 입력 완료 시 제휴업체 페이지에 노출됩니다.
+                </p>
+              </div>
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
@@ -129,7 +140,7 @@ export default function AdminPartnerNewPage() {
     <div>
       <h1 className="text-2xl font-bold">새 제휴업체 등록</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        업체 이메일과 등급만 입력하면 결제 링크가 생성됩니다.
+        업체 이메일과 업종/기간을 선택하면 결제 링크가 생성됩니다.
         <br />
         상세 정보는 업체가 결제 후 직접 입력합니다.
       </p>
@@ -158,27 +169,67 @@ export default function AdminPartnerNewPage() {
             </div>
 
             <div>
-              <Label htmlFor="grade">등급 *</Label>
+              <Label htmlFor="category">업종 *</Label>
               <Select
                 required
-                value={formData.grade}
+                value={formData.category}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, grade: value })
+                  setFormData({ ...formData, category: value })
                 }
               >
-                <SelectTrigger id="grade">
-                  <SelectValue placeholder="등급 선택" />
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="업종 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(PARTNER_GRADES).map(([key, info]) => (
+                  {Object.entries(PARTNER_CATEGORIES).map(([key, info]) => (
                     <SelectItem key={key} value={key}>
-                      {info.label} - {info.price.toLocaleString()}원/월 (
-                      {info.description})
+                      {info.emoji} {info.label} - 월 {info.price.toLocaleString()}원
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label htmlFor="duration">기간 *</Label>
+              <Select
+                required
+                value={String(formData.durationDays)}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, durationDays: Number(value) })
+                }
+              >
+                <SelectTrigger id="duration">
+                  <SelectValue placeholder="기간 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PARTNER_DURATION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.days} value={String(opt.days)}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedCategory && !formData.isFree && (
+              <div className="rounded-md border p-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">업종</span>
+                  <span style={{ color: selectedCategory.color }}>
+                    {selectedCategory.emoji} {selectedCategory.label}
+                  </span>
+                </div>
+                <div className="mt-1 flex justify-between">
+                  <span className="text-muted-foreground">기간</span>
+                  <span>{formData.durationDays}일</span>
+                </div>
+                <div className="mt-2 flex justify-between border-t pt-2 font-semibold">
+                  <span>결제 금액</span>
+                  <span className="text-primary">{totalPrice.toLocaleString()}원</span>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 rounded-md border p-3">
               <input
@@ -203,7 +254,7 @@ export default function AdminPartnerNewPage() {
         </Card>
 
         <div className="mt-6 flex gap-2">
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || (!formData.category)}>
             {loading
               ? "등록 중..."
               : formData.isFree

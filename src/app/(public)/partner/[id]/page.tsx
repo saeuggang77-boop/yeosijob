@@ -244,7 +244,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           {partner.highlight && (
             <p
               className="text-lg font-semibold"
-              style={{ color: partner.grade === "A" ? "#D4A853" : undefined }}
+              style={{ color: categoryInfo?.color }}
             >
               {partner.highlight}
             </p>

@@ -63,6 +63,7 @@ export function PartnerRegisterForm() {
         {/* 업종 선택 */}
         <div className="space-y-3">
           <Label className="text-base font-semibold">업종 선택</Label>
+          <p className="text-xs text-muted-foreground">실제 업종과 다르게 선택할 경우 관리자 검토 후 승인이 거부될 수 있습니다</p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {Object.entries(PARTNER_CATEGORIES).map(([key, info]) => {
               const isSelected = category === key;

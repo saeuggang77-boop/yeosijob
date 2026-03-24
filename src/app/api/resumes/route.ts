@@ -88,36 +88,19 @@ export async function POST(request: NextRequest) {
 
     // Notify ad owners when a new resume is created
     if (isNew) {
-      // 1. includeResumeAlert 상품 (PREMIUM/VIP/BANNER)
-      // 2. KAKAO_ALERT 옵션 구매자
-      const [premiumAds, alertOptionAds] = await Promise.all([
-        prisma.ad.findMany({
-          where: {
-            status: "ACTIVE",
-            productId: { in: ["PREMIUM", "VIP", "BANNER"] },
-            regions: { has: data.region as Region },
-            businessType: { in: data.desiredJobs as BusinessType[] },
-          },
-          select: { userId: true },
-          distinct: ["userId"],
-        }),
-        prisma.ad.findMany({
-          where: {
-            status: "ACTIVE",
-            regions: { has: data.region as Region },
-            businessType: { in: data.desiredJobs as BusinessType[] },
-            options: { some: { optionId: "KAKAO_ALERT" } },
-          },
-          select: { userId: true },
-          distinct: ["userId"],
-        }),
-      ]);
+      // includeResumeAlert 상품 (PREMIUM/VIP/BANNER)
+      const premiumAds = await prisma.ad.findMany({
+        where: {
+          status: "ACTIVE",
+          productId: { in: ["PREMIUM", "VIP", "BANNER"] },
+          regions: { has: data.region as Region },
+          businessType: { in: data.desiredJobs as BusinessType[] },
+        },
+        select: { userId: true },
+        distinct: ["userId"],
+      });
 
-      // 중복 제거
-      const userIds = [...new Set([
-        ...premiumAds.map((a) => a.userId),
-        ...alertOptionAds.map((a) => a.userId),
-      ])];
+      const userIds = premiumAds.map((a) => a.userId);
 
       if (userIds.length > 0) {
         // 이력서 알림을 받겠다고 설정한 사장님만 대상

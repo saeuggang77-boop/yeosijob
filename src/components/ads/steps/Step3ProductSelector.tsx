@@ -400,37 +400,25 @@ export function Step3ProductSelector({
           </CardHeader>
           <CardContent className="space-y-3">
             {Object.entries(AD_OPTIONS).map(([optId, opt]) => {
-            // KAKAO_ALERT은 준비중 (실제 기능 미구현)
-            const isDisabled = optId === "KAKAO_ALERT";
             // 급구 등급이면 아이콘 무료
             const isFreeIcon =
               optId === "ICON" && AD_PRODUCTS[productId]?.includeIconFree;
-            const isSelected = !isDisabled && options.includes(optId);
+            const isSelected = options.includes(optId);
             const price = isFreeIcon ? 0 : opt.pricing[durationDays as DurationDays];
 
             return (
               <div key={optId}>
                 <button
                   type="button"
-                  onClick={() => !isDisabled && toggleOption(optId)}
-                  disabled={isDisabled}
+                  onClick={() => toggleOption(optId)}
                   className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
-                    isDisabled ? "cursor-not-allowed opacity-50" :
                     isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
                   }`}
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{opt.name}</span>
-                      {isDisabled && (
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px]"
-                        >
-                          준비중
-                        </Badge>
-                      )}
-                      {isFreeIcon && !isDisabled && (
+                      {isFreeIcon && (
                         <Badge
                           variant="secondary"
                           className="text-[10px] bg-green-100 text-green-700"
@@ -444,9 +432,7 @@ export function Step3ProductSelector({
                     </p>
                   </div>
                   <div className="text-right">
-                    {isDisabled ? (
-                      <p className="text-sm text-muted-foreground">준비중</p>
-                    ) : isFreeIcon ? (
+                    {isFreeIcon ? (
                       <p className="font-medium text-green-600">무료</p>
                     ) : (
                       <p className="font-medium">

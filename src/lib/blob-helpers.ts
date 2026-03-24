@@ -9,27 +9,21 @@ export const BLOB_QUOTA_BYTES = 500 * 1024 * 1024; // 500MB
  */
 export async function deletePostImages(postId: string): Promise<void> {
   try {
-    // Get all images for this post
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const images = await (prisma as any).postImage.findMany({
+    const images = await prisma.postImage.findMany({
       where: { postId },
       select: { url: true, id: true },
     });
 
     if (images.length === 0) return;
 
-    // Delete from Blob Store
-    const urls = images.map((img: { url: string; id: string }) => img.url);
+    const urls = images.map((img) => img.url);
     try {
       await del(urls);
     } catch (error) {
       console.error("Blob deletion error:", error);
-      // Continue even if blob deletion fails
     }
 
-    // Delete from database
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma as any).postImage.deleteMany({
+    await prisma.postImage.deleteMany({
       where: { postId },
     });
   } catch (error) {
@@ -43,8 +37,7 @@ export async function deletePostImages(postId: string): Promise<void> {
  */
 export async function getTotalBlobUsage(): Promise<number> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (prisma as any).postImage.aggregate({
+    const result = await prisma.postImage.aggregate({
       _sum: {
         size: true,
       },
@@ -70,12 +63,9 @@ export async function getBlobUsagePercent(): Promise<number> {
  */
 export async function deleteImageByUrl(url: string): Promise<void> {
   try {
-    // Delete from Blob Store
     await del(url);
 
-    // Delete from database
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma as any).postImage.deleteMany({
+    await prisma.postImage.deleteMany({
       where: { url },
     });
   } catch (error) {
@@ -90,30 +80,28 @@ export async function deleteImageByUrl(url: string): Promise<void> {
  */
 export async function cleanupOrphanedImages(): Promise<number> {
   try {
-    // Find images whose posts no longer exist
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const orphanedImages = await (prisma as any).postImage.findMany({
+    // PostImage has onDelete: Cascade, so orphaned images are automatically deleted
+    // This function is kept for compatibility but returns 0
+    // If needed, could query for images of deleted posts: post: { deletedAt: { not: null } }
+    const orphanedImages = await prisma.postImage.findMany({
       where: {
-        post: null,
+        post: { deletedAt: { not: null } },
       },
       select: { url: true, id: true },
     });
 
     if (orphanedImages.length === 0) return 0;
 
-    // Delete from Blob Store
-    const urls = orphanedImages.map((img: { url: string; id: string }) => img.url);
+    const urls = orphanedImages.map((img) => img.url);
     try {
       await del(urls);
     } catch (error) {
       console.error("Blob cleanup error:", error);
     }
 
-    // Delete from database
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma as any).postImage.deleteMany({
+    await prisma.postImage.deleteMany({
       where: {
-        id: { in: orphanedImages.map((img: { url: string; id: string }) => img.id) },
+        id: { in: orphanedImages.map((img) => img.id) },
       },
     });
 

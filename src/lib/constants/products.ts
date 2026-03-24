@@ -214,10 +214,4 @@ export const AD_OPTIONS = {
     choices: 8,
     pricing: { 30: 30_000, 60: 50_000, 90: 70_000 },
   },
-  KAKAO_ALERT: {
-    id: "KAKAO_ALERT",
-    name: "신규 이력서 알림",
-    description: "신규 이력서 등록 시 알림으로 즉시 알려드립니다",
-    pricing: { 30: 50_000, 60: 80_000, 90: 120_000 },
-  },
 } as const;

@@ -100,14 +100,7 @@ export async function POST(
 
     if (options && Array.isArray(options)) {
       for (const optId of options) {
-        // 카카오 알림톡은 현재 미구현 — 결제 차단
-        if (optId === "KAKAO_ALERT") {
-          return NextResponse.json(
-            { error: "신규 이력서 알림은 현재 준비 중입니다" },
-            { status: 400 }
-          );
-        }
-        const option = AD_OPTIONS[optId as AdOptionId];
+        const option = AD_OPTIONS[optId as keyof typeof AD_OPTIONS];
         if (!option) continue;
 
         // 아이콘이 무료 포함되는 경우 체크

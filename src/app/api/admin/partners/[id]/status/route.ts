@@ -42,6 +42,14 @@ export async function PATCH(
       data: updateData,
     });
 
+    // ACTIVE 전환 시 연결된 PENDING Payment도 APPROVED로 동기화
+    if (status === "ACTIVE") {
+      await prisma.payment.updateMany({
+        where: { partnerId: id, status: "PENDING" },
+        data: { status: "APPROVED" },
+      });
+    }
+
     revalidatePath("/partner");
     revalidatePath(`/partner/${id}`);
 

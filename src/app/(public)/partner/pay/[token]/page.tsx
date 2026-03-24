@@ -41,6 +41,11 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
     redirect("/business/partner");
   }
 
+  // 프로필 미완성이면 정보 입력 페이지로 리다이렉트
+  if (!partner.isProfileComplete) {
+    redirect(`/business/partner/${partner.id}/edit`);
+  }
+
   const categoryInfo = PARTNER_CATEGORIES[partner.category];
   const catColor = categoryInfo?.color || "#6b7280";
 

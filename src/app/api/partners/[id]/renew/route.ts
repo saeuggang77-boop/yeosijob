@@ -30,6 +30,11 @@ export async function POST(
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
+    // 연장 가능한 상태인지 검증
+    if (!["ACTIVE", "EXPIRED"].includes(partner.status)) {
+      return NextResponse.json({ error: "연장 가능한 상태가 아닙니다" }, { status: 400 });
+    }
+
     // 기존 PENDING 결제가 있으면 취소 후 새로 생성
     let paymentToken = "";
 

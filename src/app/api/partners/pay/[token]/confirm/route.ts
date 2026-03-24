@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
@@ -34,6 +35,11 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+
     const { token } = await params;
 
     // Rate limiting: IP 기준 분당 5회
@@ -77,6 +83,11 @@ export async function POST(
 
     if (payment.status !== "PENDING") {
       return NextResponse.json({ error: "처리할 수 없는 결제 상태입니다" }, { status: 400 });
+    }
+
+    // 소유자 검증
+    if (payment.userId !== session.user.id && session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
     // Verify token matches

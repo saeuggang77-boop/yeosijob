@@ -251,8 +251,14 @@ export default function BusinessPartnerEditPage() {
       }
 
       toast.success("업체 정보가 저장되었습니다");
-      router.push("/business/partner");
-      router.refresh();
+
+      // PENDING_PAYMENT면 결제 페이지로 이동
+      if (data.partner?.paymentToken && data.partner?.status === "PENDING_PAYMENT") {
+        router.push(`/partner/pay/${data.partner.paymentToken}`);
+      } else {
+        router.push("/business/partner");
+        router.refresh();
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "저장 중 오류가 발생했습니다";

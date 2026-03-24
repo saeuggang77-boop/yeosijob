@@ -114,26 +114,19 @@ export async function PUT(
     const region = updateData.region as string;
     const description = (updateData.description as string) || "";
 
-    if (name && name !== "미등록 업체" && category && region && description.length >= 100) {
+    if (name && name !== "미등록 업체" && category && region) {
       updateData.isProfileComplete = true;
-
-      // 프로필 완성 시 기간 시작 (endDate가 아직 없는 경우에만)
-      const current = await prisma.partner.findUnique({
-        where: { id },
-        select: { endDate: true, durationDays: true, status: true },
-      });
-      if (current && current.status === "ACTIVE" && !current.endDate) {
-        const now = new Date();
-        const end = new Date(now);
-        end.setDate(end.getDate() + current.durationDays);
-        updateData.startDate = now;
-        updateData.endDate = end;
-      }
     }
 
     const partner = await prisma.partner.update({
       where: { id },
       data: updateData,
+      select: {
+        id: true,
+        status: true,
+        paymentToken: true,
+        isProfileComplete: true,
+      },
     });
 
     // ISR 캐시 무효화 - 공개 리스트/상세 페이지 즉시 반영

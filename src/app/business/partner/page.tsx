@@ -28,18 +28,6 @@ export default async function BusinessPartnerPage() {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  const getAutoStartRemaining = (startDate: Date) => {
-    const autoStart = new Date(startDate);
-    autoStart.setDate(autoStart.getDate() + 3);
-    const now = new Date();
-    const diff = autoStart.getTime() - now.getTime();
-    const hours = Math.ceil(diff / (1000 * 60 * 60));
-    if (hours <= 0) return "곧 자동 시작";
-    const days = Math.floor(hours / 24);
-    const remainHours = hours % 24;
-    if (days > 0) return `${days}일 ${remainHours}시간 남음`;
-    return `${remainHours}시간 남음`;
-  };
 
   return (
     <div>
@@ -84,21 +72,6 @@ export default async function BusinessPartnerPage() {
                       <span className="text-muted-foreground">금액:</span>{" "}
                       {partner.monthlyPrice.toLocaleString()}원
                     </p>
-                    {partner.status === "ACTIVE" && !partner.endDate && partner.startDate && (
-                      <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
-                        <p className="text-sm font-medium text-blue-400">
-                          ⏸ 기간 대기 중
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          업체 정보를 입력하면 그때부터 {partner.durationDays}일이 시작됩니다.
-                          <br />
-                          미입력 시 자동 시작까지{" "}
-                          <span className="font-semibold text-blue-300">
-                            {getAutoStartRemaining(partner.startDate)}
-                          </span>
-                        </p>
-                      </div>
-                    )}
                     {partner.startDate && partner.endDate && (
                       <>
                         <p>
@@ -118,22 +91,6 @@ export default async function BusinessPartnerPage() {
                     )}
                   </div>
 
-                  {/* 프로필 미완성 안내 */}
-                  {!partner.isProfileComplete && partner.status === "ACTIVE" && (
-                    <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
-                      <p className="text-sm font-medium text-yellow-500">
-                        업체 정보를 입력해주세요
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        정보를 입력해야 제휴업체 페이지에 노출됩니다
-                      </p>
-                      <Button size="sm" className="mt-2" asChild>
-                        <Link href={`/business/partner/${partner.id}/edit`}>
-                          정보 입력하기
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
 
                   {/* 사업자 미인증 안내 */}
                   {!partner.isVerifiedBiz && partner.status === "ACTIVE" && (
@@ -171,19 +128,37 @@ export default async function BusinessPartnerPage() {
                       <PartnerRenewButton partnerId={partner.id} label="연장 결제" />
                     )}
 
-                    {partner.status === "PENDING_PAYMENT" && partner.paymentToken && (
-                      <Button size="sm" asChild>
-                        <Link href={`/partner/pay/${partner.paymentToken}`}>
-                          결제하기
-                        </Link>
-                      </Button>
+                    {partner.status === "PENDING_PAYMENT" && (
+                      <>
+                        {!partner.isProfileComplete && (
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/business/partner/${partner.id}/edit`}>
+                              정보 입력
+                            </Link>
+                          </Button>
+                        )}
+                        {partner.isProfileComplete && partner.paymentToken && (
+                          <Button size="sm" asChild>
+                            <Link href={`/partner/pay/${partner.paymentToken}`}>
+                              결제하기
+                            </Link>
+                          </Button>
+                        )}
+                      </>
                     )}
                   </div>
 
-                  {/* Payment link for PENDING_PAYMENT */}
-                  {partner.status === "PENDING_PAYMENT" && partner.paymentToken && (
-                    <div className="rounded-md border bg-muted/50 p-3">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">결제 대기 중 - 아래 계좌로 입금해주세요</p>
+                  {/* PENDING_PAYMENT 안내 */}
+                  {partner.status === "PENDING_PAYMENT" && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+                      <p className="text-sm font-medium text-amber-500">
+                        {partner.isProfileComplete ? "결제를 진행해주세요" : "업체 정보를 입력해주세요"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {partner.isProfileComplete
+                          ? "결제 완료 후 관리자 확인을 거쳐 노출됩니다"
+                          : "정보 입력 후 결제를 진행할 수 있습니다"}
+                      </p>
                     </div>
                   )}
                 </CardContent>

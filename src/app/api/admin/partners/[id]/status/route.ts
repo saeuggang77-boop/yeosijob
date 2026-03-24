@@ -24,12 +24,14 @@ export async function PATCH(
     const now = new Date();
     const updateData: Record<string, unknown> = { status };
 
-    // ACTIVE로 변경 시 startDate 기록 + paymentToken 무효화
+    // ACTIVE로 변경 시 startDate + endDate 즉시 설정 + paymentToken 무효화
     if (status === "ACTIVE") {
       const partner = await prisma.partner.findUnique({ where: { id } });
       if (partner && !partner.startDate) {
         updateData.startDate = now;
-        updateData.endDate = null;
+        const end = new Date(now);
+        end.setDate(end.getDate() + (partner.durationDays || 30));
+        updateData.endDate = end;
       }
       // 결제 링크 재사용 방지
       updateData.paymentToken = null;

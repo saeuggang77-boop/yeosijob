@@ -11,23 +11,7 @@ import { z } from "zod";
 const registerSchema = z.object({
   category: z.enum(["PLASTIC_SURGERY", "BEAUTY", "RENTAL", "FINANCE", "OTHER"]),
   durationDays: z.number().refine((v) => [30, 90, 180].includes(v), "유효하지 않은 기간"),
-  receiptType: z.enum(["TAX_INVOICE", "CASH_RECEIPT", "NONE"]),
-  taxEmail: z.string().email().optional(),
-  cashReceiptNo: z.string().regex(/^\d{10,13}$/).optional(),
-  cashReceiptType: z.enum(["PHONE", "BIZ"]).optional(),
-}).refine(
-  (data) => {
-    if (data.receiptType === "TAX_INVOICE") return !!data.taxEmail;
-    return true;
-  },
-  { message: "세금계산서 선택 시 이메일은 필수입니다", path: ["taxEmail"] }
-).refine(
-  (data) => {
-    if (data.receiptType === "CASH_RECEIPT") return !!data.cashReceiptNo && !!data.cashReceiptType;
-    return true;
-  },
-  { message: "현금영수증 선택 시 발급번호와 타입은 필수입니다", path: ["cashReceiptNo"] }
-);
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { category, durationDays, receiptType, taxEmail, cashReceiptNo, cashReceiptType } = validation.data;
+    const { category, durationDays } = validation.data;
 
     // 가격 계산
     const amount = calculatePartnerPrice(category, durationDays);
@@ -105,10 +89,7 @@ export async function POST(request: NextRequest) {
           status: "PENDING",
           bankName: BANK_NAME,
           accountNumber: ACCOUNT_NUMBER,
-          receiptType: receiptType || "NONE",
-          taxEmail: receiptType === "TAX_INVOICE" ? taxEmail : null,
-          cashReceiptNo: receiptType === "CASH_RECEIPT" ? cashReceiptNo : null,
-          cashReceiptType: receiptType === "CASH_RECEIPT" ? cashReceiptType : null,
+          receiptType: "NONE",
           itemSnapshot: {
             type: "partner",
             partnerId: partner.id,

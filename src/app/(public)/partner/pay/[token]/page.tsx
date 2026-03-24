@@ -133,7 +133,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
       </Card>
 
       <div className="mt-4 rounded-lg bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-        결제 완료 후 업체 정보를 입력하시면 제휴업체 페이지에 노출됩니다
+        입금 확인 후 관리자 승인을 거쳐 제휴업체 페이지에 노출됩니다
       </div>
     </div>
   );

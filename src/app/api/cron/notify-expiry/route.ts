@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyCronAuth } from "@/lib/utils/cron-auth";
 import { sendAdExpiryNotification } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 
 /**
  * 광고/제휴업체 만료 알림 cron - 매일 1회 실행 (09:00 KST)
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const now = new Date();
-    const results = { adNotified: 0, partnerNotified: 0, errors: 0 };
+    const results = { adNotified: 0, partnerNotified: 0, smsSent: 0, errors: 0 };
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     // D-3, D-1, D-0 체크
@@ -38,8 +39,9 @@ export async function GET(request: NextRequest) {
           id: true,
           title: true,
           businessName: true,
+          contactPhone: true,
           userId: true,
-          user: { select: { email: true } },
+          user: { select: { email: true, phone: true } },
         },
       });
 
@@ -74,6 +76,15 @@ export async function GET(request: NextRequest) {
             },
           });
 
+          // D-1일 때만 SMS 발송
+          if (daysLeft === 1) {
+            const adPhone = (ad.contactPhone || ad.user.phone)?.replace(/[^0-9]/g, "");
+            if (adPhone) {
+              sendSms(adPhone, `[여시잡] '${ad.businessName}' 광고가 내일 만료됩니다. 연장하시려면 여시잡에서 확인해주세요.`, "[여시잡] 만료안내").catch(() => {});
+              results.smsSent++;
+            }
+          }
+
           results.adNotified++;
         } catch (error) {
           console.error(`Failed to send expiry notification for ad ${ad.id}:`, error);
@@ -90,8 +101,9 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
+          contactPhone: true,
           userId: true,
-          user: { select: { email: true } },
+          user: { select: { email: true, phone: true } },
         },
       });
 
@@ -124,6 +136,15 @@ export async function GET(request: NextRequest) {
               link: partnerLink,
             },
           });
+
+          // D-1일 때만 SMS 발송
+          if (daysLeft === 1) {
+            const partnerPhone = (partner.contactPhone || partner.user.phone)?.replace(/[^0-9]/g, "");
+            if (partnerPhone) {
+              sendSms(partnerPhone, `[여시잡] '${partner.name}' 제휴업체 광고가 내일 만료됩니다. 연장하시려면 여시잡에서 확인해주세요.`, "[여시잡] 만료안내").catch(() => {});
+              results.smsSent++;
+            }
+          }
 
           results.partnerNotified++;
         } catch (error) {

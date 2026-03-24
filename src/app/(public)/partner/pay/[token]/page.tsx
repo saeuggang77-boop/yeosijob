@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
+import { PARTNER_CATEGORIES, calculatePartnerPrice } from "@/lib/constants/partners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentWidget } from "@/components/payment/PaymentWidget";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +26,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
       isProfileComplete: true,
       user: {
         select: {
-          name: true,
-          email: true,
+          id: true,
         },
       },
     },
@@ -55,7 +54,6 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
   });
 
   if (!payment) {
-    // 가격은 이미 register에서 계산됨, partner.monthlyPrice * (durationDays/30)에서 할인 적용된 금액
     // 기존 결제가 없으면 새로 생성 (레거시 플로우 호환)
     const orderId = `PARTNER-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     payment = await prisma.payment.create({
@@ -63,7 +61,7 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
         orderId,
         userId: partner.userId,
         partnerId: partner.id,
-        amount: partner.monthlyPrice,
+        amount: calculatePartnerPrice(partner.category, partner.durationDays),
         method: "BANK_TRANSFER",
         status: "PENDING",
         itemSnapshot: {
@@ -120,8 +118,9 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
             orderId={orderId}
             orderName={orderName}
             amount={amount}
-            customerName={partner.user.name || "고객"}
-            customerEmail={partner.user.email || ""}
+            customerName="고객"
+            customerEmail=""
+            confirmUrl={`/api/partners/pay/${token}/confirm`}
             successUrl={successUrl}
             failUrl={failUrl}
           />

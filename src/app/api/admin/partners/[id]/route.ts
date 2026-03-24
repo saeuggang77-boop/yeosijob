@@ -54,9 +54,24 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    // 허용된 필드만 업데이트 (mass assignment 방지)
+    const allowedFields = [
+      "name", "description", "highlight", "category", "region",
+      "contactPhone", "contactKakao", "websiteUrl", "businessHours",
+      "address", "latitude", "longitude", "monthlyPrice", "durationDays",
+      "isProfileComplete", "isVerifiedBiz", "businessNumber", "bizOwnerName",
+      "images",
+    ];
+    const updateData: Record<string, unknown> = {};
+    for (const key of allowedFields) {
+      if (key in body) {
+        updateData[key] = body[key];
+      }
+    }
+
     const partner = await prisma.partner.update({
       where: { id },
-      data: body,
+      data: updateData,
     });
 
     return NextResponse.json({ partner });

@@ -13,6 +13,7 @@ interface Props {
   amount: number;
   customerName: string;
   customerEmail: string;
+  confirmUrl?: string;
   successUrl?: string;
   failUrl?: string;
   onError?: (message: string) => void;
@@ -27,6 +28,7 @@ export function PaymentWidget({
   amount,
   customerName,
   customerEmail,
+  confirmUrl,
   successUrl,
   failUrl,
   onError,
@@ -54,7 +56,7 @@ export function PaymentWidget({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/payments/confirm", {
+      const res = await fetch(confirmUrl || "/api/payments/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

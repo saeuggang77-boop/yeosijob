@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { calculatePartnerPrice } from "@/lib/constants/partners";
 import crypto from "node:crypto";
 
 export async function POST(
@@ -56,7 +57,7 @@ export async function POST(
         data: {
           orderId,
           userId: partner.userId,
-          amount: partner.monthlyPrice,
+          amount: calculatePartnerPrice(partner.category, partner.durationDays),
           method: "BANK_TRANSFER",
           status: "PENDING",
           itemSnapshot: {

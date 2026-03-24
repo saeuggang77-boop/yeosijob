@@ -124,6 +124,7 @@ export default async function AdminDashboardPage() {
     take: 5,
     include: {
       ad: { select: { title: true } },
+      partner: { select: { name: true } },
     },
   });
 
@@ -402,7 +403,7 @@ export default async function AdminDashboardPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="truncate text-sm font-medium">
-                            {payment.ad?.title || "삭제된 광고"}
+                            {payment.ad?.title || (payment.partner ? `[제휴] ${payment.partner.name}` : "삭제된 결제")}
                           </p>
                           <Badge variant={statusInfo.variant} className="text-xs">
                             {statusInfo.label}

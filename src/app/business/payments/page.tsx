@@ -26,6 +26,7 @@ export default async function BusinessPaymentsPage() {
     orderBy: { createdAt: "desc" },
     include: {
       ad: { select: { id: true, title: true } },
+      partner: { select: { id: true, name: true, category: true } },
     },
   });
 
@@ -53,7 +54,10 @@ export default async function BusinessPaymentsPage() {
                   <CardTitle className="text-base">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="truncate">{payment.ad?.title || "삭제된 광고"}</span>
+                        <span className="truncate">
+                          {payment.ad?.title
+                            || (payment.partner ? `제휴업체: ${payment.partner.name}` : "삭제된 결제")}
+                        </span>
                         <Badge variant={statusInfo.variant}>
                           {statusInfo.label}
                         </Badge>

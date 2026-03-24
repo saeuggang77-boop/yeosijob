@@ -9,6 +9,7 @@ import { PARTNER_CATEGORIES, PARTNER_STATUS_LABELS } from "@/lib/constants/partn
 import { REGIONS } from "@/lib/constants/regions";
 import { PartnerRenewButton } from "@/components/partners/PartnerRenewButton";
 import { PartnerRegisterForm } from "@/components/partners/PartnerRegisterForm";
+import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
 
 export default async function BusinessPartnerPage() {
   const session = await auth();
@@ -151,14 +152,30 @@ export default async function BusinessPartnerPage() {
                   {/* PENDING_PAYMENT 안내 */}
                   {partner.status === "PENDING_PAYMENT" && (
                     <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-                      <p className="text-sm font-medium text-amber-500">
-                        {partner.isProfileComplete ? "결제를 진행해주세요" : "업체 정보를 입력해주세요"}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {partner.isProfileComplete
-                          ? "결제 완료 후 관리자 확인을 거쳐 노출됩니다"
-                          : "정보 입력 후 결제를 진행할 수 있습니다"}
-                      </p>
+                      {partner.isProfileComplete && !partner.paymentToken ? (
+                        <>
+                          <p className="text-sm font-medium text-amber-500">입금 대기 중</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            아래 계좌로 입금 후 관리자 확인을 거쳐 노출됩니다
+                          </p>
+                          <div className="mt-2 rounded bg-background/50 p-2 text-xs space-y-0.5">
+                            <p><span className="text-muted-foreground">은행:</span> {BANK_NAME}</p>
+                            <p><span className="text-muted-foreground">계좌:</span> {ACCOUNT_NUMBER}</p>
+                            <p><span className="text-muted-foreground">예금주:</span> {ACCOUNT_HOLDER}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-amber-500">
+                            {partner.isProfileComplete ? "결제를 진행해주세요" : "업체 정보를 입력해주세요"}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {partner.isProfileComplete
+                              ? "결제 완료 후 관리자 확인을 거쳐 노출됩니다"
+                              : "정보 입력 후 결제를 진행할 수 있습니다"}
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                 </CardContent>

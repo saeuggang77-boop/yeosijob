@@ -54,10 +54,6 @@ export default async function BusinessPartnerPage() {
             const regionInfo = REGIONS[partner.region];
             const remainingDays = partner.endDate ? getRemainingDays(partner.endDate) : null;
 
-            const paymentLink = partner.paymentToken
-              ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://yeosijob.com"}/partner/pay/${partner.paymentToken}`
-              : null;
-
             return (
               <Card key={partner.id}>
                 <CardHeader>
@@ -175,17 +171,17 @@ export default async function BusinessPartnerPage() {
                       <PartnerRenewButton partnerId={partner.id} label="연장 결제" />
                     )}
 
-                    {partner.status === "PENDING_PAYMENT" && paymentLink && (
+                    {partner.status === "PENDING_PAYMENT" && partner.paymentToken && (
                       <Button size="sm" asChild>
-                        <a href={paymentLink} target="_blank" rel="noopener noreferrer">
+                        <Link href={`/partner/pay/${partner.paymentToken}`}>
                           결제하기
-                        </a>
+                        </Link>
                       </Button>
                     )}
                   </div>
 
                   {/* Payment link for PENDING_PAYMENT */}
-                  {partner.status === "PENDING_PAYMENT" && paymentLink && (
+                  {partner.status === "PENDING_PAYMENT" && partner.paymentToken && (
                     <div className="rounded-md border bg-muted/50 p-3">
                       <p className="mb-2 text-xs font-medium text-muted-foreground">결제 대기 중 - 아래 계좌로 입금해주세요</p>
                     </div>

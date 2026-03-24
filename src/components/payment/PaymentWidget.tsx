@@ -77,10 +77,10 @@ export function PaymentWidget({
 
       // 성공 시 successUrl로 이동
       const resolvedSuccessUrl =
-        successUrl || `${window.location.origin}/business/ads/new/success`;
-      const url = new URL(resolvedSuccessUrl);
+        successUrl || `/business/ads/new/success`;
+      const url = new URL(resolvedSuccessUrl, window.location.origin);
       url.searchParams.set("orderId", orderId);
-      router.push(url.toString());
+      router.push(url.pathname + url.search);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "결제 신청 중 오류가 발생했습니다";

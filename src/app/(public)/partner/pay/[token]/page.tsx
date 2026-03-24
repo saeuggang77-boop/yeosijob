@@ -80,8 +80,8 @@ export default async function PartnerPaymentPage({ params }: PageProps) {
   const amount = payment.amount;
   const orderName = `여시잡 제휴업체 ${categoryInfo?.label || "입점"} (${partner.durationDays}일)`;
 
-  const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/success`;
-  const failUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://yeosijob.com"}/partner/pay/${token}/fail`;
+  const successUrl = `/partner/pay/${token}/success`;
+  const failUrl = `/partner/pay/${token}/fail`;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">

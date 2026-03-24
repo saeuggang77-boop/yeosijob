@@ -67,7 +67,7 @@ export async function POST(
     // Find payment record
     const payment = await prisma.payment.findUnique({
       where: { orderId },
-      include: { partner: true },
+      include: { partner: true, user: { select: { phone: true } } },
     });
 
     if (!payment) {
@@ -125,7 +125,7 @@ export async function POST(
     revalidatePath("/partner");
 
     // SMS 입금안내 발송 (사장님에게, fire and forget)
-    const partnerPhone = payment.partner?.contactPhone?.replace(/[^0-9]/g, "");
+    const partnerPhone = (payment.partner?.contactPhone || payment.user?.phone)?.replace(/[^0-9]/g, "");
     if (partnerPhone) {
       sendSms(
         partnerPhone,

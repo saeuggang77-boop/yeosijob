@@ -103,8 +103,8 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
             const catColor = categoryInfo?.color || "#6b7280";
 
             return (
-              <div key={partner.id}>
-                <Card>
+              <Link key={partner.id} href={`/admin/partners/${partner.id}`}>
+                <Card className="transition-colors hover:border-primary/50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -144,7 +144,7 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </Link>
             );
           })
         )}

@@ -124,14 +124,25 @@ export async function POST(
 
     revalidatePath("/partner");
 
-    // SMS 입금안내 발송 (사장님에게, fire and forget)
-    const partnerPhone = (payment.partner?.contactPhone || payment.user?.phone)?.replace(/[^0-9]/g, "");
-    if (partnerPhone) {
+    // SMS 입금안내 발송 (결제한 사장님 개인번호로, fire and forget)
+    // 제휴업체 contactPhone은 업체 대표번호이므로 user.phone 사용
+    const owner = await prisma.user.findUnique({
+      where: { id: payment.userId },
+      select: { phone: true },
+    });
+    const ownerPhone = owner?.phone?.replace(/[^0-9]/g, "");
+    if (ownerPhone) {
       sendSms(
-        partnerPhone,
+        ownerPhone,
         `[여시잡] 입금안내\n${BANK_NAME} ${ACCOUNT_NUMBER} (${ACCOUNT_HOLDER})\n금액: ${payment.amount.toLocaleString()}원\n\n입금 확인 후 제휴업체가 활성화됩니다.`,
         "[여시잡] 입금안내"
-      ).catch(() => {});
+      ).then((result) => {
+        if (!result.success) {
+          console.error("Partner payment SMS failed:", result.error, { partnerId: payment.partnerId });
+        }
+      }).catch((err) => console.error("Partner payment SMS error:", err));
+    } else {
+      console.warn("Partner payment SMS skipped: no phone number", { partnerId: payment.partnerId, userId: payment.userId });
     }
 
     // 관리자에게 알림 + 푸시 (fire and forget)

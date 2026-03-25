@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 
 import { calculateDday, getDdayColorClass } from "@/lib/utils/dday";
@@ -13,6 +14,7 @@ interface AdBoxCardProps {
     businessName: string;
     businessType: BusinessType;
     regions: Region[];
+    districts?: string[];
     salaryText: string;
     isVerified: boolean;
     viewCount?: number;
@@ -27,7 +29,13 @@ interface AdBoxCardProps {
 
 export function AdBoxCard({ ad, productId, compact = false }: AdBoxCardProps) {
   const regionLabels = ad.regions
-    .map((r) => REGIONS[r]?.shortLabel || r)
+    .map((r) => {
+      const label = REGIONS[r]?.shortLabel || r;
+      const district = ad.districts?.find((d) =>
+        DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d)
+      );
+      return district ? `${label} ${district}` : label;
+    })
     .join(", ");
   const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
   const ddayInfo = productId !== "FREE" ? calculateDday(ad.endDate) : null;

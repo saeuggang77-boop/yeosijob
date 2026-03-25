@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { Banner } from "@/components/ads/Banner";
 
@@ -14,6 +15,7 @@ interface TierCardProps {
     businessName: string;
     businessType: BusinessType;
     regions: Region[];
+    districts?: string[];
     salaryText: string;
     isVerified: boolean;
     viewCount: number;
@@ -48,7 +50,15 @@ const tierStyles = {
 
 export function TierCard({ ad, tier }: TierCardProps) {
   const style = tierStyles[tier];
-  const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
+  const regionLabels = ad.regions
+    .map((r) => {
+      const label = REGIONS[r]?.shortLabel || r;
+      const district = ad.districts?.find((d) =>
+        DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d)
+      );
+      return district ? `${label} ${district}` : label;
+    })
+    .join(", ");
   const bizInfo = BUSINESS_TYPES[ad.businessType];
   const bizLabel = bizInfo?.shortLabel || ad.businessType;
   const bizIcon = bizInfo?.icon || "📋";

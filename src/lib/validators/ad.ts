@@ -33,6 +33,7 @@ export const step2Schema = z.object({
 
 export const step3Schema = z.object({
   regions: z.array(z.string()).min(1, "노출 지역을 선택해주세요"),
+  districts: z.array(z.string()).optional(),
   durationDays: z.number().refine((v) => [0, 30, 60, 90].includes(v), {
     message: "기간을 선택해주세요",
   }),

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { REGIONS } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils/format";
@@ -14,6 +15,7 @@ interface AdCardProps {
     businessName: string;
     businessType: BusinessType;
     regions: Region[];
+    districts?: string[];
     salaryText: string;
     isVerified: boolean;
     viewCount: number;
@@ -75,7 +77,13 @@ export function AdCard({ ad, productId, emphasized = false }: AdCardProps) {
   const productStyles = getProductStyles(productId);
 
   const regionLabels = ad.regions
-    .map((r) => REGIONS[r]?.shortLabel || r)
+    .map((r) => {
+      const label = REGIONS[r]?.shortLabel || r;
+      const district = ad.districts?.find((d) =>
+        DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d)
+      );
+      return district ? `${label} ${district}` : label;
+    })
     .join(", ");
 
   const bizLabel =

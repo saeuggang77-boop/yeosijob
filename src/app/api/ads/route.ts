@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 
   const region = searchParams.get("region") as Region | null;
+  const district = searchParams.get("district");
   const businessType = searchParams.get("businessType") as BusinessType | null;
   const search = searchParams.get("search");
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
@@ -22,6 +23,10 @@ export async function GET(request: NextRequest) {
 
   if (region) {
     where.regions = { has: region };
+  }
+
+  if (district) {
+    where.districts = { has: district };
   }
 
   if (businessType) {
@@ -47,6 +52,7 @@ export async function GET(request: NextRequest) {
         businessName: true,
         businessType: true,
         regions: true,
+        districts: true,
         salaryText: true,
         isVerified: true,
         viewCount: true,
@@ -116,6 +122,7 @@ export async function POST(request: NextRequest) {
       workEnvironment,
       safetyInfo,
       regions,
+      districts = [],
       durationDays,
       productId,
       options = [],
@@ -234,6 +241,7 @@ export async function POST(request: NextRequest) {
             workEnvironment: workEnvironment || null,
             safetyInfo: safetyInfo || null,
             regions: regions as Region[],
+            districts: Array.isArray(districts) ? districts : [],
             productId: productId as AdProductId,
             durationDays: duration,
             totalAmount: 0,
@@ -338,6 +346,7 @@ export async function POST(request: NextRequest) {
           workEnvironment: workEnvironment || null,
           safetyInfo: safetyInfo || null,
           regions: regions as Region[],
+          districts: Array.isArray(districts) ? districts : [],
           productId: productId as AdProductId,
           durationDays: duration,
           totalAmount,

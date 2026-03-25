@@ -9,9 +9,11 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { EventBanner } from "@/components/layout/EventBanner";
 import { CommunitySection } from "@/components/community/CommunitySection";
 import { REGIONS } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
 import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
+import { HomeSearchBar } from "@/components/search/HomeSearchBar";
 import { getActiveEvent } from "@/lib/event";
 import type { PartnerCategory, Region } from "@/generated/prisma/client";
 
@@ -52,6 +54,7 @@ export default async function HomePage() {
     businessName: true,
     businessType: true,
     regions: true,
+    districts: true,
     salaryText: true,
     isVerified: true,
     viewCount: true,
@@ -242,48 +245,10 @@ export default async function HomePage() {
           </p>
 
           {/* Search Bar */}
-          <form
-            action="/jobs"
-            method="get"
-            className="hero-search mx-auto mt-8 flex max-w-3xl flex-col overflow-hidden bg-card sm:flex-row"
-          >
-            <div className="flex border-b border-border/50 sm:contents">
-              <select
-                name="region"
-                defaultValue=""
-                className="h-9 flex-1 border-r border-border/50 bg-transparent px-3 text-xs text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:px-4 sm:text-sm"
-              >
-                <option value="">지역 전체</option>
-                {Object.entries(REGIONS).filter(([k]) => k !== "NATIONWIDE").map(([key, val]) => (
-                  <option key={key} value={key}>{val.label}</option>
-                ))}
-              </select>
-              <select
-                name="businessType"
-                defaultValue=""
-                className="h-9 flex-1 bg-transparent px-3 text-xs text-foreground sm:h-12 sm:flex-none sm:border-b-0 sm:border-r sm:border-border/50 sm:px-4 sm:text-sm"
-              >
-                <option value="">업종 전체</option>
-                {Object.entries(BUSINESS_TYPES).map(([key, val]) => (
-                  <option key={key} value={key}>{val.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex sm:contents">
-              <input
-                type="text"
-                name="search"
-                placeholder="업소명 / 제목 검색"
-                className="h-[42px] min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none sm:h-12 sm:border-r sm:border-border/50"
-              />
-              <button
-                type="submit"
-                className="h-[42px] shrink-0 rounded-br-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:h-12 sm:rounded-none sm:px-8"
-              >
-                검색
-              </button>
-            </div>
-          </form>
+          <HomeSearchBar
+            regions={Object.fromEntries(Object.entries(REGIONS).filter(([k]) => k !== "NATIONWIDE"))}
+            businessTypes={BUSINESS_TYPES}
+          />
         </div>
       </section>
       <div className="hero-divider" />
@@ -582,7 +547,11 @@ export default async function HomePage() {
         ) : (
           <div className="divide-y divide-border">
             {lineAds.map((ad, idx) => {
-              const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
+              const regionLabels = ad.regions.map((r) => {
+                const label = REGIONS[r]?.shortLabel || r;
+                const district = ad.districts?.find((d: string) => DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d));
+                return district ? `${label} ${district}` : label;
+              }).join(", ");
               const bizLabel = BUSINESS_TYPES[ad.businessType]?.shortLabel || ad.businessType;
               return (
                 <Link key={ad.id} href={`/jobs/${ad.id}`} className="block transition-colors hover:bg-muted/50">
@@ -640,7 +609,11 @@ export default async function HomePage() {
           </div>
           <div className="divide-y divide-border">
             {freeAds.map((ad) => {
-              const regionLabels = ad.regions.map((r) => REGIONS[r]?.shortLabel || r).join(", ");
+              const regionLabels = ad.regions.map((r) => {
+                const label = REGIONS[r]?.shortLabel || r;
+                const district = ad.districts?.find((d: string) => DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d));
+                return district ? `${label} ${district}` : label;
+              }).join(", ");
               return (
                 <Link key={ad.id} href={`/jobs/${ad.id}`} className="block transition-colors hover:bg-muted/50">
                   {/* Mobile: 2-line card */}

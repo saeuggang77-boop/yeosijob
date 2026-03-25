@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AD_REGION_LIST } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import {
   AD_PRODUCTS,
   AD_OPTIONS,
@@ -69,6 +70,7 @@ export function Step3ProductSelector({
   const durationDays = data.durationDays ?? 0;
   const isFreeProduct = productId === "FREE";
   const regions = data.regions || [];
+  const districts = data.districts || [];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const options = data.options || [];
   const optionValues = data.optionValues || {};
@@ -118,15 +120,25 @@ export function Step3ProductSelector({
     const maxRegions = product.maxRegions || 1;
     const current = [...regions];
     const idx = current.indexOf(regionKey);
+    let removedRegion: string | null = null;
     if (idx >= 0) {
+      removedRegion = current[idx];
       current.splice(idx, 1);
     } else if (current.length < maxRegions) {
       current.push(regionKey);
     } else if (maxRegions === 1) {
       // 1개 제한일 때 다른 지역 클릭 시 교체
+      removedRegion = current[0];
       current[0] = regionKey;
     }
-    onUpdate({ regions: current });
+    // 지역 해제 시 해당 지역의 세부지역도 자동 제거
+    if (removedRegion) {
+      const regionDistricts = DISTRICTS[removedRegion as keyof typeof DISTRICTS] || [];
+      const newDistricts = districts.filter((d) => !regionDistricts.includes(d));
+      onUpdate({ regions: current, districts: newDistricts });
+    } else {
+      onUpdate({ regions: current });
+    }
   }
 
   function toggleOption(optionId: string) {
@@ -378,6 +390,40 @@ export function Step3ProductSelector({
                     );
                   })}
                 </div>
+                {/* 세부지역 선택 */}
+                {regions.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {regions.map((regionKey) => {
+                      const regionDistricts = DISTRICTS[regionKey as keyof typeof DISTRICTS];
+                      if (!regionDistricts || regionDistricts.length === 0) return null;
+                      const regionLabel = AD_REGION_LIST.find((r) => r.value === regionKey)?.label || regionKey;
+                      const selectedDistrict = districts.find((d) => regionDistricts.includes(d)) || "";
+                      return (
+                        <div key={regionKey} className="flex items-center gap-2">
+                          <span className="shrink-0 text-sm text-muted-foreground">{regionLabel}</span>
+                          <select
+                            value={selectedDistrict}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              // 해당 지역의 기존 district 제거
+                              const newDistricts = districts.filter((d) => !regionDistricts.includes(d));
+                              if (val) {
+                                newDistricts.push(val);
+                              }
+                              onUpdate({ districts: newDistricts });
+                            }}
+                            className="h-9 flex-1 rounded-md border bg-background px-2 text-sm"
+                          >
+                            <option value="">전체 (세부지역 선택안함)</option>
+                            {regionDistricts.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 {errors.regions && (
                   <p className="mt-2 text-xs text-destructive">{errors.regions}</p>
                 )}

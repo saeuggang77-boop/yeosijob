@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { REGIONS } from "@/lib/constants/regions";
+import { DISTRICTS } from "@/lib/constants/districts";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: true,
       businessName: true,
       regions: true,
+      districts: true,
       businessType: true
     },
   });
@@ -45,7 +47,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const regionLabels = ad.regions
-    .map((r: Region) => REGIONS[r]?.label || r)
+    .map((r: Region) => {
+      const label = REGIONS[r]?.label || r;
+      const district = ad.districts?.find((d: string) =>
+        DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d)
+      );
+      return district ? `${label} ${district}` : label;
+    })
     .join(", ");
   const bizLabel = BUSINESS_TYPES[ad.businessType]?.label || ad.businessType;
   const description = `${ad.businessName} - ${regionLabels} ${bizLabel} 채용정보`;
@@ -87,6 +95,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       workEnvironment: true,
       safetyInfo: true,
       regions: true,
+      districts: true,
       address: true,
       addressDetail: true,
       locationHint: true,
@@ -223,7 +232,13 @@ export default async function JobDetailPage({ params }: PageProps) {
   ]).catch(() => {});
 
   const regionLabels = ad.regions
-    .map((r: Region) => REGIONS[r]?.label || r)
+    .map((r: Region) => {
+      const label = REGIONS[r]?.label || r;
+      const district = ad.districts?.find((d: string) =>
+        DISTRICTS[r as keyof typeof DISTRICTS]?.includes(d)
+      );
+      return district ? `${label} ${district}` : label;
+    })
     .join(", ");
   const bizLabel =
     BUSINESS_TYPES[ad.businessType]?.label || ad.businessType;

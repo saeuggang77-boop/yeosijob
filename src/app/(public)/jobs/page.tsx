@@ -24,6 +24,7 @@ export const metadata = {
 interface PageProps {
   searchParams: Promise<{
     region?: string;
+    district?: string;
     businessType?: string;
     productId?: string;
     search?: string;
@@ -35,6 +36,7 @@ interface PageProps {
 export default async function JobsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const region = params.region as Region | undefined;
+  const district = params.district;
   const businessType = params.businessType as BusinessType | undefined;
   const productId = params.productId;
   const search = params.search;
@@ -44,6 +46,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
 
   const where: Record<string, unknown> = { status: "ACTIVE" };
   if (region) where.regions = { has: region };
+  if (district) where.districts = { has: district };
   if (businessType) where.businessType = businessType;
   if (productId) where.productId = productId;
   if (search) {
@@ -65,6 +68,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
         businessName: true,
         businessType: true,
         regions: true,
+        districts: true,
         salaryText: true,
         isVerified: true,
         viewCount: true,
@@ -88,6 +92,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
   function buildUrl(p: number) {
     const params = new URLSearchParams();
     if (region) params.set("region", region);
+    if (district) params.set("district", district);
     if (businessType) params.set("businessType", businessType);
     if (productId) params.set("productId", productId);
     if (search) params.set("search", search);
@@ -118,6 +123,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
         regions={Object.fromEntries(Object.entries(REGIONS).filter(([k]) => k !== "NATIONWIDE"))}
         businessTypes={BUSINESS_TYPES}
         currentRegion={region}
+        currentDistrict={district}
         currentBusinessType={businessType}
         currentSearch={search}
         currentSort={sort}

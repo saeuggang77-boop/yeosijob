@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import { DISTRICTS } from "@/lib/constants/districts";
 
 interface JobsFilterProps {
   regions: Record<string, { label: string }>;
   businessTypes: Record<string, { label: string }>;
   currentRegion?: string;
+  currentDistrict?: string;
   currentBusinessType?: string;
   currentSearch?: string;
   currentSort?: string;
@@ -17,6 +19,7 @@ export function JobsFilter({
   regions,
   businessTypes,
   currentRegion,
+  currentDistrict,
   currentBusinessType,
   currentSearch,
   currentSort = "jump",
@@ -24,10 +27,16 @@ export function JobsFilter({
 }: JobsFilterProps) {
   const [open, setOpen] = useState(false);
   const [focusFilter, setFocusFilter] = useState<"region" | "businessType" | "sort" | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState(currentRegion || "");
 
   const regionLabel = currentRegion ? regions[currentRegion]?.label : "전체 지역";
+  const districtLabel = currentDistrict || "전체 세부지역";
   const bizLabel = currentBusinessType ? businessTypes[currentBusinessType]?.label : "전체 업종";
   const sortLabel = currentSort === "views" ? "조회순" : "기본순";
+
+  const districtOptions = selectedRegion && DISTRICTS[selectedRegion as keyof typeof DISTRICTS]
+    ? DISTRICTS[selectedRegion as keyof typeof DISTRICTS]
+    : [];
 
   // Auto-clear focus after 2 seconds
   useEffect(() => {
@@ -52,6 +61,18 @@ export function JobsFilter({
           >
             {regionLabel}
           </button>
+          {currentRegion && districtOptions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!open) setOpen(true);
+                setFocusFilter("region");
+              }}
+              className={`shrink-0 cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors active:bg-muted ${currentDistrict ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+            >
+              {districtLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -99,6 +120,7 @@ export function JobsFilter({
             <select
               name="region"
               defaultValue={currentRegion || ""}
+              onChange={(e) => setSelectedRegion(e.target.value)}
               className={`h-10 rounded-md border bg-background px-3 text-sm ${focusFilter === "region" ? "ring-1 ring-primary border-primary" : ""}`}
             >
               <option value="">지역 전체</option>
@@ -106,6 +128,18 @@ export function JobsFilter({
                 <option key={key} value={key}>{val.label}</option>
               ))}
             </select>
+            {districtOptions.length > 0 && (
+              <select
+                name="district"
+                defaultValue={currentDistrict || ""}
+                className="h-10 rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="">세부지역 전체</option>
+                {districtOptions.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            )}
             <select
               name="businessType"
               defaultValue={currentBusinessType || ""}
@@ -138,12 +172,20 @@ export function JobsFilter({
       {/* 데스크톱: 기존 필터 그대로 */}
       <div className="hidden px-4 py-3 md:block">
         <form action="/jobs" method="get" className="flex items-center gap-2">
-          <select name="region" defaultValue={currentRegion || ""} className="h-10 rounded-md border bg-background px-3 text-sm">
+          <select name="region" defaultValue={currentRegion || ""} onChange={(e) => setSelectedRegion(e.target.value)} className="h-10 rounded-md border bg-background px-3 text-sm">
             <option value="">지역 전체</option>
             {Object.entries(regions).map(([key, val]) => (
               <option key={key} value={key}>{val.label}</option>
             ))}
           </select>
+          {districtOptions.length > 0 && (
+            <select name="district" defaultValue={currentDistrict || ""} className="h-10 rounded-md border bg-background px-3 text-sm">
+              <option value="">세부지역 전체</option>
+              {districtOptions.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          )}
           <select name="businessType" defaultValue={currentBusinessType || ""} className="h-10 rounded-md border bg-background px-3 text-sm">
             <option value="">업종 전체</option>
             {Object.entries(businessTypes).map(([key, val]) => (

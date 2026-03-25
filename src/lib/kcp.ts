@@ -6,8 +6,8 @@ const KCP_SITE_CD = process.env.KCP_SITE_CD || "";
 const KCP_CERT_INFO = process.env.KCP_CERT_INFO || "";
 const KCP_PRIVATE_KEY_BASE64 = process.env.KCP_PRIVATE_KEY_BASE64 || "";
 const KCP_PRIVATE_KEY_PASSWORD = process.env.KCP_PRIVATE_KEY_PASSWORD || "changeit";
-const KCP_CERT_API_URL = process.env.KCP_CERT_API_URL || "https://stg-spl.kcp.co.kr/std/certpass";
-const KCP_CERT_PAGE_URL = process.env.KCP_CERT_PAGE_URL || "https://testcert.kcp.co.kr/kcp_cert/cert_view.jsp";
+const KCP_CERT_API_URL = process.env.KCP_CERT_API_URL || "https://spl.kcp.co.kr/std/certpass";
+const KCP_CERT_PAGE_URL = process.env.KCP_CERT_PAGE_URL || "https://cert.kcp.co.kr/kcp_cert/cert_view.jsp";
 
 export { KCP_SITE_CD, KCP_CERT_PAGE_URL };
 

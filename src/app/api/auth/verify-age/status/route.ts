@@ -40,6 +40,15 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
+    // 3. 로그인 회원 + 유효한 쿠키인데 ageVerified 미설정 → 자동 영구 저장
+    // (KCP cross-site POST에서 세션 쿠키가 전달되지 않아 callback에서 설정 못한 경우 보완)
+    if (session?.user?.id) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { ageVerified: new Date() },
+      });
+    }
+
     return NextResponse.json({ verified: true });
   } catch (error) {
     console.error("Age verification status error:", error);

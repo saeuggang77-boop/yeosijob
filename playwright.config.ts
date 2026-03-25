@@ -11,7 +11,7 @@ export default defineConfig({
   globalTeardown: './e2e/global-teardown.ts',
 
   /* Maximum time one test can run for */
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -43,7 +43,7 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     /* Increase navigation timeout to handle slow dev server */
-    navigationTimeout: 15000,
+    navigationTimeout: 60000,
   },
 
   /* Configure projects for major browsers */

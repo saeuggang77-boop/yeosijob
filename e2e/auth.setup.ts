@@ -127,10 +127,10 @@ setup('register test accounts', async ({ request }) => {
  * Login jobseeker and save auth state
  */
 setup('authenticate as jobseeker', async ({ page }) => {
-  // Set age verification before navigating
-  await page.addInitScript(() => {
-    localStorage.setItem('age_verified', 'true');
-  });
+  // Mock age verification API to bypass modal
+  await page.route('**/api/auth/verify-age/status', (route) =>
+    route.fulfill({ json: { verified: true } })
+  );
 
   await page.goto('/login');
 
@@ -156,10 +156,10 @@ setup('authenticate as jobseeker', async ({ page }) => {
  * Login business and save auth state
  */
 setup('authenticate as business', async ({ page }) => {
-  // Set age verification before navigating
-  await page.addInitScript(() => {
-    localStorage.setItem('age_verified', 'true');
-  });
+  // Mock age verification API to bypass modal
+  await page.route('**/api/auth/verify-age/status', (route) =>
+    route.fulfill({ json: { verified: true } })
+  );
 
   await page.goto('/login');
 
@@ -185,10 +185,10 @@ setup('authenticate as business', async ({ page }) => {
  * Login admin and save auth state
  */
 setup('authenticate as admin', async ({ page }) => {
-  // Set age verification before navigating
-  await page.addInitScript(() => {
-    localStorage.setItem('age_verified', 'true');
-  });
+  // Mock age verification API to bypass modal
+  await page.route('**/api/auth/verify-age/status', (route) =>
+    route.fulfill({ json: { verified: true } })
+  );
 
   await page.goto('/login');
 

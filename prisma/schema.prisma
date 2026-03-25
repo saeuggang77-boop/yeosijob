@@ -275,6 +275,7 @@ model User {
   blacklistActions   BusinessBlacklist[]   @relation("blacklistActions")
   adApplications     AdApplication[]
   partners           Partner[]          @relation("partners")
+  pwaInstalls        PwaInstall[]
 
   // 알림 설정
   notifyMessage   Boolean @default(true)
@@ -894,6 +895,22 @@ model PushSubscription {
   @@unique([userId, endpoint])
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ── PWA INSTALL (홈화면 설치 추적) ──
+
+model PwaInstall {
+  id           String   @id @default(cuid())
+  userId       String
+  platform     String   // "ios" | "android" | "desktop"
+  createdAt    DateTime @default(now())
+  lastAccessAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([createdAt])
+  @@map("pwa_installs")
 }
 
 // ── SUSPENSION LOG (활동정지 이력) ──

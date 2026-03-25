@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AgeVerification } from "@/components/AgeVerification";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SentryUserContext } from "@/components/SentryUserContext";
+import { PwaTracker } from "@/components/PwaTracker";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -84,6 +85,7 @@ export default function RootLayout({
           <ThemeProvider>
             <SessionProvider>
               <SentryUserContext />
+              <PwaTracker />
               <AgeVerification />
               {children}
               <Toaster />

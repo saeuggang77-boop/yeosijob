@@ -128,7 +128,23 @@ export default async function AdminDashboardPage() {
     },
   });
 
-  // Section 6: Google Analytics Data
+  // Section 6: PWA Install Stats
+  const [totalInstalls, weekInstalls, todayInstalls, activeInstalls, platformStats] =
+    await Promise.all([
+      prisma.pwaInstall.count(),
+      prisma.pwaInstall.count({ where: { createdAt: { gte: weekStart } } }),
+      prisma.pwaInstall.count({ where: { createdAt: { gte: todayStart } } }),
+      prisma.pwaInstall.count({ where: { lastAccessAt: { gte: weekStart } } }),
+      prisma.pwaInstall.groupBy({ by: ["platform"], _count: true }),
+    ]);
+
+  const platformLabels: Record<string, string> = {
+    ios: "iPhone",
+    android: "Android",
+    desktop: "PC/기타",
+  };
+
+  // Section 7: Google Analytics Data
   const [trafficSummary, topPages, trafficSources, deviceBreakdown] =
     await Promise.all([
       getTrafficSummary(),
@@ -425,7 +441,101 @@ export default async function AdminDashboardPage() {
         </Card>
       </section>
 
-      {/* Section 6: Google Analytics - Site Traffic */}
+      {/* Section 6: PWA Install Stats */}
+      <Separator />
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold">홈화면 설치 현황</h2>
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                총 설치
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">
+                {totalInstalls}명
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                이번 주 신규
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{weekInstalls}명</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                오늘 신규
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{todayInstalls}명</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                활성 사용자 (7일)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{activeInstalls}명</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {platformStats.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">기기별 설치</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {platformStats.map((item) => {
+                  const maxCount = Math.max(
+                    ...platformStats.map((p) => p._count)
+                  );
+                  return (
+                    <div
+                      key={item.platform}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm font-medium">
+                        {platformLabels[item.platform] || item.platform}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-32 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full bg-primary"
+                            style={{
+                              width: `${(item._count / maxCount) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="w-12 text-right text-sm font-bold">
+                          {item._count}명
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      {/* Section 7: Google Analytics - Site Traffic */}
       {trafficSummary && (
         <>
           <Separator />

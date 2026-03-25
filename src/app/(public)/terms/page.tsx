@@ -15,7 +15,7 @@ export default function TermsPage() {
   return (
     <div className="mx-auto max-w-screen-md px-4 py-10">
       <h1 className="text-3xl font-bold">이용약관</h1>
-      <p className="mt-3 text-muted-foreground">최종 수정일: 2025년 2월 1일</p>
+      <p className="mt-3 text-muted-foreground">최종 수정일: 2026년 3월 25일</p>
 
       <div className="mt-8 space-y-8 text-sm leading-relaxed text-muted-foreground">
         <section>
@@ -118,17 +118,104 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-foreground">제11조 (면책조항)</h2>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제11조 (플랫폼 중개자의 지위)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              회사는 구인·구직 정보를 중개하는 플랫폼을 제공할 뿐이며, 이용자가 등록한 구인·구직 정보의
+              진실성, 정확성 및 적법성을 보증하지 않습니다.
+            </li>
+            <li>
+              구인 업체가 제공한 사업자 정보, 업종, 근무조건 등의 정확성에 대한 책임은 해당 게시자에게 있으며,
+              회사의 사업자등록번호 인증은 해당 번호의 진위 여부 확인에 한합니다.
+            </li>
+            <li>
+              이용자는 구인·구직 게시물의 내용을 스스로 판단하여야 하며, 게시물의 내용을 신뢰하여
+              발생한 손해에 대해 회사는 책임을 지지 않습니다.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제12조 (게시물에 대한 책임)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              이용자가 등록한 광고, 이력서, 게시글 등 모든 게시물의 내용에 대한 법적 책임은
+              해당 게시물을 작성한 이용자에게 있습니다.
+            </li>
+            <li>
+              회사는 이용자의 게시물이 관련 법령을 준수하는지 사전에 심사할 의무가 없으나,
+              관련 법령 위반이 의심되는 게시물에 대해서는 삭제, 이동, 등록 거부 등의 조치를 취할 수 있습니다.
+            </li>
+            <li>
+              회사는 다음 각 호의 사유가 있는 경우 게시물을 삭제하거나 게시자의 서비스 이용을 제한할 수 있습니다.
+            </li>
+          </ul>
+          <ul className="mt-1 list-disc space-y-1 pl-10">
+            <li>다른 이용자 또는 제3자의 신고가 접수된 경우</li>
+            <li>수사기관, 방송통신위원회 등 공공기관의 요청이 있는 경우</li>
+            <li>제9조(금지 콘텐츠)에 해당하는 내용이 확인된 경우</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제13조 (신고 및 조치)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              이용자는 불법 또는 부적절한 게시물을 발견한 경우 회사에 신고할 수 있으며,
+              회사는 신고 접수일로부터 합리적인 기간(영업일 기준 3일) 내에 검토 및 조치합니다.
+            </li>
+            <li>
+              회사는 신고 접수 및 처리 내역을 기록·보관하며, 관련 법령에 따른 요청 시 이를 제공할 수 있습니다.
+            </li>
+            <li>
+              이용자가 허위 신고를 반복하는 경우, 회사는 해당 이용자의 서비스 이용을 제한할 수 있습니다.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제14조 (이용자 간 분쟁)</h2>
           <p>
-            회사는 천재지변 또는 이에 준하는 불가항력으로 인해 서비스를 제공할 수 없는 경우에는
-            서비스 제공에 관한 책임이 면제됩니다. 회사는 이용자의 귀책사유로 인한 서비스 이용의
-            장애에 대하여 책임을 지지 않습니다.
+            이용자 간 또는 이용자와 제3자 간에 서비스를 매개로 발생한 분쟁에 대해 회사는 개입할 의무가 없으며,
+            이로 인한 손해를 배상할 책임이 없습니다. 다만 회사는 분쟁 해결을 위해 필요한 범위에서
+            관련 정보를 제공하는 등 협조할 수 있습니다.
           </p>
         </section>
 
         <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제15조 (면책조항)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              회사는 천재지변 또는 이에 준하는 불가항력으로 인해 서비스를 제공할 수 없는 경우에는
+              서비스 제공에 관한 책임이 면제됩니다.
+            </li>
+            <li>
+              회사는 이용자의 귀책사유로 인한 서비스 이용의 장애에 대하여 책임을 지지 않습니다.
+            </li>
+            <li>
+              회사는 이용자가 서비스를 통해 기대하는 수익을 얻지 못하거나 서비스를 통해 얻은
+              정보로 인해 발생한 손해에 대해 책임을 지지 않습니다.
+            </li>
+            <li>
+              회사는 이용자가 게시한 정보, 자료, 사실의 신뢰도, 정확성 등에 대해서는 책임을 지지 않습니다.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">제16조 (준거법 및 관할법원)</h2>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>이 약관의 해석 및 회사와 이용자 간의 분쟁에 대해서는 대한민국 법률을 적용합니다.</li>
+            <li>서비스 이용과 관련하여 발생한 분쟁에 대해서는 회사의 본사 소재지를 관할하는 법원을 합의관할법원으로 합니다.</li>
+          </ul>
+        </section>
+
+        <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">부칙</h2>
-          <p>이 약관은 2025년 2월 1일부터 시행합니다.</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>이 약관은 2025년 2월 1일부터 시행합니다.</li>
+            <li>2026년 3월 25일 개정된 약관(제11조~제16조 추가)은 2026년 3월 25일부터 시행합니다.</li>
+          </ul>
         </section>
       </div>
     </div>

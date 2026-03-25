@@ -163,9 +163,9 @@ export function AgeVerification() {
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            인증 정보는 성인 확인 목적으로만 사용되며,
+            인증 정보는 성인 확인 목적으로만 사용됩니다.
             <br />
-            30일간 유효합니다.
+            문의: 1588-7928
           </p>
         </CardContent>
       </Card>

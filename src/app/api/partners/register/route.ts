@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { calculatePartnerPrice, PARTNER_CATEGORY_PRICES, PARTNER_DURATION_OPTIONS } from "@/lib/constants/partners";
 import { BANK_NAME, ACCOUNT_NUMBER, ACCOUNT_HOLDER } from "@/lib/constants/bank-account";
-import { sendPushNotification } from "@/lib/push-notification";
 import crypto from "node:crypto";
 import { z } from "zod";
 
@@ -102,30 +101,7 @@ export async function POST(request: NextRequest) {
       return { partner, payment };
     });
 
-    // 관리자에게 알림 (fire and forget)
-    const categoryLabel = { PLASTIC_SURGERY: "성형/시술", BEAUTY: "미용/네일", RENTAL: "렌탈", FINANCE: "금융", OTHER: "기타" }[category] || category;
-    prisma.user
-      .findMany({ where: { role: "ADMIN" }, select: { id: true } })
-      .then((admins) => {
-        if (admins.length > 0) {
-          prisma.notification.createMany({
-            data: admins.map((admin) => ({
-              userId: admin.id,
-              title: "새 제휴업체 입금 대기",
-              message: `${categoryLabel} 업종 제휴업체 등록 (${amount.toLocaleString()}원 / ${durationDays}일)`,
-              link: "/admin/payments",
-            })),
-          }).catch(() => {});
-          admins.forEach((admin) => {
-            sendPushNotification(admin.id, {
-              title: "새 제휴업체 입금 대기",
-              body: `${categoryLabel} 업종 (${amount.toLocaleString()}원)`,
-              url: "/admin/payments",
-            }).catch(() => {});
-          });
-        }
-      })
-      .catch(() => {});
+    // 관리자 알림은 결제 확인(confirm) 시점에 발송 (등록 시점에는 미발송)
 
     return NextResponse.json({
       success: true,

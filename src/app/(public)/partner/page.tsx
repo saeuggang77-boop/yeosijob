@@ -9,6 +9,9 @@ export const revalidate = 60;
 export const metadata = {
   title: "제휴업체 | 여시잡",
   description: "여시잡과 함께하는 제휴업체를 소개합니다",
+  alternates: {
+    canonical: "/partner",
+  },
 };
 
 interface PageProps {

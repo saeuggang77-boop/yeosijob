@@ -4,6 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "회원가입",
   description: "여시잡 회원가입 - 구직자 또는 업소 사장님으로 가입하세요.",
+  alternates: {
+    canonical: "/register",
+  },
 };
 
 export default function RegisterPage() {

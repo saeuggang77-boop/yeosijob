@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       title: `${ad.title} | 여시잡`,
       description,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${ad.title} | 여시잡 채용정보` }],
     },
   };
 }
@@ -294,6 +294,18 @@ export default async function JobDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "홈", item: "https://yeosijob.com" },
+            { "@type": "ListItem", position: 2, name: "채용정보", item: "https://yeosijob.com/jobs" },
+            { "@type": "ListItem", position: 3, name: ad.title },
+          ],
+        }).replace(/</g, "\\u003c") }}
       />
 
       {/* 배너 (유료 광고만) */}

@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: PageProps) {
       type: "article",
       title: `${post.title} | 여시잡`,
       description,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${post.title} | 여시잡 커뮤니티` }],
     },
   };
 }
@@ -228,6 +228,18 @@ export default async function PostDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "홈", item: "https://yeosijob.com" },
+            { "@type": "ListItem", position: 2, name: "커뮤니티", item: "https://yeosijob.com/community" },
+            { "@type": "ListItem", position: 3, name: post.title },
+          ],
+        }).replace(/</g, "\\u003c") }}
       />
       {/* Post */}
       <Card className="relative">

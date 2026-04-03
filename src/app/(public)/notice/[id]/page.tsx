@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${notice.title} | 여시잡`,
       description,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "여시잡 - 유흥알바 No.1 구인구직" }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${notice.title} | 여시잡 공지사항` }],
     },
     alternates: {
       canonical: `/notice/${id}`,
@@ -84,8 +84,44 @@ export default async function NoticeDetailPage({ params }: PageProps) {
     }),
   ]);
 
+  // JSON-LD structured data
+  const jsonLdArticle = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: notice.title,
+    datePublished: notice.createdAt.toISOString(),
+    author: {
+      "@type": "Organization",
+      name: "여시잡",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "여시잡",
+      logo: { "@type": "ImageObject", url: "https://yeosijob.com/icon-512.png" },
+    },
+    url: `https://yeosijob.com/notice/${id}`,
+  };
+
+  const jsonLdBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: "https://yeosijob.com" },
+      { "@type": "ListItem", position: 2, name: "공지사항", item: "https://yeosijob.com/notice" },
+      { "@type": "ListItem", position: 3, name: notice.title },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdArticle).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb).replace(/</g, "\\u003c") }}
+      />
       <Card className="p-6">
         {/* Header */}
         <div className="border-b pb-4">

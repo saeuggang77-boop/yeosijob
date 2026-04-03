@@ -27,7 +27,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
           >
             <Image
               src={image.url}
-              alt={`이미지 ${index + 1}`}
+              alt={`게시글 첨부 이미지 ${index + 1}`}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 50vw, 33vw"
@@ -98,7 +98,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
             >
               <Image
                 src={images[lightboxIndex].url}
-                alt={`이미지 ${lightboxIndex + 1}`}
+                alt={`게시글 첨부 이미지 ${lightboxIndex + 1}`}
                 width={1200}
                 height={1200}
                 className="max-h-[90vh] w-auto object-contain"

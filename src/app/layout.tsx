@@ -32,6 +32,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "여시잡",
   },
+  verification: {
+    google: "7AcQcbOpGomC4QNebZyKwlK0RP9RtY6m1cDr1Fu6RTc",
+  },
   other: {
     "mobile-web-app-capable": "yes",
     "naver-site-verification": process.env.NAVER_SITE_VERIFICATION || "",

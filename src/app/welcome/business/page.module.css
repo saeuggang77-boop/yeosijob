@@ -20,7 +20,7 @@
   min-height: 100vh;
 }
 
-/* 상단 헤더 */
+/* 상단 헤더 (Smart Hide / 헤드룸 패턴) */
 .siteHeader {
   padding: 14px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -32,6 +32,12 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+.siteHeaderHidden {
+  transform: translateY(-100%);
 }
 .siteLogo {
   font-size: 20px;

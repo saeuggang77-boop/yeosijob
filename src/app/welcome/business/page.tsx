@@ -1,8 +1,8 @@
 import Link from "next/link";
 import styles from "./page.module.css";
+import SmartHeader from "./SmartHeader";
 
 const REGISTER_URL = "/register/business";
-const LOGIN_URL = "/login";
 const TELEGRAM_INVITE_URL =
   process.env.NEXT_PUBLIC_TELEGRAM_INVITE_URL || "https://t.me/yeosijob";
 
@@ -10,13 +10,8 @@ export default function WelcomeBusinessPage() {
   return (
     <div className={styles.wrapper}>
       <div className={styles.container}>
-        {/* 상단 헤더 */}
-        <div className={styles.siteHeader}>
-          <div className={styles.siteLogo}>여시잡</div>
-          <Link href={LOGIN_URL} className={styles.headerBtn}>
-            로그인
-          </Link>
-        </div>
+        {/* 상단 헤더 (Smart Hide) */}
+        <SmartHeader />
 
         {/* Hero */}
         <div className={styles.hero}>

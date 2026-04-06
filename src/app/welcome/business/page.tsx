@@ -3,6 +3,8 @@ import styles from "./page.module.css";
 
 const REGISTER_URL = "/register/business";
 const LOGIN_URL = "/login";
+const TELEGRAM_INVITE_URL =
+  process.env.NEXT_PUBLIC_TELEGRAM_INVITE_URL || "https://t.me/yeosijob";
 
 export default function WelcomeBusinessPage() {
   return (
@@ -304,7 +306,7 @@ export default function WelcomeBusinessPage() {
                 경쟁 업소보다 한발 먼저 연락 → 우수 인재 확보. 무료 · 광고 없음.
               </div>
               <a
-                href="https://t.me/yeosijob"
+                href={TELEGRAM_INVITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.benefitLink}

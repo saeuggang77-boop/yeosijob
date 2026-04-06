@@ -11,6 +11,7 @@ import { EXPERIENCE_LEVELS, SALARY_TYPES } from "@/lib/constants/resume";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 import { ResumeFilter } from "@/components/resumes/ResumeFilter";
 import { ContactToggleButton } from "@/components/resumes/ContactToggleButton";
+import { TelegramPromoBanner } from "@/components/business/TelegramPromoBanner";
 import { timeAgo, formatPrice } from "@/lib/utils/format";
 import type { Region, BusinessType } from "@/generated/prisma/client";
 
@@ -174,6 +175,8 @@ export default async function ResumesPage({ searchParams }: PageProps) {
           </CardContent>
         </Card>
       )}
+
+      <TelegramPromoBanner />
 
       <div className="mt-4">
         <ResumeFilter

@@ -33,6 +33,7 @@ export default async function BusinessLayout({
     ...(showPartnerMenus ? [
       { href: "/business/partner", label: "내 업체 관리", icon: "🤝", dividerBefore: true, sectionLabel: "제휴업체", sublabel: "성형·미용·렌탈·금융" },
     ] : []),
+    { href: "/business/notifications/telegram", label: "실시간 알림", icon: "📢", dividerBefore: true, sectionLabel: "알림", sublabel: "NEW · 텔레그램 채널" },
     { href: "/business/payments", label: "결제 내역", icon: "💳", dividerBefore: true, sectionLabel: "결제" },
     { href: "/business/profile", label: "마이페이지", icon: "👤", dividerBefore: true, sectionLabel: "내 정보" },
   ];
@@ -42,7 +43,7 @@ export default async function BusinessLayout({
       <Sidebar
         navItems={navItems}
         userName={session.user.name || session.user.email || "사장님"}
-        exactMatchPaths={["/jobs", "/business/dashboard", "/business/ads/new"]}
+        exactMatchPaths={["/jobs", "/business/dashboard", "/business/ads/new", "/business/notifications/telegram"]}
       />
       <main className="md:ml-60">
         <div className="mx-auto max-w-screen-xl px-4 py-6 pt-16 md:pt-6">

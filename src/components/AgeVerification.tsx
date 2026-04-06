@@ -100,9 +100,16 @@ export function AgeVerification() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <Card className="mx-4 w-full max-w-md border-2 shadow-2xl">
         <CardHeader className="space-y-2 text-center">
-          <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4A853]/10">
+          <div className="mb-1 text-[28px] font-extrabold tracking-tight text-[#D4A853]">
+            여시잡
+          </div>
+          <p className="mb-2 text-xs tracking-widest text-muted-foreground">
+            유흥알바 NO.1 구인구직
+          </p>
+          <div className="mx-auto mb-2 h-0.5 w-10 bg-[#D4A853]/40" />
+          <div className="mx-auto mb-1 flex h-14 w-14 items-center justify-center rounded-full bg-[#D4A853]/10">
             <svg
-              className="h-10 w-10 text-[#D4A853]"
+              className="h-8 w-8 text-[#D4A853]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -115,7 +122,7 @@ export function AgeVerification() {
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl font-bold">본인인증</CardTitle>
+          <CardTitle className="text-xl font-bold">성인인증</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2 text-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,17 +14,26 @@ import { Loader2 } from "lucide-react";
 const KCP_SITE_CD = process.env.NEXT_PUBLIC_KCP_SITE_CD || "";
 const HAS_KCP = !!KCP_SITE_CD;
 
+// 성인인증 모달을 스킵할 경로 (마케팅 랜딩 등 유해 콘텐츠 없는 페이지)
+const SKIP_PATHS = ["/welcome"];
+
 
 export function AgeVerification() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const shouldSkip = SKIP_PATHS.some((p) => pathname?.startsWith(p));
+
   useEffect(() => {
     queueMicrotask(() => {
       setIsMounted(true);
     });
+
+    // 마케팅 랜딩 등 스킵 경로에서는 성인인증 모달 비활성화
+    if (shouldSkip) return;
 
     // KCP 미설정 시 인증 모달 비활성화 (나중에 KCP 환경변수 추가하면 자동 활성화)
     if (!HAS_KCP) return;

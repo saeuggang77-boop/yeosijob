@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const STORAGE_KEY = "telegram_banner_dismissed_v1";
+const TELEGRAM_INVITE_URL =
+  process.env.NEXT_PUBLIC_TELEGRAM_INVITE_URL || "https://t.me/yeosijob";
+const TELEGRAM_DIRECT_URL = `${TELEGRAM_INVITE_URL}?direct`;
 
 export function TelegramPromoBanner() {
   // 초기값 true로 설정하여 hydration 시 깜빡임 방지
@@ -50,12 +53,22 @@ export function TelegramPromoBanner() {
           <p className="mt-1 text-sm text-muted-foreground">
             여시잡 공식 텔레그램 채널에서 신규 이력서가 등록되는 즉시 알림을 받을 수 있습니다. 경쟁 업소보다 한발 먼저 연락하세요.
           </p>
-          <Link
-            href="/business/notifications/telegram"
-            className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-600 hover:text-cyan-700 hover:underline"
-          >
-            자세히 보기 <span aria-hidden>→</span>
-          </Link>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link
+              href="/business/notifications/telegram"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-600 hover:text-cyan-700 hover:underline"
+            >
+              자세히 보기 <span aria-hidden>→</span>
+            </Link>
+            <a
+              href={TELEGRAM_DIRECT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-amber-600 hover:text-amber-700 hover:underline"
+            >
+              💬 관리자에게 1:1 문의
+            </a>
+          </div>
         </div>
       </div>
     </div>

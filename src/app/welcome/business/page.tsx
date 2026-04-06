@@ -5,6 +5,7 @@ import SmartHeader from "./SmartHeader";
 const REGISTER_URL = "/register/business";
 const TELEGRAM_INVITE_URL =
   process.env.NEXT_PUBLIC_TELEGRAM_INVITE_URL || "https://t.me/yeosijob";
+const TELEGRAM_DIRECT_URL = `${TELEGRAM_INVITE_URL}?direct`;
 
 export default function WelcomeBusinessPage() {
   return (
@@ -300,14 +301,27 @@ export default function WelcomeBusinessPage() {
                 여시잡 공식 텔레그램 채널에서 신규 이력서 등록 즉시 푸시 알림을 받아보세요.
                 경쟁 업소보다 한발 먼저 연락 → 우수 인재 확보. 무료 · 광고 없음.
               </div>
-              <a
-                href={TELEGRAM_INVITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.benefitLink}
-              >
-                @yeosijob 구독하기 →
-              </a>
+              <div className={styles.benefitLinkRow}>
+                <a
+                  href={TELEGRAM_INVITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.benefitLink}
+                >
+                  @yeosijob 구독하기 →
+                </a>
+                <a
+                  href={TELEGRAM_DIRECT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.benefitLinkSecondary}
+                >
+                  💬 관리자에게 1:1 문의
+                </a>
+              </div>
+              <div className={styles.benefitHint}>
+                궁금한 점은 텔레그램으로 바로 물어보세요. 답변까지 1:1 비공개로 진행됩니다.
+              </div>
             </div>
           </div>
         </div>

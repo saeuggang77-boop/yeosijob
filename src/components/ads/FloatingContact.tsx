@@ -15,6 +15,7 @@ interface FloatingContactProps {
   canApply?: boolean;
   adId?: string;
   hasApplied?: boolean;
+  adTitle?: string;
 }
 
 export function FloatingContact({
@@ -25,6 +26,7 @@ export function FloatingContact({
   canApply = false,
   adId,
   hasApplied: initialHasApplied = false,
+  adTitle,
 }: FloatingContactProps) {
   const [hasApplied, setHasApplied] = useState(initialHasApplied);
   const [isApplying, setIsApplying] = useState(false);
@@ -33,9 +35,13 @@ export function FloatingContact({
   const handleKakaoClick = () => {
     if (!contactKakao) return;
 
-    navigator.clipboard.writeText(contactKakao).then(() => {
-      toast.success("카카오톡 ID가 복사되었습니다", {
-        description: contactKakao,
+    const template = adTitle
+      ? `안녕하세요, 여시잡에서 "${adTitle}" 공고 보고 연락드립니다.\n상담 가능할까요?`
+      : `안녕하세요, 여시잡에서 공고 보고 연락드립니다.\n상담 가능할까요?`;
+
+    navigator.clipboard.writeText(template).then(() => {
+      toast.success("카카오톡 메시지가 복사되었어요", {
+        description: "카톡 채팅창에 붙여넣기로 보내세요",
       });
     }).catch(() => {
       toast.error("복사에 실패했습니다");

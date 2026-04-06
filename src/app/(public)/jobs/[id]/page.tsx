@@ -514,7 +514,20 @@ export default async function JobDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle className="text-lg">연락처</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
+          {/* 빠른 상담 TIP — 여시잡 Attribution */}
+          <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
+            <div className="flex items-start gap-2">
+              <span className="text-lg leading-none">💡</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-primary">빠른 상담 TIP</p>
+                <p className="mt-0.5 text-sm text-foreground/90">
+                  연락 시 <strong className="text-primary">&ldquo;여시잡에서 봤어요&rdquo;</strong> 라고 말씀해주시면 더 빠른 상담이 가능합니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between">
             <span className="text-muted-foreground">전화</span>
             <a
@@ -644,6 +657,7 @@ export default async function JobDetailPage({ params }: PageProps) {
         canApply={canApply}
         adId={ad.id}
         hasApplied={hasApplied}
+        adTitle={ad.title}
       />
 
       {/* 하단 여백 (모바일 고정바) */}

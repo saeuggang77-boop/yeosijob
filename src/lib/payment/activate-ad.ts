@@ -113,13 +113,15 @@ export async function activateAd(
     });
   }
 
-  // FREE가 아닌 유료 광고만 누적일수 갱신
-  if (payment.ad.productId !== "FREE") {
-    await tx.user.update({
-      where: { id: payment.ad.userId },
-      data: { totalPaidAdDays: { increment: durationDays } },
-    });
-  }
+  // 유료 결제 활성화 시 누적일수 갱신
+  // activateAd는 admin approve(승인된 유료 결제)에서만 호출되므로 항상 유료임이 보장됨.
+  // 이전에는 payment.ad.productId !== "FREE" 체크가 있었으나,
+  // payment.ad는 트랜잭션 전 스냅샷이라 FREE→유료 첫 업그레이드 시 항상 "FREE"로 고정되어
+  // 누적일수가 증가하지 않는 버그가 있었음.
+  await tx.user.update({
+    where: { id: payment.ad.userId },
+    data: { totalPaidAdDays: { increment: durationDays } },
+  });
 
   return { durationDays, bonusDays, endDate };
 }

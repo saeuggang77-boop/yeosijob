@@ -87,17 +87,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
+    // 사용자 정보 먼저 조회 (스탭 계정 분기에 필요)
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isVerifiedBiz: true, businessNumber: true, isStaff: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "사용자를 찾을 수 없습니다" }, { status: 404 });
+    }
+
+    // 스탭 계정 분기 (피처 플래그 + isStaff)
+    if (user.isStaff && process.env.ENABLE_STAFF_ADS === "true") {
+      return await handleStaffAdCreation(request, session.user.id);
+    }
+
+    // 일반 사장님: Rate limit
     const { success } = await checkRateLimit(`ad:${session.user.id}`, 3, 60_000);
     if (!success) {
       return NextResponse.json({ error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요" }, { status: 429 });
     }
 
     // 사업자 인증 확인
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isVerifiedBiz: true, businessNumber: true },
-    });
-    if (!user?.isVerifiedBiz) {
+    if (!user.isVerifiedBiz) {
       return NextResponse.json(
         { error: "사업자 인증이 완료되지 않았습니다. 프로필에서 사업자등록번호를 제출하고 관리자 승인을 받아주세요." },
         { status: 403 }
@@ -441,5 +452,132 @@ export async function POST(request: NextRequest) {
       { error: isUserError ? message : "서버 오류가 발생했습니다" },
       { status: isUserError ? 400 : 500 }
     );
+  }
+}
+
+// ─────────────────────────────────────────────
+// 스탭 계정 전용: 결제/제한 없이 ACTIVE 광고 즉시 생성
+// ─────────────────────────────────────────────
+async function handleStaffAdCreation(request: NextRequest, userId: string) {
+  try {
+    const body = await request.json();
+    const {
+      businessName,
+      businessType,
+      contactPhone,
+      contactKakao,
+      contactTelegram,
+      address,
+      addressDetail,
+      locationHint,
+      title,
+      salaryText,
+      workHours,
+      benefits,
+      description,
+      workEnvironment,
+      safetyInfo,
+      regions,
+      districts = [],
+      productId,
+      options = [],
+      optionValues = {},
+      bannerColor,
+      bannerTitle,
+      bannerSubtitle,
+      bannerTemplate,
+      detailImages = [],
+    } = body;
+
+    // 필수 필드 검증
+    if (!businessName || !businessType || !contactPhone || !title || !salaryText || !description) {
+      return NextResponse.json({ error: "필수 항목을 모두 입력해주세요" }, { status: 400 });
+    }
+
+    // BANNER는 전국 노출이므로 지역 선택 불필요
+    if (productId !== "BANNER" && (!regions || regions.length === 0)) {
+      return NextResponse.json({ error: "노출 지역을 선택해주세요" }, { status: 400 });
+    }
+
+    const product = AD_PRODUCTS[productId as AdProductId];
+    if (!product) {
+      return NextResponse.json({ error: "올바른 상품을 선택해주세요" }, { status: 400 });
+    }
+
+    // 지역 수 제한 (BANNER는 전국 노출이므로 skip)
+    if (productId !== "BANNER" && regions.length > product.maxRegions) {
+      return NextResponse.json(
+        { error: `${product.name}은 최대 ${product.maxRegions}개 지역만 선택 가능합니다` },
+        { status: 400 }
+      );
+    }
+
+    // 스탭: 결제/인증/개수 제한 모두 스킵, 즉시 ACTIVE + 90일
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + 90);
+    const duration = 90 as DurationDays;
+
+    const ad = await prisma.$transaction(async (tx) => {
+      const newAd = await tx.ad.create({
+        data: {
+          userId,
+          businessName,
+          businessType: businessType as BusinessType,
+          contactPhone: contactPhone.replace(/-/g, ""),
+          contactKakao: contactKakao || null,
+          contactTelegram: contactTelegram || null,
+          address: address || null,
+          addressDetail: addressDetail || null,
+          locationHint: locationHint || null,
+          title,
+          salaryText,
+          workHours: workHours || null,
+          benefits: benefits || null,
+          description,
+          workEnvironment: workEnvironment || null,
+          safetyInfo: safetyInfo || null,
+          regions: productId === "BANNER" ? [] : (regions as Region[]),
+          districts: Array.isArray(districts) ? districts : [],
+          productId: productId as AdProductId,
+          durationDays: duration,
+          totalAmount: 0,
+          status: "ACTIVE",
+          startDate: now,
+          endDate,
+          autoJumpPerDay: product.autoJumpPerDay,
+          manualJumpPerDay: product.manualJumpPerDay,
+          maxEdits: product.maxEdits,
+          isVerified: true,
+          bannerColor: bannerColor ?? 0,
+          bannerTitle: bannerTitle || null,
+          bannerSubtitle: bannerSubtitle || null,
+          bannerTemplate: bannerTemplate ?? 0,
+          detailImages: Array.isArray(detailImages) ? detailImages.slice(0, 10) : [],
+        },
+      });
+
+      // Create options if any
+      if (options && options.length > 0) {
+        await tx.adOption.createMany({
+          data: (options as string[]).map((optId: string) => ({
+            adId: newAd.id,
+            optionId: optId as AdOptionId,
+            value: optionValues[optId] || null,
+            durationDays: duration,
+            startDate: now,
+            endDate,
+          })),
+        });
+      }
+
+      return newAd;
+    });
+
+    return NextResponse.json({ adId: ad.id, staff: true }, { status: 201 });
+  } catch (error) {
+    console.error("Staff ad creation error:", error);
+    const message = error instanceof Error ? error.message : "서버 오류가 발생했습니다";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

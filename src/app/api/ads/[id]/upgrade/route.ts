@@ -17,6 +17,15 @@ export async function POST(
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
 
+    // 스탭 계정 차단: 업그레이드 API 접근 불가
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isStaff: true },
+    });
+    if (currentUser?.isStaff) {
+      return NextResponse.json({ error: "스탭 계정은 업그레이드를 이용할 수 없습니다" }, { status: 403 });
+    }
+
     // #29: Rate limiting (분당 5회)
     const { success: rateLimitOk } = await checkRateLimit(`ad-upgrade:${session.user.id}`, 5, 60_000);
     if (!rateLimitOk) {

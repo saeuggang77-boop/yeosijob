@@ -48,6 +48,10 @@
     {
       "path": "/api/cron/cleanup-age-tokens",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/auto-renew-staff",
+      "schedule": "0 17 * * *"
     }
   ],
   "redirects": [

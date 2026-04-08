@@ -18,6 +18,13 @@ export default async function PaymentInfoPage({
   const session = await auth();
   if (!session) redirect("/login");
 
+  // 스탭 계정 차단: 결제 페이지 접근 불가
+  const staffCheck = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isStaff: true },
+  });
+  if (staffCheck?.isStaff) redirect("/business/dashboard");
+
   const { id } = await params;
   const { orderId } = await searchParams;
 

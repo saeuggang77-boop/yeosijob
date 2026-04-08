@@ -29,11 +29,13 @@ export async function GET(request: NextRequest) {
       endOfDay.setHours(23, 59, 59, 999);
 
       // ── 구인광고(Ad) 만료 알림 ──
+      // 스탭 계정 광고는 제외 (운영자=본인에게 알림 불필요)
       const expiringAds = await prisma.ad.findMany({
         where: {
           status: "ACTIVE",
           productId: { not: "FREE" },
           endDate: { gte: startOfDay, lte: endOfDay },
+          user: { isStaff: false },
         },
         select: {
           id: true,

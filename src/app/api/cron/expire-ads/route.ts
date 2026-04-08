@@ -7,6 +7,7 @@ import { verifyCronAuth } from "@/lib/utils/cron-auth";
  * endDate가 지난 유료 ACTIVE 광고를 EXPIRED 상태로 전환
  * - productId는 유지 (연장 시 동일 상품으로 결제할 수 있도록)
  * - 유료 기능(자동점프) 중지
+ * - 스탭 계정(isStaff=true) 광고는 제외 (auto-renew-staff 크론이 처리)
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
         status: "ACTIVE",
         productId: { not: "FREE" },
         endDate: { lt: now },
+        user: { isStaff: false },
       },
       data: {
         status: "EXPIRED",

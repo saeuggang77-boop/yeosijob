@@ -29,6 +29,12 @@ export default async function AdDetailPage({ params }: PageProps) {
 
   const { id } = await params;
 
+  // 스탭 계정 여부 확인 (업그레이드/연장 카드 숨김 처리)
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isStaff: true },
+  });
+
   const ad = await prisma.ad.findUnique({
     where: { id },
   });
@@ -117,8 +123,8 @@ export default async function AdDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* 업그레이드 안내 - BANNER가 아닌 ACTIVE 광고 */}
-      {ad.status === "ACTIVE" && ad.productId !== "BANNER" && (
+      {/* 업그레이드 안내 - BANNER가 아닌 ACTIVE 광고 (스탭 계정 제외) */}
+      {!currentUser?.isStaff && ad.status === "ACTIVE" && ad.productId !== "BANNER" && (
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader>
             <CardTitle>{isFree ? "무료 광고 등급" : `현재 등급: ${getProductName(ad.productId)}`}</CardTitle>
@@ -143,8 +149,8 @@ export default async function AdDetailPage({ params }: PageProps) {
         </Card>
       )}
 
-      {/* 연장 안내 - EXPIRED 유료 광고 */}
-      {ad.status === "EXPIRED" && ad.productId !== "FREE" && (
+      {/* 연장 안내 - EXPIRED 유료 광고 (스탭 계정 제외) */}
+      {!currentUser?.isStaff && ad.status === "EXPIRED" && ad.productId !== "FREE" && (
         <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
           <CardHeader>
             <CardTitle>광고가 만료되었습니다</CardTitle>

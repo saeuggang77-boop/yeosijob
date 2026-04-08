@@ -65,6 +65,23 @@ export function FloatingContact({
       });
   };
 
+  // 오픈채팅 URL 클릭 시: 여시잡 출처 메시지를 클립보드에 복사하면서 새 창 오픈
+  const handleKakaoUrlClick = () => {
+    if (!contactKakao) return;
+
+    navigator.clipboard
+      .writeText(messageTemplate)
+      .then(() => {
+        toast.success("메시지가 복사되었어요", {
+          description: "오픈채팅이 열리면 붙여넣기 후 보내세요",
+          duration: 4000,
+        });
+      })
+      .catch(() => {});
+
+    window.open(contactKakao, "_blank", "noopener,noreferrer");
+  };
+
   const handleApply = async () => {
     if (!adId || hasApplied || isApplying) return;
     setIsApplying(true);
@@ -120,17 +137,14 @@ export function FloatingContact({
   const kakaoButtonMobile = contactKakao
     ? kakaoIsLink
       ? (
-        <a
-          href={contactKakao}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1"
+        <Button
+          variant="outline"
+          className="h-11 flex-1 gap-1 text-sm"
+          onClick={handleKakaoUrlClick}
         >
-          <Button variant="outline" className="h-11 w-full gap-1 text-sm">
-            <MessageCircle className="h-4 w-4" />
-            <span>카카오톡</span>
-          </Button>
-        </a>
+          <MessageCircle className="h-4 w-4" />
+          <span>카카오톡</span>
+        </Button>
       )
       : (
         <Button
@@ -148,17 +162,14 @@ export function FloatingContact({
   const kakaoButtonDesktop = contactKakao
     ? kakaoIsLink
       ? (
-        <a
-          href={contactKakao}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1"
+        <Button
+          variant="outline"
+          className="flex-1 gap-1 text-xs"
+          onClick={handleKakaoUrlClick}
         >
-          <Button variant="outline" className="w-full gap-1 text-xs">
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span>카카오톡</span>
-          </Button>
-        </a>
+          <MessageCircle className="h-3.5 w-3.5" />
+          <span>카카오톡</span>
+        </Button>
       )
       : (
         <Button
@@ -246,6 +257,9 @@ export function FloatingContact({
               </Button>
             </a>
           </div>
+          <p className="text-center text-[10px] leading-tight text-muted-foreground">
+            💡 통화 시 &quot;여시잡 보고 연락드렸습니다&quot; 멘트 권장
+          </p>
 
           {/* Row 3: 메시지 (카톡 + 텔레, 등록된 채널만) */}
           {hasMessageRow && (
@@ -253,7 +267,7 @@ export function FloatingContact({
               {kakaoButtonMobile}
               {contactTelegram && (
                 <a
-                  href={`https://t.me/${contactTelegram.replace('@', '')}`}
+                  href={`https://t.me/${contactTelegram.replace('@', '')}?text=${encodeURIComponent(messageTemplate)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1"
@@ -312,6 +326,9 @@ export function FloatingContact({
                 </Button>
               </a>
             </div>
+            <p className="text-[10px] leading-tight text-muted-foreground">
+              💡 통화 시 &quot;여시잡 보고 연락드렸습니다&quot; 멘트 권장
+            </p>
           </div>
 
           {/* 메시지 그룹 */}
@@ -324,7 +341,7 @@ export function FloatingContact({
                 {kakaoButtonDesktop}
                 {contactTelegram && (
                   <a
-                    href={`https://t.me/${contactTelegram.replace('@', '')}`}
+                    href={`https://t.me/${contactTelegram.replace('@', '')}?text=${encodeURIComponent(messageTemplate)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1"

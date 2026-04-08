@@ -390,6 +390,9 @@ model Ad {
   autoRenewCount    Int       @default(0)
   lastAutoRenewedAt DateTime?
 
+  // 찜(스크랩) 마일스톤 — 사장에게 알림 보낸 마지막 찜 개수 (중복 알림 방지)
+  lastScrapMilestone Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

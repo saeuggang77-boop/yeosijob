@@ -88,11 +88,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       manualJumpPerDay: true,
       manualJumpUsedToday: true,
       lastManualJumpAt: true,
+      _count: {
+        select: { scraps: true },
+      },
     },
   });
 
   const activeCount = ads.filter((a) => a.status === "ACTIVE").length;
   const totalViews = ads.reduce((sum, a) => sum + a.viewCount, 0);
+  const totalScraps = ads.reduce((sum, a) => sum + a._count.scraps, 0);
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-6">
@@ -114,7 +118,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
 
       {/* 요약 카드 */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="animate-fade-in-up bg-gradient-to-br from-primary/10 to-transparent stagger-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
@@ -127,7 +131,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </p>
           </CardContent>
         </Card>
-        <Card className="animate-fade-in-up stagger-2">
+        <Card className="animate-fade-in-up bg-gradient-to-br from-pink-500/10 to-transparent stagger-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">
+              💝 받은 찜
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalScraps.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="animate-fade-in-up stagger-3">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               게재중 광고
@@ -137,7 +151,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <p className="text-4xl font-bold">{activeCount}건</p>
           </CardContent>
         </Card>
-        <Card className="animate-fade-in-up stagger-3">
+        <Card className="animate-fade-in-up stagger-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               전체 광고
@@ -188,6 +202,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             조회 {ad.viewCount.toLocaleString()}회 ·{" "}
+                            {ad._count.scraps > 0 ? (
+                              <span className="text-pink-400">💝 {ad._count.scraps}</span>
+                            ) : (
+                              <span>💝 0</span>
+                            )}
+                            {" · "}
                             {isFree ? "무료" : `${ad.totalAmount.toLocaleString()}원`}
                           </p>
                           {ad.status === "ACTIVE" && (
@@ -301,7 +321,7 @@ async function renderStaffDashboard(
     ];
   }
 
-  const [ads, total, activeCount, totalViewsAgg] = await Promise.all([
+  const [ads, total, activeCount, totalViewsAgg, totalScraps] = await Promise.all([
     prisma.ad.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -321,11 +341,15 @@ async function renderStaffDashboard(
         manualJumpUsedToday: true,
         lastManualJumpAt: true,
         autoRenewCount: true,
+        _count: {
+          select: { scraps: true },
+        },
       },
     }),
     prisma.ad.count({ where }),
     prisma.ad.count({ where: { userId, status: "ACTIVE" } }),
     prisma.ad.aggregate({ where: { userId }, _sum: { viewCount: true } }),
+    prisma.scrap.count({ where: { ad: { userId } } }),
   ]);
 
   const totalViews = totalViewsAgg._sum.viewCount ?? 0;
@@ -358,13 +382,21 @@ async function renderStaffDashboard(
       </div>
 
       {/* 요약 카드 */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-primary/10 to-transparent">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">총 조회수</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{totalViews.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-pink-500/10 to-transparent">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">💝 받은 찜</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalScraps.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>
@@ -460,7 +492,14 @@ async function renderStaffDashboard(
                             )}
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            조회 {ad.viewCount.toLocaleString()}회 · 등록 {new Date(ad.createdAt).toLocaleDateString("ko-KR")}
+                            조회 {ad.viewCount.toLocaleString()}회 ·{" "}
+                            {ad._count.scraps > 0 ? (
+                              <span className="text-pink-400">💝 {ad._count.scraps}</span>
+                            ) : (
+                              <span>💝 0</span>
+                            )}
+                            {" · "}
+                            등록 {new Date(ad.createdAt).toLocaleDateString("ko-KR")}
                           </p>
                           {ad.status === "ACTIVE" && (
                             <p className="mt-1 text-xs text-muted-foreground">

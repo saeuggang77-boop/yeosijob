@@ -14,14 +14,16 @@ export default async function BusinessLayout({
     redirect("/login");
   }
 
-  // Ad/Partner 존재 여부로 사이드바 메뉴 필터링
-  const [adCount, partnerCount] = await Promise.all([
+  // Ad/Partner 존재 여부 + 스탭 여부로 사이드바 메뉴 필터링
+  const [adCount, partnerCount, currentUser] = await Promise.all([
     prisma.ad.count({ where: { userId: session.user.id } }),
     prisma.partner.count({ where: { userId: session.user.id } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { isStaff: true } }),
   ]);
 
   const showAdMenus = adCount > 0 || partnerCount === 0; // Ad 있거나, 둘 다 없으면 (신규)
   const showPartnerMenus = partnerCount > 0 || adCount === 0; // Partner 있거나, 둘 다 없으면 (신규)
+  const isStaff = !!currentUser?.isStaff;
 
   const navItems = [
     { href: "/jobs", label: "채용정보", icon: "🏠" },
@@ -34,7 +36,10 @@ export default async function BusinessLayout({
       { href: "/business/partner", label: "내 업체 관리", icon: "🤝", dividerBefore: true, sectionLabel: "제휴업체", sublabel: "성형·미용·렌탈·금융" },
     ] : []),
     { href: "/business/notifications/telegram", label: "실시간 알림", icon: "📢", dividerBefore: true, sectionLabel: "알림", sublabel: "NEW · 텔레그램 채널" },
-    { href: "/business/payments", label: "결제 내역", icon: "💳", dividerBefore: true, sectionLabel: "결제" },
+    // 스탭 계정은 결제가 없으므로 '결제 내역' 메뉴 숨김
+    ...(isStaff ? [] : [
+      { href: "/business/payments", label: "결제 내역", icon: "💳", dividerBefore: true, sectionLabel: "결제" },
+    ]),
     { href: "/business/profile", label: "마이페이지", icon: "👤", dividerBefore: true, sectionLabel: "내 정보" },
   ];
 

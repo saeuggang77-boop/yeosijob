@@ -189,7 +189,7 @@ export const AD_PRODUCTS: Record<string, AdProduct> = {
     maxEdits: 5,
 
     pricing: { 30: 350_000, 60: 650_000, 90: 900_000 },
-    vsQueen: "12건 한정(퀸알바 23건), 카페연동 2회, 수정 5회",
+    vsQueen: "무제한 등록(퀸알바 23건), 카페연동 2회, 수정 5회",
   },
 };
 

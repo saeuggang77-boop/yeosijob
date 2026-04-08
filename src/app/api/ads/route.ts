@@ -435,7 +435,7 @@ export async function POST(request: NextRequest) {
     console.error("Ad creation error:", error);
     const message = error instanceof Error ? error.message : "서버 오류가 발생했습니다";
     // 사용자에게 보여줄 수 있는 에러 메시지
-    const userMessages = ["노블레스는 현재 만석입니다", "무료 광고권이 없습니다"];
+    const userMessages = ["무료 광고권이 없습니다"];
     const isUserError = userMessages.some((m) => message.includes(m));
     return NextResponse.json(
       { error: isUserError ? message : "서버 오류가 발생했습니다" },

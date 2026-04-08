@@ -540,7 +540,18 @@ export default async function JobDetailPage({ params }: PageProps) {
           {ad.contactKakao && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">카카오톡</span>
-              <span className="font-medium">{ad.contactKakao}</span>
+              {/^https?:\/\/(open\.kakao\.com|pf\.kakao\.com|qr\.kakao\.com)/i.test(ad.contactKakao.trim()) ? (
+                <a
+                  href={ad.contactKakao}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  카카오톡 채팅 열기
+                </a>
+              ) : (
+                <span className="font-medium">{ad.contactKakao}</span>
+              )}
             </div>
           )}
           {ad.contactTelegram && (

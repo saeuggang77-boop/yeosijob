@@ -130,7 +130,19 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
           )}
           {partner.contactKakao && (
             <p>
-              <span className="text-muted-foreground">카카오톡:</span> {partner.contactKakao}
+              <span className="text-muted-foreground">카카오톡:</span>{" "}
+              {/^https?:\/\/(open\.kakao\.com|pf\.kakao\.com|qr\.kakao\.com)/i.test(partner.contactKakao.trim()) ? (
+                <a
+                  href={partner.contactKakao}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline break-all"
+                >
+                  카카오톡 채팅 열기
+                </a>
+              ) : (
+                partner.contactKakao
+              )}
             </p>
           )}
           {partner.websiteUrl && (

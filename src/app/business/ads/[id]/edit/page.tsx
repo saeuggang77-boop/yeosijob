@@ -320,13 +320,17 @@ export default function EditAdPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="contactKakao">카카오톡 ID</Label>
+                <Label htmlFor="contactKakao">카카오톡 ID 또는 오픈채팅 링크</Label>
                 <input
                   id="contactKakao"
                   value={form.contactKakao}
                   onChange={(e) => updateField("contactKakao", e.target.value)}
+                  placeholder="예: kakao_id 또는 https://open.kakao.com/o/..."
                   className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  💡 오픈채팅/플러스친구 링크를 입력하면 구직자가 한 번에 클릭으로 연결됩니다.
+                </p>
               </div>
               <div>
                 <Label htmlFor="locationHint">근무지 위치 (선택)</Label>

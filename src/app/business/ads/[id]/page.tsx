@@ -303,9 +303,22 @@ export default async function AdDetailPage({ params }: PageProps) {
           {ad.contactKakao && (
             <div>
               <dt className="text-sm font-medium text-muted-foreground">
-                카카오톡 ID
+                카카오톡
               </dt>
-              <dd className="text-lg font-semibold">{ad.contactKakao}</dd>
+              <dd className="text-lg font-semibold">
+                {/^https?:\/\/(open\.kakao\.com|pf\.kakao\.com|qr\.kakao\.com)/i.test(ad.contactKakao.trim()) ? (
+                  <a
+                    href={ad.contactKakao}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline break-all"
+                  >
+                    카카오톡 채팅 열기
+                  </a>
+                ) : (
+                  ad.contactKakao
+                )}
+              </dd>
             </div>
           )}
         </CardContent>

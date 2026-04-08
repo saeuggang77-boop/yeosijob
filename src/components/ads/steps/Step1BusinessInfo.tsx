@@ -177,13 +177,16 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contactKakao">카카오톡 ID (선택)</Label>
+            <Label htmlFor="contactKakao">카카오톡 ID 또는 오픈채팅 링크 (선택)</Label>
             <Input
               id="contactKakao"
               name="contactKakao"
               defaultValue={data.contactKakao}
-              placeholder="카카오톡 ID"
+              placeholder="예: kakao_id 또는 https://open.kakao.com/o/..."
             />
+            <p className="text-xs text-muted-foreground">
+              💡 오픈채팅/플러스친구 링크를 입력하면 구직자가 한 번에 클릭으로 연결됩니다. ID만 입력 시 구직자가 친구추가 후 검색해야 합니다.
+            </p>
           </div>
 
           <div className="space-y-2">

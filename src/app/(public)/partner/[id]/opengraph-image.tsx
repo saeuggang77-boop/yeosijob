@@ -17,7 +17,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       category: true,
       region: true,
       highlight: true,
-      _count: { select: { partnerReviews: { where: { isHidden: false } } } },
     },
   });
 
@@ -46,6 +45,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const categoryInfo = PARTNER_CATEGORIES[partner.category];
   const regionLabel = REGIONS[partner.region]?.label || partner.region;
   const categoryColor = categoryInfo?.color || "#D4A853";
+  const highlight = partner.highlight
+    ? (partner.highlight.length > 60 ? partner.highlight.slice(0, 60) + "..." : partner.highlight)
+    : "";
 
   return new ImageResponse(
     (
@@ -60,7 +62,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           justifyContent: "space-between",
         }}
       >
-        {/* 상단: 로고 + 카테고리 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ color: "#D4A853", fontSize: 36, fontWeight: 800 }}>여시잡</div>
           <div
@@ -72,11 +73,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               borderRadius: 8,
             }}
           >
-            {categoryInfo?.emoji} {categoryInfo?.label || "제휴업체"}
+            {(categoryInfo?.emoji || "") + " " + (categoryInfo?.label || "제휴업체")}
           </div>
         </div>
 
-        {/* 중앙: 업체명 + 한줄소개 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div
             style={{
@@ -88,16 +88,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           >
             {partner.name.length > 20 ? partner.name.slice(0, 20) + "..." : partner.name}
           </div>
-          {partner.highlight && (
+          {highlight ? (
             <div style={{ color: "#aaa", fontSize: 26, lineHeight: 1.4 }}>
-              {partner.highlight.length > 60
-                ? partner.highlight.slice(0, 60) + "..."
-                : partner.highlight}
+              {highlight}
             </div>
-          )}
+          ) : null}
         </div>
 
-        {/* 하단: 지역 + 후기 수 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div
             style={{
@@ -110,11 +107,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           >
             {regionLabel}
           </div>
-          {partner._count.partnerReviews > 0 && (
-            <div style={{ color: "#D4A853", fontSize: 20 }}>
-              후기 {partner._count.partnerReviews}건
-            </div>
-          )}
         </div>
       </div>
     ),

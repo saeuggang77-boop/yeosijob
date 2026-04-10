@@ -68,7 +68,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       title: `${ad.title} | 여시잡`,
       description,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${ad.title} | 여시잡 채용정보` }],
     },
   };
 }
@@ -273,14 +272,34 @@ export default async function JobDetailPage({ params }: PageProps) {
         addressCountry: "KR",
       },
     },
-    baseSalary: {
-      "@type": "MonetaryAmount",
-      currency: "KRW",
-      value: {
-        "@type": "QuantitativeValue",
-        value: ad.salaryText,
-      },
-    },
+    baseSalary: (() => {
+      // 급여 텍스트에서 숫자 추출 시도 (예: "일 30~50만원", "월 300~400만원")
+      const text = ad.salaryText || "";
+      const unitMatch = text.match(/^(시급|일|주|월|연)/);
+      const unitMap: Record<string, string> = { "시급": "HOUR", "일": "DAY", "주": "WEEK", "월": "MONTH", "연": "YEAR" };
+      const unitText = unitMatch ? (unitMap[unitMatch[1]] || "MONTH") : "MONTH";
+      const multiplier = text.includes("만") ? 10000 : 1;
+      const nums = text.match(/[\d,]+(?:\.\d+)?/g)?.map(n => parseFloat(n.replace(/,/g, "")) * multiplier);
+
+      if (nums && nums.length >= 2) {
+        return {
+          "@type": "MonetaryAmount",
+          currency: "KRW",
+          value: { "@type": "QuantitativeValue", minValue: nums[0], maxValue: nums[1], unitText },
+        };
+      } else if (nums && nums.length === 1) {
+        return {
+          "@type": "MonetaryAmount",
+          currency: "KRW",
+          value: { "@type": "QuantitativeValue", value: nums[0], unitText },
+        };
+      }
+      return {
+        "@type": "MonetaryAmount",
+        currency: "KRW",
+        value: { "@type": "QuantitativeValue", value: text },
+      };
+    })(),
   };
 
   // Add validThrough if endDate exists

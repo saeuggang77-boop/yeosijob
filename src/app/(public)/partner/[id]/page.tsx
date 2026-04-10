@@ -49,7 +49,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       title: `${partner.name} | 여시잡 제휴업체`,
       description,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${partner.name} | 여시잡 제휴업체` }],
     },
   };
 }

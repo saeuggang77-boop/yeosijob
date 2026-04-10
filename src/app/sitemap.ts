@@ -109,5 +109,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...jobPages, ...communityPages, ...partnerPages];
+  // Dynamic: notice pages
+  const notices = await prisma.notice.findMany({
+    select: { id: true, updatedAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const noticePages: MetadataRoute.Sitemap = notices.map((n) => ({
+    url: `${baseUrl}/notice/${n.id}`,
+    lastModified: n.updatedAt,
+    changeFrequency: "monthly" as const,
+    priority: 0.4,
+  }));
+
+  return [...staticPages, ...jobPages, ...communityPages, ...partnerPages, ...noticePages];
 }

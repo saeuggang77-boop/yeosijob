@@ -176,21 +176,21 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="contactKakao">카카오톡 ID 또는 오픈채팅 링크 (선택)</Label>
+          <div className="group space-y-2">
+            <Label htmlFor="contactKakao">카카오톡 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Input
               id="contactKakao"
               name="contactKakao"
               defaultValue={data.contactKakao}
-              placeholder="예: kakao_id 또는 https://open.kakao.com/o/..."
+              placeholder="카카오톡 ID 또는 오픈채팅 링크"
             />
-            <p className="text-xs text-muted-foreground">
-              💡 오픈채팅/플러스친구 링크를 입력하면 구직자가 한 번에 클릭으로 연결됩니다. ID만 입력 시 구직자가 친구추가 후 검색해야 합니다.
+            <p className="text-xs text-muted-foreground hidden group-focus-within:block">
+              💡 오픈채팅 링크 입력 시 구직자가 바로 클릭으로 연결됩니다
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contactTelegram">텔레그램 (선택)</Label>
+            <Label htmlFor="contactTelegram">텔레그램 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Input
               id="contactTelegram"
               name="contactTelegram"
@@ -199,27 +199,27 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="locationHint">근무지 위치 (선택)</Label>
+          <div className="group space-y-2">
+            <Label htmlFor="locationHint">근무지 위치 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Input
               id="locationHint"
               name="locationHint"
               defaultValue={data.locationHint}
-              placeholder="예: 강남구 역삼동, 역삼역 3번출구 근처"
+              placeholder="강남구 역삼동, 역삼역 3번출구 근처"
               maxLength={100}
             />
-            <p className="text-xs text-muted-foreground">정확한 주소 대신 대략적 위치를 알릴 수 있습니다</p>
+            <p className="text-xs text-muted-foreground hidden group-focus-within:block">정확한 주소 대신 대략적 위치를 알릴 수 있습니다</p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">주소 (선택)</Label>
+          <div className="group space-y-2">
+            <Label htmlFor="address">주소 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <div className="flex gap-2">
               <Input
                 id="address"
                 name="address"
                 value={address}
                 readOnly
-                placeholder="주소 검색을 클릭하세요"
+                placeholder="주소 검색"
                 className="flex-1 cursor-pointer bg-muted/50"
                 onClick={openPostcode}
               />
@@ -239,14 +239,14 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
                 </button>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">📍 상세주소 입력 시 구직자의 신뢰도가 높아집니다</p>
+            <p className="text-xs text-muted-foreground hidden group-focus-within:block">📍 상세주소 입력 시 구직자의 신뢰도가 높아집니다</p>
             {errors.address && (
               <p className="text-xs text-destructive">{errors.address}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="addressDetail">상세 주소 (선택)</Label>
+            <Label htmlFor="addressDetail">상세 주소 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Input
               id="addressDetail"
               name="addressDetail"
@@ -261,29 +261,30 @@ export function Step1BusinessInfo({ data, onUpdate, onNext }: Props) {
             </div>
 
             {/* 캐치프레이즈 입력 */}
-            <div className="space-y-2">
-              <Label htmlFor="bannerTitle">캐치프레이즈 (12자 이내)</Label>
+            <div className="group space-y-2">
+              <Label htmlFor="bannerTitle">캐치프레이즈 <span className="text-xs text-muted-foreground font-normal">12자</span></Label>
               <Input
                 id="bannerTitle"
                 maxLength={12}
                 value={data.bannerTitle || ""}
                 onChange={(e) => onUpdate({ bannerTitle: e.target.value })}
-                placeholder="예: 밤의 품격이 다르다"
+                placeholder="밤의 품격이 다르다"
               />
               <p className="text-xs text-muted-foreground">
-                {(data.bannerTitle || "").length}/12자 · 미입력 시 업소명이 표시됩니다
+                {(data.bannerTitle || "").length}/12자
+                <span className="hidden group-focus-within:inline"> · 미입력 시 업소명이 표시됩니다</span>
               </p>
             </div>
 
             {/* 서브 카피 입력 */}
             <div className="space-y-2">
-              <Label htmlFor="bannerSubtitle">서브 카피 (20자 이내)</Label>
+              <Label htmlFor="bannerSubtitle">서브 카피 <span className="text-xs text-muted-foreground font-normal">20자</span></Label>
               <Input
                 id="bannerSubtitle"
                 maxLength={20}
                 value={data.bannerSubtitle || ""}
                 onChange={(e) => onUpdate({ bannerSubtitle: e.target.value })}
-                placeholder="예: 최고의 대우를 약속합니다"
+                placeholder="최고의 대우를 약속합니다"
               />
               <p className="text-xs text-muted-foreground">
                 {(data.bannerSubtitle || "").length}/20자

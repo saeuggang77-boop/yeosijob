@@ -70,7 +70,7 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
               id="title"
               name="title"
               defaultValue={data.title}
-              placeholder="예: 강남 룸싸롱 여성 정직원 모집"
+              placeholder="강남 룸싸롱 여성 정직원 모집"
               maxLength={30}
               required
               onChange={(e) => setTitleLength(e.target.value.length)}
@@ -91,7 +91,7 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
               id="salaryText"
               name="salaryText"
               defaultValue={data.salaryText}
-              placeholder="예: 시급 15,000~25,000+α"
+              placeholder="시급 15,000~25,000+α"
               required
             />
             {errors.salaryText && (
@@ -100,22 +100,22 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="workHours">근무시간 (선택)</Label>
+            <Label htmlFor="workHours">근무시간 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Input
               id="workHours"
               name="workHours"
               defaultValue={data.workHours}
-              placeholder="예: PM 7:00 ~ AM 3:00"
+              placeholder="PM 7:00 ~ AM 3:00"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="benefits">혜택/복리후생 (선택)</Label>
+            <Label htmlFor="benefits">혜택/복리후생 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Textarea
               id="benefits"
               name="benefits"
               defaultValue={data.benefits}
-              placeholder="예: 식사 제공, 의상 제공, 택시비 지원"
+              placeholder="식사 제공, 의상 제공, 택시비 지원"
               rows={3}
             />
           </div>
@@ -139,10 +139,7 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
 
           {/* 상세 이미지 업로드 */}
           <div className="space-y-2 border-t pt-4">
-            <Label>상세 이미지 (선택)</Label>
-            <p className="text-xs text-muted-foreground">
-              상세내역 이미지가 있으면 업로드하세요
-            </p>
+            <Label>상세 이미지 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <AdImageUploader
               images={data.detailImages || []}
               onChange={(imgs) => onUpdate({ detailImages: imgs })}
@@ -151,7 +148,7 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="workEnvironment">근무환경 (선택)</Label>
+            <Label htmlFor="workEnvironment">근무환경 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Textarea
               id="workEnvironment"
               name="workEnvironment"
@@ -163,7 +160,7 @@ export function Step2JobInfo({ data, onUpdate, onNext, onBack }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="safetyInfo">안전 / 보안 정보 (선택)</Label>
+            <Label htmlFor="safetyInfo">안전 / 보안 정보 <span className="text-xs text-muted-foreground font-normal">선택</span></Label>
             <Textarea
               id="safetyInfo"
               name="safetyInfo"

@@ -36,6 +36,38 @@ export async function POST(request: NextRequest) {
 
     const { category, durationDays } = validation.data;
 
+    // 스탭 계정 확인
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isStaff: true },
+    });
+
+    // 스탭 계정: 결제 없이 바로 ACTIVE (광고와 동일한 피처 플래그)
+    if (currentUser?.isStaff && process.env.ENABLE_STAFF_ADS === "true") {
+      const now = new Date();
+      const partner = await prisma.partner.create({
+        data: {
+          userId: session.user.id,
+          name: "미등록 업체",
+          category: category as any,
+          region: "SEOUL",
+          description: "",
+          grade: "A",
+          monthlyPrice: 0,
+          durationDays: 0,
+          status: "ACTIVE",
+          startDate: now,
+          endDate: new Date("2099-12-31T23:59:59.000Z"),
+          isProfileComplete: false,
+        },
+      });
+      return NextResponse.json({
+        success: true,
+        partnerId: partner.id,
+        staff: true,
+      });
+    }
+
     // 가격 계산
     const amount = calculatePartnerPrice(category, durationDays);
     if (amount <= 0) {

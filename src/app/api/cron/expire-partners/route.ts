@@ -11,11 +11,12 @@ export async function GET(request: NextRequest) {
   try {
     const now = new Date();
 
-    // 1. 만료 처리: endDate 지난 파트너 EXPIRED로 변경
+    // 1. 만료 처리: endDate 지난 파트너 EXPIRED로 변경 (스탭 계정 제외)
     const expireResult = await prisma.partner.updateMany({
       where: {
         status: "ACTIVE",
         endDate: { lt: now, not: null },
+        user: { isStaff: false },
       },
       data: {
         status: "EXPIRED",

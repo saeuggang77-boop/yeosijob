@@ -369,12 +369,27 @@ export async function GET(request: NextRequest) {
     }
 
     // === 5. 랜덤 좋아요 부여 (고스트 유저 → 고스트 게시글) ===
+    // 게시글 ID 기반 결정론적 목표 추천 수 (자연스러운 분포)
+    function getPostLikeTarget(postId: string): number {
+      let hash = 0;
+      for (let i = 0; i < postId.length; i++) {
+        hash = ((hash << 5) - hash + postId.charCodeAt(i)) | 0;
+      }
+      const roll = Math.abs(hash % 100);
+      // 50%: 0~1, 25%: 2~5, 15%: 6~12, 8%: 13~20, 2%: 21~30
+      if (roll < 50) return Math.abs(hash % 2);           // 0~1
+      if (roll < 75) return 2 + Math.abs((hash >> 4) % 4);  // 2~5
+      if (roll < 90) return 6 + Math.abs((hash >> 8) % 7);  // 6~12
+      if (roll < 98) return 13 + Math.abs((hash >> 12) % 8); // 13~20
+      return 21 + Math.abs((hash >> 16) % 10);              // 21~30
+    }
+
     let randomLikes = { posts: 0, comments: 0 };
     {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // 최근 7일 고스트 게시글 중 좋아요가 적은 것
+      // 최근 7일 고스트 게시글
       const recentGhostPosts = await prisma.post.findMany({
         where: {
           createdAt: { gte: sevenDaysAgo },
@@ -387,17 +402,20 @@ export async function GET(request: NextRequest) {
           _count: { select: { likes: true } },
         },
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: 50,
       });
 
-      // 좋아요가 3개 미만인 게시글 선별 (최대 5개)
-      const lowLikePosts = recentGhostPosts
-        .filter(p => p._count.likes < 3)
+      // 목표 미달 게시글 선별 (최대 8개)
+      const needLikePosts = recentGhostPosts
+        .map(p => ({ ...p, target: getPostLikeTarget(p.id), current: p._count.likes }))
+        .filter(p => p.current < p.target)
         .sort(() => Math.random() - 0.5)
-        .slice(0, 5);
+        .slice(0, 8);
 
-      for (const post of lowLikePosts) {
-        const likeCount = Math.floor(Math.random() * 4); // 0~3개
+      for (const post of needLikePosts) {
+        // 한 번에 목표까지 채우지 않고, 1~3개씩 점진적으로
+        const remaining = post.target - post.current;
+        const likeCount = Math.min(remaining, Math.floor(Math.random() * 3) + 1);
         if (likeCount === 0) continue;
 
         const likers = await getRandomGhostUsers(likeCount);

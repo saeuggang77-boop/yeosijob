@@ -69,8 +69,15 @@ export async function DELETE(
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
     }
 
-    // PENDING_PAYMENT 상태만 삭제 가능
-    if (partner.status !== "PENDING_PAYMENT") {
+    // 스탭 계정: 본인 소유 파트너는 상태 무관 삭제 가능
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isStaff: true },
+    });
+    const isStaff = currentUser?.isStaff === true;
+
+    // 일반 사용자: PENDING_PAYMENT 상태만 삭제 가능
+    if (!isStaff && partner.status !== "PENDING_PAYMENT") {
       return NextResponse.json(
         { error: "결제 대기 중인 제휴업체만 삭제할 수 있습니다" },
         { status: 403 }

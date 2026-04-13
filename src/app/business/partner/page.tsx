@@ -19,10 +19,17 @@ export default async function BusinessPartnerPage() {
     redirect("/login");
   }
 
-  const partners = await prisma.partner.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const [partners, currentUser] = await Promise.all([
+    prisma.partner.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isStaff: true },
+    }),
+  ]);
+  const isStaff = currentUser?.isStaff === true;
 
   const getRemainingDays = (endDate: Date) => {
     const now = new Date();
@@ -124,6 +131,10 @@ export default async function BusinessPartnerPage() {
 
                     {partner.status === "ACTIVE" && remainingDays !== null && remainingDays < 30 && (
                       <PartnerRenewButton partnerId={partner.id} label="연장" />
+                    )}
+
+                    {isStaff && partner.status === "ACTIVE" && (
+                      <PartnerCancelButton partnerId={partner.id} />
                     )}
 
                     {partner.status === "EXPIRED" && (

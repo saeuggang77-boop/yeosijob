@@ -76,7 +76,7 @@ export function PartnerCard({ partner }: PartnerCardProps) {
 
           {/* Description */}
           {partner.description && (
-            <p className="mt-1 flex-1 line-clamp-3 text-sm text-muted-foreground">
+            <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">
               {partner.description}
             </p>
           )}

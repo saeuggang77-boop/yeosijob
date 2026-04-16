@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
           deletedAt: null,
           author: { isGhost: true }, // 고스트 작성 게시글만 (글쓴이가 답글해야 하므로)
         },
-        select: { id: true, title: true, content: true, authorId: true },
+        select: { id: true, title: true, content: true, authorId: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         take: 20,
       });
@@ -337,17 +337,12 @@ export async function GET(request: NextRequest) {
               const comments = await generateContextualComments(post.title, post.content, 1);
               if (comments.length === 0) continue;
 
-              // 약간의 시간 오프셋 (자연스러운 간격)
-              const offsetMinutes = Math.floor(Math.random() * 30) + 1;
-              const createdAt = new Date(now.getTime() + offsetMinutes * 60 * 1000);
-
               await prisma.comment.create({
                 data: {
                   authorId: ghost.id,
                   postId: post.id,
                   content: comments[0],
                   parentId: null,
-                  createdAt,
                 },
               });
 

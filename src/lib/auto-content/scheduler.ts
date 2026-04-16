@@ -294,7 +294,7 @@ export async function generateContextualReplies(
  * 게시글에 대한 전체 대화 스레드 생성 (댓글+답글 통합)
  */
 export async function generateConversationThread(
-  post: { id: string; title: string; content: string; authorId: string },
+  post: { id: string; title: string; content: string; authorId: string; createdAt: Date },
   threadSize: number,
   authorReplyRate: number = 50
 ): Promise<{ commentCount: number; replyCount: number }> {
@@ -451,17 +451,27 @@ export async function generateConversationThread(
     let commentCount = 0;
     let replyCount = 0;
 
-    // 시간 오프셋: 순차 누적으로 순서 보장 (첫 메시지가 가장 오래전)
-    const now = Date.now();
-    const intervals: number[] = [];
+    // 시간 오프셋: 게시글 작성 시각 이후 ~ 현재 사이에 순차 분산 (정방향 누적)
+    // 첫 메시지 = 게시글 직후, 마지막 메시지 = 가장 최근
+    const postMs = post.createdAt.getTime();
+    const nowMs = Date.now();
+    const windowStartMs = postMs + 60_000; // 게시글 1분 뒤부터
+    const windowEndMs = Math.max(windowStartMs + 60_000, nowMs - 10_000); // 현재 10초 전까지
+    const windowMs = windowEndMs - windowStartMs;
+
+    const rawIntervals: number[] = [];
     for (let i = 0; i < parsed.length; i++) {
-      intervals.push(Math.floor(Math.random() * 16) + 5); // 5~20분 간격
+      rawIntervals.push(Math.floor(Math.random() * 16) + 5); // 5~20분 간격
     }
-    // 역순 누적: 마지막 메시지 = 가장 최근, 첫 메시지 = 가장 오래전
-    const cumulativeOffsets: number[] = new Array(parsed.length);
-    cumulativeOffsets[parsed.length - 1] = intervals[parsed.length - 1];
-    for (let i = parsed.length - 2; i >= 0; i--) {
-      cumulativeOffsets[i] = cumulativeOffsets[i + 1] + intervals[i];
+    const rawTotalMs = rawIntervals.reduce((a, b) => a + b, 0) * 60 * 1000;
+    // 윈도우 초과 시 비율로 압축하여 창 안에 맞춤
+    const scale = rawTotalMs > windowMs ? windowMs / rawTotalMs : 1;
+
+    const cumulativeOffsetMs: number[] = new Array(parsed.length);
+    let acc = 0;
+    for (let i = 0; i < parsed.length; i++) {
+      acc += rawIntervals[i] * 60 * 1000 * scale;
+      cumulativeOffsetMs[i] = acc;
     }
 
     for (let i = 0; i < parsed.length; i++) {
@@ -511,9 +521,8 @@ export async function generateConversationThread(
         }
       }
 
-      // 시간차 적용: 순차적으로 누적하여 순서 보장
-      // 첫 메시지가 가장 오래전, 이후 메시지가 점점 최근
-      const createdAt = new Date(now - cumulativeOffsets[i] * 60 * 1000);
+      // 게시글 작성 시각 + 누적 오프셋 (창을 초과하지 않도록 clamp)
+      const createdAt = new Date(Math.min(windowEndMs, windowStartMs + cumulativeOffsetMs[i]));
 
       const comment = await prisma.comment.create({
         data: {

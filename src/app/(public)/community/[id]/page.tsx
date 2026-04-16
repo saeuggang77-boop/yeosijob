@@ -296,15 +296,40 @@ export default async function PostDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <>
-              {/* 마크다운 렌더링 */}
-              <div
-                className="prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-              />
+              {/* 마크다운 렌더링 — preview 모드는 300자까지 */}
+              {accessLevel === "preview" && post.content.length > 300 ? (
+                <>
+                  <div
+                    className="prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content.substring(0, 300) + "…") }}
+                  />
+                  <div className="mt-4 rounded-lg border border-[#D4A853]/30 bg-gradient-to-b from-[#D4A853]/10 to-transparent p-5 text-center">
+                    <p className="mb-1 text-sm font-semibold">
+                      📖 나머지 {(post.content.length - 300).toLocaleString()}자 더 있어요
+                    </p>
+                    <p className="mb-4 text-xs text-muted-foreground">
+                      회원가입하고 전체 글과 댓글을 확인하세요
+                    </p>
+                    <div className="flex justify-center gap-2">
+                      <Link href="/register">
+                        <Button size="sm">회원가입</Button>
+                      </Link>
+                      <Link href="/login">
+                        <Button size="sm" variant="outline">로그인</Button>
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div
+                  className="prose prose-sm max-w-none dark:prose-invert"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+                />
+              )}
 
               {/* 이미지 갤러리 */}
               {post.images.length > 0 && (
-                <ImageGallery images={post.images} />
+                <ImageGallery images={post.images} previewMode={accessLevel === "preview"} />
               )}
 
               {/* 비공개 안내 (작성자/관리자용) */}
@@ -372,7 +397,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       {!(post.isHidden && !isAuthor && !isAdmin) && (
         <div className={accessLevel === "blur" ? "blur-sm pointer-events-none select-none" : ""}>
           <CommentSection
-            comments={commentsData}
+            comments={accessLevel === "preview" ? commentsData.slice(0, 1).map(c => ({ ...c, replies: [] })) : commentsData}
             postId={post.id}
             postAuthorId={post.authorId}
             commentCount={commentCount}
@@ -381,6 +406,7 @@ export default async function PostDetailPage({ params }: PageProps) {
             isLoggedIn={!!session}
             canWrite={canWrite}
             isAnonymousPost={post.isAnonymous}
+            previewMode={accessLevel === "preview"}
           />
         </div>
       )}

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { CommentForm } from "./CommentForm";
 import { ReplyButton } from "./ReplyButton";
 import { CommentDeleteButton } from "./CommentDeleteButton";
@@ -49,6 +51,7 @@ interface CommentSectionProps {
   isLoggedIn: boolean;
   canWrite?: boolean;
   isAnonymousPost?: boolean;
+  previewMode?: boolean;
 }
 
 export function CommentSection({
@@ -61,6 +64,7 @@ export function CommentSection({
   isLoggedIn,
   canWrite = true,
   isAnonymousPost = false,
+  previewMode = false,
 }: CommentSectionProps) {
   // 익명 게시글에서 글쓴이의 표시 이름 결정
   const getDisplayName = (authorId: string, authorName: string | null) => {
@@ -85,6 +89,9 @@ export function CommentSection({
     });
   }, [comments, sortOrder]);
 
+  const visibleComments = previewMode ? sortedComments.slice(0, 1) : sortedComments;
+  const hiddenCount = previewMode ? Math.max(0, commentCount - visibleComments.length) : 0;
+
   return (
     <div className="mt-8">
       <div className="mb-4 flex items-center justify-between">
@@ -93,18 +100,22 @@ export function CommentSection({
         </h2>
 
         {/* 정렬 토글 */}
-        <button
-          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          {sortOrder === "asc" ? "등록순" : "최신순"} ↕
-        </button>
+        {!previewMode && (
+          <button
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {sortOrder === "asc" ? "등록순" : "최신순"} ↕
+          </button>
+        )}
       </div>
 
       {/* Comment Form */}
-      <div className="mb-6">
-        <CommentForm postId={postId} canWrite={canWrite} />
-      </div>
+      {!previewMode && (
+        <div className="mb-6">
+          <CommentForm postId={postId} canWrite={canWrite} />
+        </div>
+      )}
 
       {/* Comments List */}
       {sortedComments.length === 0 ? (
@@ -113,7 +124,7 @@ export function CommentSection({
         </div>
       ) : (
         <div className="space-y-4">
-          {sortedComments.map((comment) => {
+          {visibleComments.map((comment) => {
             const canDeleteComment = isAdmin;
             const canEditComment = isAdmin || currentUserId === comment.authorId;
             return (
@@ -273,6 +284,26 @@ export function CommentSection({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Preview mode: 로그인 CTA */}
+      {previewMode && hiddenCount > 0 && (
+        <div className="mt-4 rounded-lg border border-[#D4A853]/30 bg-gradient-to-b from-[#D4A853]/10 to-transparent p-6 text-center">
+          <p className="mb-1 text-base font-semibold">
+            💬 {hiddenCount}개의 댓글이 더 있어요
+          </p>
+          <p className="mb-4 text-sm text-muted-foreground">
+            회원가입하고 전체 댓글과 반응을 확인하세요
+          </p>
+          <div className="flex justify-center gap-2">
+            <Link href="/register">
+              <Button>회원가입</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline">로그인</Button>
+            </Link>
+          </div>
         </div>
       )}
     </div>

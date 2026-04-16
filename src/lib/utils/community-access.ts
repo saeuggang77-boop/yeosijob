@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AD_PRODUCTS } from "@/lib/constants/products";
 
-export type CommunityAccessLevel = "full" | "read_only" | "blur";
+export type CommunityAccessLevel = "full" | "read_only" | "preview" | "blur";
 export type BlurReason = "not_logged_in" | "low_tier_business" | null;
 
 interface SessionLike {
@@ -13,13 +13,13 @@ interface SessionLike {
  * - JOBSEEKER, ADMIN → "full" (읽기+쓰기)
  * - BUSINESS + 추천 이상(rank≤6) → "read_only" (읽기만)
  * - BUSINESS + 줄광고/무료(rank>6) 또는 광고 없음 → "blur"
- * - 비회원 → "blur"
+ * - 비회원 → "preview" (본문 300자 + 댓글 1개 공개, SEO용)
  */
 export async function getCommunityAccess(
   session: SessionLike | null
 ): Promise<{ level: CommunityAccessLevel; reason: BlurReason }> {
   if (!session) {
-    return { level: "blur", reason: "not_logged_in" };
+    return { level: "preview", reason: "not_logged_in" };
   }
 
   if (session.user.role === "JOBSEEKER" || session.user.role === "ADMIN") {

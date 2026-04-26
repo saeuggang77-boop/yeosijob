@@ -7,7 +7,7 @@ export function TrustBlock() {
             🤝 단독 제휴
           </span>
           <p className="text-sm font-bold text-foreground md:text-base">
-            업계 여성종사자 <span className="text-primary">2만+</span> 전용 커뮤니티 단독 제휴
+            현직 여성 회원 <span className="text-primary">2만+</span> 전용 커뮤니티 단독 제휴
           </p>
         </div>
 

@@ -74,19 +74,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // Dynamic: community posts (최근 90일, 숨김 제외)
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  // Dynamic: community posts (최근 365일, 숨김 제외, 품질 필터)
+  // 품질 필터: 조회수 5+ 또는 좋아요/댓글 있는 글만 → Google 크롤 예산 보호
+  const oneYearAgo = new Date();
+  oneYearAgo.setDate(oneYearAgo.getDate() - 365);
 
   const communityPosts = await prisma.post.findMany({
     where: {
       isHidden: false,
       deletedAt: null,
-      createdAt: { gte: ninetyDaysAgo },
+      createdAt: { gte: oneYearAgo },
+      OR: [
+        { viewCount: { gt: 5 } },
+        { likes: { some: {} } },
+        { comments: { some: { deletedAt: null } } },
+      ],
     },
     select: { id: true, slug: true, updatedAt: true },
     orderBy: { createdAt: "desc" },
-    take: 500,
+    take: 2000,
   });
 
   const communityPages: MetadataRoute.Sitemap = communityPosts.map((post) => ({

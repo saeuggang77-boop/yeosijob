@@ -170,14 +170,16 @@ export function AdminUserMenu({
       {/* 드롭다운 메뉴 */}
       {isOpen && (
         <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-border bg-card shadow-lg">
-          {/* 게시글 보기 */}
-          <button
-            onClick={handleViewPosts}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
-          >
-            <span>📝</span>
-            <span>게시글 보기</span>
-          </button>
+          {/* 게시글 보기 (관리자 전용 - 실유저 충분히 늘어나면 일반 공개) */}
+          {isAdmin && (
+            <button
+              onClick={handleViewPosts}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-muted"
+            >
+              <span>📝</span>
+              <span>게시글 보기</span>
+            </button>
+          )}
 
           {/* 쪽지보내기 */}
           <button

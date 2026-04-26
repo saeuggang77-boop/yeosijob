@@ -6,6 +6,7 @@ import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/prod
 import type { AdOptionId, PaymentMethod } from "@/generated/prisma/client";
 import crypto from "node:crypto";
 import { sendPushNotification } from "@/lib/push-notification";
+import { touchBusinessActivity } from "@/lib/business-activity";
 
 export async function POST(
   request: NextRequest,
@@ -16,6 +17,9 @@ export async function POST(
     if (!session || session.user.role !== "BUSINESS") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
+
+    // 사장님 활동 시간 갱신 (광고 연장 = 명시적 활동, fire-and-forget)
+    touchBusinessActivity(session.user.id).catch(() => {});
 
     // 스탭 계정 차단: 연장 API 접근 불가
     const currentUser = await prisma.user.findUnique({

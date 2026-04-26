@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { touchBusinessActivity } from "@/lib/business-activity";
 
 export async function GET(
   _request: Request,
@@ -73,6 +74,9 @@ export async function PUT(
     if (!session || session.user.role !== "BUSINESS") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
+
+    // 사장님 활동 시간 갱신 (광고 수정 = 명시적 활동, fire-and-forget)
+    touchBusinessActivity(session.user.id).catch(() => {});
 
     const { id } = await params;
 

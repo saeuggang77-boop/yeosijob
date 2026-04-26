@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AD_PRODUCTS, AD_OPTIONS, type DurationDays } from "@/lib/constants/products";
+import { touchBusinessActivity } from "@/lib/business-activity";
 import type { Region, BusinessType, AdProductId, AdOptionId, PaymentMethod } from "@/generated/prisma/client";
 import crypto from "node:crypto";
 
@@ -86,6 +87,9 @@ export async function POST(request: NextRequest) {
     if (!session || session.user.role !== "BUSINESS") {
       return NextResponse.json({ error: "권한이 없습니다" }, { status: 401 });
     }
+
+    // 사장님 활동 시간 갱신 (광고 등록 = 명시적 활동, fire-and-forget)
+    touchBusinessActivity(session.user.id).catch(() => {});
 
     // 사용자 정보 먼저 조회 (스탭 계정 분기에 필요)
     const user = await prisma.user.findUnique({

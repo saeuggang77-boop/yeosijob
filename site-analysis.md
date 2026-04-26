@@ -297,23 +297,24 @@
 | `/api/admin/auto-content/ghost-users` | GET/POST/DELETE | ADMIN | 유령 계정 관리 |
 | `/api/admin/auto-content/extract-keywords` | POST | ADMIN | 키워드 추출 |
 
-### 4-15. 크론잡 (12개)
+### 4-15. 크론잡 (13개)
 | 엔드포인트 | 스케줄 | 설명 |
 |------------|--------|------|
 | `/api/cron/auto-jump` | `*/10 * * * *` (10분) | 자동 점프 실행 |
 | `/api/cron/auto-publish` | `*/30 * * * *` (30분) | 자동 콘텐츠 발행 |
 | `/api/cron/boost-community-views` | `0 * * * *` (매시) | 커뮤니티 조회수 부스트 |
-| `/api/cron/expire-ads` | `0 * * * *` (매시) | 만료 광고 처리 |
+| `/api/cron/expire-ads` | `0 * * * *` (매시) | 유료→FREE 자동전환 + 무료광고 90일 미활동 EXPIRED |
 | `/api/cron/expire-pending` | `0 * * * *` (매시) | 미결제 광고 만료 |
 | `/api/cron/expire-partners` | `0 * * * *` (매시) | 제휴업체 만료 + 3일 자동시작 |
-| `/api/cron/notify-expiry` | `0 9 * * *` (매일 09시) | 만료 임박 알림 |
+| `/api/cron/notify-expiry` | `0 9 * * *` (매일 09시) | 유료광고 만료 임박 알림 (D-3, D-1, D-0) |
+| `/api/cron/notify-free-expiry` | `0 2 * * *` (매일 KST 11시) | **무료광고 D-7 SMS 알림 (90일 미활동)** |
 | `/api/cron/reset-manual-jump` | `0 15 * * *` (매일 자정 KST) | 수동점프 횟수 리셋 |
 | `/api/cron/cleanup-old-messages` | `0 3 * * *` (매일 03시) | 오래된 쪽지 정리 |
 | `/api/cron/boost-views` | 미등록 | 조회수 부스트 (수동) |
 | `/api/cron/cleanup-age-tokens` | 미등록 | 만료 성인인증 토큰 정리 |
 | `/api/cron/check-blob-usage` | 미등록 | Blob 사용량 체크 |
 
-> vercel.json에 등록된 크론: 9개 / 미등록(수동 전용): 3개
+> vercel.json에 등록된 크론: 10개 / 미등록(수동 전용): 3개
 
 ### 4-16. 테스트 (2개)
 | 엔드포인트 | 메서드 | 설명 |
@@ -568,14 +569,23 @@ matcher: [
 - `manualJumpUsedToday` → 0 리셋
 
 ### 광고 만료 (expire-ads)
-- 매시간, `endDate < now`인 ACTIVE 광고 → EXPIRED
-- 만료 시 알림 발송
+- 매시간 실행
+- 유료 ACTIVE + endDate 경과 → 무료(FREE) 자동 전환 (status는 ACTIVE 유지, 무료영역 노출)
+- ACTIVE FREE + 사장 `lastBusinessActivityAt` 90일 경과 → EXPIRED (시드/스탭 제외)
 
 ### 미결제 만료 (expire-pending)
 - 매시간, 24시간 경과한 PENDING_PAYMENT → CANCELLED
 
 ### 만료 임박 알림 (notify-expiry)
-- 매일 09시, 3일 이내 만료 광고에 알림
+- 매일 09시 UTC, 유료광고 D-3/D-1/D-0 알림 (이메일 + 사이트 알림 + D-1 SMS)
+
+### 무료광고 미활동 D-7 SMS (notify-free-expiry)
+- 매일 KST 11시 (UTC 02시) 실행
+- 사장 `lastBusinessActivityAt` 83~90일 사이 + 활성 무료광고 보유 + 시드/스탭 제외
+- userId GROUP BY로 사장당 1통 (광고 N건이면 본문에 묶음 표기)
+- 발송 후 `lastFreeExpiryNotifiedAt` 90일 lock (중복 방지)
+- 환경변수 `FREE_EXPIRY_DRY_RUN=1`이면 발송 대상자만 로그
+- 사장이 SMS 후 사이트 방문 시 `touchBusinessActivity()`가 D-Day 리셋 + 30일 이내 EXPIRED 자동 복구
 
 ### 제휴업체 만료 (expire-partners)
 - 매시간, endDate 지난 ACTIVE → EXPIRED

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { touchBusinessActivity } from "@/lib/business-activity";
 
 export default async function BusinessLayout({
   children,
@@ -13,6 +14,9 @@ export default async function BusinessLayout({
   if (!session || (session.user.role !== "BUSINESS" && session.user.role !== "ADMIN")) {
     redirect("/login");
   }
+
+  // 사장님 활동 시간 갱신 (BUSINESS만 갱신, 1시간 throttle, fire-and-forget)
+  touchBusinessActivity(session.user.id).catch(() => {});
 
   // Ad/Partner 존재 여부 + 스탭 여부로 사이드바 메뉴 필터링
   const [adCount, partnerCount, currentUser] = await Promise.all([

@@ -226,6 +226,10 @@ model User {
   freeAdCredits   Int     @default(0)
   totalPaidAdDays Int     @default(0)
 
+  // 사장님 활동 추적 (무료광고 90일 미활동 만료용)
+  lastBusinessActivityAt    DateTime?
+  lastFreeExpiryNotifiedAt  DateTime?
+
   // 운영자 스탭 계정 (1인 운영자 대행 등록용)
   isStaff Boolean @default(false)
 

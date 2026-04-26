@@ -6,6 +6,7 @@ import { compare } from "bcryptjs";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
+import { touchBusinessActivity } from "@/lib/business-activity";
 
 interface ExtendedUser {
   id?: string;
@@ -135,6 +136,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
       }
       return true;
+    },
+  },
+  events: {
+    // 모든 provider 로그인 성공 시 사장님 활동 시간 갱신
+    // (BUSINESS만 갱신, 1시간 throttle, fire-and-forget — 헬퍼 내부에서 처리)
+    async signIn({ user }) {
+      if (user?.id) {
+        touchBusinessActivity(user.id).catch(() => {});
+      }
     },
   },
   providers: [

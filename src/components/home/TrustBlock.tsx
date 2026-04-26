@@ -13,7 +13,7 @@ export function TrustBlock() {
 
         <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
           <StatCard num="20,538" label="카페 회원" />
-          <StatCard num="8,825" label="일 평균 조회수" />
+          <StatCard num="11,328" label="일 평균 조회수" />
           <StatCard num="614명" label="월 평균 가입" />
 
           <a

@@ -51,7 +51,7 @@ export default function WelcomeBusinessPage() {
               <div className={styles.trustStatLabel}>카페 회원</div>
             </div>
             <div className={styles.trustStat}>
-              <div className={styles.trustStatNum}>8,825</div>
+              <div className={styles.trustStatNum}>11,328</div>
               <div className={styles.trustStatLabel}>일 평균 조회수</div>
             </div>
             <div className={styles.trustStat}>

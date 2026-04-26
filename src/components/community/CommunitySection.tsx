@@ -20,7 +20,7 @@ type Post = {
 };
 
 type Props = {
-  hotPost: Post | null;
+  hotPosts: Post[];
   postsByCategory: Record<string, Post[]>;
 };
 
@@ -68,17 +68,24 @@ function stripHtmlTags(html: string): string {
   return html.replace(/<[^>]*>/g, "");
 }
 
-export function CommunitySection({ hotPost, postsByCategory }: Props) {
+export function CommunitySection({ hotPosts, postsByCategory }: Props) {
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
 
   // Get posts for active category directly (already fetched per-category from server)
   const categoryPosts = postsByCategory[activeCategory] || [];
 
-  // Check if hot post should be shown
-  const showHotPost = hotPost && (activeCategory === "ALL" || hotPost.category === activeCategory);
+  // Filter hot posts by active category
+  const filteredHotPosts = hotPosts.filter(
+    (p) => activeCategory === "ALL" || p.category === activeCategory
+  );
+  const bestPost = filteredHotPosts[0]; // BEST 1 (큰 카드)
+  const otherBestPosts = filteredHotPosts.slice(1, 3); // BEST 2, 3
 
-  // Take only 4 posts for the list (after hot post)
-  const displayPosts = categoryPosts.slice(0, 4);
+  // Filter regular list to exclude BEST 1/2/3 (prevent duplication)
+  const allBestIds = new Set(filteredHotPosts.map((p) => p.id));
+  const displayPosts = categoryPosts
+    .filter((p) => !allBestIds.has(p.id))
+    .slice(0, 3);
 
   return (
     <div>
@@ -99,68 +106,99 @@ export function CommunitySection({ hotPost, postsByCategory }: Props) {
         ))}
       </div>
 
-      {/* Hot Post Card */}
-      {showHotPost && (
+      {/* Hot Post Card (BEST 1) */}
+      {bestPost && (
         <div className="mb-4 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-4">
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
               HOT 🔥
             </span>
-            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${getCategoryBadgeClass(hotPost.category)}`}>
-              {getCategoryLabel(hotPost.category)}
+            <span className="rounded border border-primary px-1.5 py-0.5 text-[10px] font-bold text-primary">
+              BEST 1
+            </span>
+            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${getCategoryBadgeClass(bestPost.category)}`}>
+              {getCategoryLabel(bestPost.category)}
             </span>
           </div>
-          <Link href={`/community/${hotPost.slug || hotPost.id}`}>
-            <h3 className="mb-2 text-lg font-bold hover:text-primary">{hotPost.title}</h3>
+          <Link href={`/community/${bestPost.slug || bestPost.id}`}>
+            <h3 className="mb-2 text-lg font-bold hover:text-primary">{bestPost.title}</h3>
           </Link>
-          {hotPost.content && (
+          {bestPost.content && (
             <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-              {stripHtmlTags(hotPost.content).slice(0, 80)}
-              {stripHtmlTags(hotPost.content).length > 80 ? "..." : ""}
+              {stripHtmlTags(bestPost.content).slice(0, 80)}
+              {stripHtmlTags(bestPost.content).length > 80 ? "..." : ""}
             </p>
           )}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>💬 댓글 {hotPost._count.comments}</span>
-            <span>👍 추천 {hotPost._count.likes ?? 0}</span>
-            <span>{timeAgo(hotPost.createdAt)}</span>
+            <span>💬 댓글 {bestPost._count.comments}</span>
+            <span>👍 추천 {bestPost._count.likes ?? 0}</span>
+            <span>{timeAgo(bestPost.createdAt)}</span>
           </div>
         </div>
       )}
 
-      {/* Post List */}
+      {/* Post List (BEST 2/3 + 일반 글) */}
       <div className="divide-y divide-border rounded-lg border">
-        {displayPosts.length === 0 ? (
+        {otherBestPosts.length === 0 && displayPosts.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             게시글이 없습니다
           </div>
         ) : (
-          displayPosts.map((post) => (
-            <Link
-              key={post.id}
-              href={`/community/${post.slug || post.id}`}
-              className="block transition-colors hover:bg-muted/50"
-            >
-              <div className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${getCategoryBadgeClass(post.category)}`}>
-                    {getCategoryLabel(post.category)}
-                  </span>
-                  <span className="truncate text-sm font-medium">{post.title}</span>
-                  {post._count.comments > 0 && (
-                    <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
-                  )}
-                  {isNewPost(post.createdAt) && (
-                    <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">
-                      N
+          <>
+            {otherBestPosts.map((post, idx) => (
+              <Link
+                key={post.id}
+                href={`/community/${post.slug || post.id}`}
+                className="block bg-primary/5 transition-colors hover:bg-primary/10"
+              >
+                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="shrink-0 text-sm">{idx === 0 ? "🥈" : "🥉"}</span>
+                    <span className="shrink-0 rounded border border-primary/50 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                      BEST {idx + 2}
                     </span>
-                  )}
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${getCategoryBadgeClass(post.category)}`}>
+                      {getCategoryLabel(post.category)}
+                    </span>
+                    <span className="truncate text-sm font-medium">{post.title}</span>
+                    {post._count.comments > 0 && (
+                      <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground">
+                    {timeAgo(post.createdAt)}
+                  </div>
                 </div>
-                <div className="shrink-0 text-xs text-muted-foreground">
-                  {timeAgo(post.createdAt)}
+              </Link>
+            ))}
+            {displayPosts.map((post) => (
+              <Link
+                key={post.id}
+                href={`/community/${post.slug || post.id}`}
+                className="block transition-colors hover:bg-muted/50"
+              >
+                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${getCategoryBadgeClass(post.category)}`}>
+                      {getCategoryLabel(post.category)}
+                    </span>
+                    <span className="truncate text-sm font-medium">{post.title}</span>
+                    {post._count.comments > 0 && (
+                      <span className="shrink-0 text-xs text-primary">[{post._count.comments}]</span>
+                    )}
+                    {isNewPost(post.createdAt) && (
+                      <span className="ml-1 shrink-0 rounded-sm bg-red-500/15 px-1 py-0.5 text-[10px] font-bold leading-none text-red-400">
+                        N
+                      </span>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground">
+                    {timeAgo(post.createdAt)}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            ))}
+          </>
         )}
       </div>
     </div>

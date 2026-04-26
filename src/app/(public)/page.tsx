@@ -94,7 +94,7 @@ export default async function HomePage() {
     postsBEAUTY,
     postsQNA,
     postsWORK,
-    hotPost,
+    hotCandidates,
     partnerAds,
   ] = await Promise.all([
     prisma.ad.findMany({
@@ -169,7 +169,7 @@ export default async function HomePage() {
     prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "BEAUTY" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
     prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "QNA" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
     prisma.post.findMany({ where: { isHidden: false, deletedAt: null, category: "WORK" }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, slug: true, title: true, content: true, category: true, viewCount: true, createdAt: true, author: { select: { name: true } }, _count: { select: { comments: { where: { deletedAt: null } }, likes: true } } } }),
-    prisma.post.findFirst({
+    prisma.post.findMany({
       where: {
         isHidden: false,
         deletedAt: null,
@@ -180,6 +180,7 @@ export default async function HomePage() {
         { comments: { _count: "desc" } },
         { viewCount: "desc" },
       ],
+      take: 30,
       select: {
         id: true,
         slug: true,
@@ -188,6 +189,7 @@ export default async function HomePage() {
         category: true,
         createdAt: true,
         _count: { select: { comments: { where: { deletedAt: null } }, likes: true } },
+        author: { select: { isGhost: true } },
       },
     }),
     // 제휴업체 (모든 ACTIVE 업체 메인 노출)
@@ -207,6 +209,27 @@ export default async function HomePage() {
     }),
   ]);
 
+  // 이 주의 베스트 3 — 시간 감쇠 + 실유저 가중치(×1.5) + 최소 기준(좋아요+댓글 ≥ 3)
+  const hotPosts = hotCandidates
+    .filter((p) => p._count.likes + p._count.comments >= 3)
+    .map((p) => {
+      const ageHours = (Date.now() - new Date(p.createdAt).getTime()) / 3_600_000;
+      const engagement = p._count.likes * 3 + p._count.comments * 5;
+      const realBonus = p.author.isGhost ? 1 : 1.5;
+      const score = (engagement * realBonus) / Math.pow(ageHours + 2, 0.5);
+      return { post: p, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ post }) => ({
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      content: post.content,
+      category: post.category,
+      createdAt: post.createdAt,
+      _count: post._count,
+    }));
 
   // 제휴업체 랜덤 셔플 (동등 노출)
   const shuffledPartners = [...partnerAds];
@@ -488,7 +511,7 @@ export default async function HomePage() {
                     </Link>
                   </div>
                 </div>
-                <CommunitySection hotPost={hotPost} postsByCategory={{ ALL: postsAll, CHAT: postsCHAT, BEAUTY: postsBEAUTY, QNA: postsQNA, WORK: postsWORK }} />
+                <CommunitySection hotPosts={hotPosts} postsByCategory={{ ALL: postsAll, CHAT: postsCHAT, BEAUTY: postsBEAUTY, QNA: postsQNA, WORK: postsWORK }} />
               </div>
             )}
 

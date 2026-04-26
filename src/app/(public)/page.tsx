@@ -15,6 +15,7 @@ import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
 import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { HomeSearchBar } from "@/components/search/HomeSearchBar";
 import { TrustBlock } from "@/components/home/TrustBlock";
+import { HeroSubtitle } from "@/components/home/HeroSubtitle";
 import { getActiveEvent } from "@/lib/event";
 import type { PartnerCategory, Region } from "@/generated/prisma/client";
 
@@ -241,9 +242,7 @@ export default async function HomePage() {
             밤에 빛나는 여시들의 일자리
             <span className="mt-2 block text-white [filter:drop-shadow(0_0_20px_rgba(255,255,255,0.15))] [-webkit-text-fill-color:white]">여시잡</span>
           </h1>
-          <p className="mt-4 text-lg md:text-xl" style={{ color: "#B0B0B0" }}>
-            가장 어울리는 곳에서 당신이 더 빛날 수 있게
-          </p>
+          <HeroSubtitle />
 
           {/* Search Bar */}
           <HomeSearchBar

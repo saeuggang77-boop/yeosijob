@@ -253,7 +253,33 @@ export default async function JobDetailPage({ params }: PageProps) {
   const ddayInfo = ad.productId !== "FREE" ? calculateDday(ad.endDate) : null;
 
   // JSON-LD structured data for SEO
-  const jsonLd = {
+  const parsedSalary = (() => {
+    const text = ad.salaryText || "";
+    const unitMatch = text.match(/^(시급|일|주|월|연)/);
+    const unitMap: Record<string, string> = { "시급": "HOUR", "일": "DAY", "주": "WEEK", "월": "MONTH", "연": "YEAR" };
+    const unitText = unitMatch ? (unitMap[unitMatch[1]] || "MONTH") : "MONTH";
+    const explicitManwon = text.includes("만");
+    const explicitWon = /원(?!금)/.test(text) && !explicitManwon;
+    const baseMultiplier = explicitManwon ? 10000 : 1;
+    let nums = text.match(/[\d,]+(?:\.\d+)?/g)?.map((n) => parseFloat(n.replace(/,/g, "")) * baseMultiplier);
+    if (!nums || nums.length === 0) return null;
+
+    // 단위 보정: "시급5.0~10.0"처럼 만/원 표기 누락 시 비정상적으로 작은 값을 자동으로 만원 단위로 보정
+    const minSane: Record<string, number> = { HOUR: 1000, DAY: 10000, WEEK: 50000, MONTH: 100000, YEAR: 1000000 };
+    if (!explicitManwon && !explicitWon) {
+      const sanity = minSane[unitText] || 100000;
+      if (nums.every((v) => v < sanity)) {
+        nums = nums.map((v) => v * 10000);
+      }
+    }
+
+    if (nums.length >= 2) {
+      return { "@type": "MonetaryAmount", currency: "KRW", value: { "@type": "QuantitativeValue", minValue: nums[0], maxValue: nums[1], unitText } };
+    }
+    return { "@type": "MonetaryAmount", currency: "KRW", value: { "@type": "QuantitativeValue", value: nums[0], unitText } };
+  })();
+
+  const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: ad.title,
@@ -263,48 +289,28 @@ export default async function JobDetailPage({ params }: PageProps) {
     hiringOrganization: {
       "@type": "Organization",
       name: ad.businessName,
+      logo: "https://yeosijob.com/icon-512.png",
     },
-    jobLocation: {
-      "@type": "Place",
-      address: {
-        "@type": "PostalAddress",
-        addressRegion: regionLabels,
-        addressCountry: "KR",
-      },
-    },
-    baseSalary: (() => {
-      // 급여 텍스트에서 숫자 추출 시도 (예: "일 30~50만원", "월 300~400만원")
-      const text = ad.salaryText || "";
-      const unitMatch = text.match(/^(시급|일|주|월|연)/);
-      const unitMap: Record<string, string> = { "시급": "HOUR", "일": "DAY", "주": "WEEK", "월": "MONTH", "연": "YEAR" };
-      const unitText = unitMatch ? (unitMap[unitMatch[1]] || "MONTH") : "MONTH";
-      const multiplier = text.includes("만") ? 10000 : 1;
-      const nums = text.match(/[\d,]+(?:\.\d+)?/g)?.map(n => parseFloat(n.replace(/,/g, "")) * multiplier);
-
-      if (nums && nums.length >= 2) {
-        return {
-          "@type": "MonetaryAmount",
-          currency: "KRW",
-          value: { "@type": "QuantitativeValue", minValue: nums[0], maxValue: nums[1], unitText },
-        };
-      } else if (nums && nums.length === 1) {
-        return {
-          "@type": "MonetaryAmount",
-          currency: "KRW",
-          value: { "@type": "QuantitativeValue", value: nums[0], unitText },
-        };
-      }
-      return {
-        "@type": "MonetaryAmount",
-        currency: "KRW",
-        value: { "@type": "QuantitativeValue", value: text },
-      };
-    })(),
   };
 
-  // Add validThrough if endDate exists
+  // Google JobPosting 가이드라인: jobLocation의 addressRegion은 비어있으면 안됨.
+  // 지역 정보 없으면 jobLocationType=TELECOMMUTE로 대체 (또는 jobLocation 자체 생략).
+  if (regionLabels) {
+    jsonLd.jobLocation = {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressRegion: regionLabels, addressCountry: "KR" },
+    };
+  } else {
+    jsonLd.jobLocationType = "TELECOMMUTE";
+    jsonLd.applicantLocationRequirements = { "@type": "Country", name: "KR" };
+  }
+
+  if (parsedSalary) {
+    jsonLd.baseSalary = parsedSalary;
+  }
+
   if (ad.endDate) {
-    (jsonLd as Record<string, unknown>).validThrough = ad.endDate.toISOString();
+    jsonLd.validThrough = ad.endDate.toISOString();
   }
 
   return (

@@ -50,11 +50,14 @@ export async function GET(request: NextRequest) {
       for (const ad of expiringAds) {
         if (!ad.user.email) continue;
 
-        const notificationLink = daysLeft === 0 ? `/business/ads/${ad.id}/renew` : `/business/ads/${ad.id}`;
+        const notificationLink = daysLeft === 0 ? `/business/ads/new` : `/business/ads/${ad.id}`;
+        const notificationTitle = daysLeft === 0
+          ? "광고가 무료로 전환되었습니다"
+          : `광고 만료 D-${daysLeft}`;
         const existingNotification = await prisma.notification.findFirst({
           where: {
             userId: ad.userId,
-            title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
+            title: notificationTitle,
             link: notificationLink,
             createdAt: { gte: twentyFourHoursAgo },
           },
@@ -65,14 +68,19 @@ export async function GET(request: NextRequest) {
         try {
           await sendAdExpiryNotification(ad.user.email, ad.title, daysLeft, ad.id);
 
-          const notificationMessage = daysLeft === 3
-            ? `광고 '${ad.businessName}'이 3일 후 만료됩니다. 갱신하시겠습니까?`
-            : `'${ad.title}' 광고가 ${daysLeft === 0 ? "오늘 만료됩니다" : `${daysLeft}일 후 만료됩니다`}`;
+          let notificationMessage: string;
+          if (daysLeft === 0) {
+            notificationMessage = `'${ad.title}' 유료 기간이 끝나 무료로 전환되었습니다. 다시 상위 노출하려면 새 광고로 등록해주세요.`;
+          } else if (daysLeft === 3) {
+            notificationMessage = `광고 '${ad.businessName}'이 3일 후 만료됩니다. 갱신하시겠습니까?`;
+          } else {
+            notificationMessage = `'${ad.title}' 광고가 ${daysLeft}일 후 만료됩니다`;
+          }
 
           await prisma.notification.create({
             data: {
               userId: ad.userId,
-              title: daysLeft === 0 ? "광고가 만료되었습니다" : `광고 만료 D-${daysLeft}`,
+              title: notificationTitle,
               message: notificationMessage,
               link: notificationLink,
             },

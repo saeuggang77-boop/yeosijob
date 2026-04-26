@@ -4,9 +4,11 @@ import { verifyCronAuth } from "@/lib/utils/cron-auth";
 
 /**
  * 만료 광고 처리 cron - 매시간 실행
- * endDate가 지난 유료 ACTIVE 광고를 EXPIRED 상태로 전환
- * - productId는 유지 (연장 시 동일 상품으로 결제할 수 있도록)
- * - 유료 기능(자동점프) 중지
+ * endDate가 지난 유료 ACTIVE 광고를 무료(FREE) 상품으로 자동 전환
+ * - status는 ACTIVE 유지 → 무료 영역에서 계속 노출
+ * - productId = FREE, endDate = null (FREE는 기간 무제한)
+ * - 자동/수동 점프는 FREE 기본값으로 재설정 (autoJumpPerDay=2, manualJumpPerDay=3)
+ * - 사장이 다시 유료로 가려면 새 광고 등록 흐름 사용 (renew 페이지는 FREE 거부)
  * - 스탭 계정(isStaff=true) 광고는 제외 (auto-renew-staff 크론이 처리)
  */
 export async function GET(request: NextRequest) {
@@ -25,9 +27,10 @@ export async function GET(request: NextRequest) {
         user: { isStaff: false },
       },
       data: {
-        status: "EXPIRED",
-        autoJumpPerDay: 0,
-        manualJumpPerDay: 0,
+        productId: "FREE",
+        endDate: null,
+        autoJumpPerDay: 2,
+        manualJumpPerDay: 3,
         manualJumpUsedToday: 0,
       },
     });

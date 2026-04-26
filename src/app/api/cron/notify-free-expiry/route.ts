@@ -8,7 +8,7 @@ const NOTIFY_DAYS_BEFORE = 7;
 const SMS_BATCH_DELAY_MS = 1000;
 
 /**
- * 무료광고 미활동 만료 D-7 SMS 알림 cron - 매일 1회 실행 (KST 10시 = UTC 01시)
+ * 무료광고 미활동 만료 D-7 SMS 알림 cron - 매일 1회 실행 (KST 11시 = UTC 02시)
  *
  * 동작:
  *  - 사장님(BUSINESS) 중 무료광고(ACTIVE FREE) 보유 + 마지막 활동이 83일 이상 ~ 90일 미만

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -202,6 +203,14 @@ export default function NewPostPage() {
 
       // Clear draft on successful submission
       localStorage.removeItem(STORAGE_KEY);
+
+      // 첫 글 환영 토스트 (sonner는 라우트 변경 후에도 유지)
+      if (data.isFirstPost) {
+        toast.success("첫 글을 작성하셨어요! 🎉", {
+          description: "여시잡 커뮤니티에 오신 것을 환영합니다.",
+          duration: 5000,
+        });
+      }
 
       router.push(`/community/${data.slug || data.id}`);
     } catch (error) {

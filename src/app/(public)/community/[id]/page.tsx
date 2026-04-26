@@ -97,7 +97,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       isAnonymous: true,
       isHidden: true,
       author: {
-        select: { id: true, name: true, role: true, isActive: true },
+        select: { id: true, name: true, role: true, isActive: true, createdAt: true },
       },
       images: {
         orderBy: { sortOrder: "asc" },
@@ -113,7 +113,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           createdAt: true,
           authorId: true,
           author: {
-            select: { id: true, name: true, role: true, isActive: true },
+            select: { id: true, name: true, role: true, isActive: true, createdAt: true },
           },
           _count: { select: { likes: true } },
           replies: {
@@ -125,7 +125,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               createdAt: true,
               authorId: true,
               author: {
-                select: { id: true, name: true, role: true, isActive: true },
+                select: { id: true, name: true, role: true, isActive: true, createdAt: true },
               },
               _count: { select: { likes: true } },
             },
@@ -295,6 +295,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                     currentRole={post.author.role}
                     isAdmin={isAdmin}
                     isUserActive={post.author.isActive}
+                    userCreatedAt={post.author.createdAt}
                   />
                 ) : (
                   <span>

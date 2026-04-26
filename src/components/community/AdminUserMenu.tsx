@@ -13,6 +13,16 @@ interface AdminUserMenuProps {
   isPostAuthor?: boolean;
   isAdmin?: boolean;
   isUserActive?: boolean;
+  userCreatedAt?: Date | string | null;
+}
+
+const NEW_USER_DAYS = 7;
+
+function isNewMember(createdAt?: Date | string | null): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return false;
+  return Date.now() - created < NEW_USER_DAYS * 24 * 60 * 60 * 1000;
 }
 
 export function AdminUserMenu({
@@ -22,7 +32,11 @@ export function AdminUserMenu({
   isPostAuthor = false,
   isAdmin = false,
   isUserActive = true,
+  userCreatedAt,
 }: AdminUserMenuProps) {
+  // 익명 표시 시 신규 배지 숨김 ("익명" 정확 매치만 — 관리자가 보는 "익명 (실명)"은 허용)
+  const isPureAnonymous = userName === "익명";
+  const isNew = isNewMember(userCreatedAt) && !isPureAnonymous;
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleSubmenu, setShowRoleSubmenu] = useState(false);
   const [showPostsModal, setShowPostsModal] = useState(false);
@@ -160,6 +174,11 @@ export function AdminUserMenu({
         className="inline-flex items-center gap-1.5 font-medium underline decoration-dotted underline-offset-2 hover:text-primary"
       >
         {userName}
+        {isNew && (
+          <span className="rounded bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-green-500 no-underline">
+            🌱 신규
+          </span>
+        )}
         {isPostAuthor && (
           <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary no-underline">
             작성자

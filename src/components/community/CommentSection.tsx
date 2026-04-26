@@ -18,6 +18,7 @@ interface AuthorData {
   name: string | null;
   role: string;
   isActive: boolean;
+  createdAt: string | Date;
 }
 
 interface ReplyData {
@@ -143,6 +144,7 @@ export function CommentSection({
                               isPostAuthor={showAuthorBadge(comment.authorId)}
                               isAdmin={isAdmin}
                               isUserActive={comment.author.isActive}
+                              userCreatedAt={comment.author.createdAt}
                             />
                           ) : (
                             <>
@@ -217,6 +219,7 @@ export function CommentSection({
                                       isPostAuthor={showAuthorBadge(reply.authorId)}
                                       isAdmin={isAdmin}
                                       isUserActive={reply.author.isActive}
+                                      userCreatedAt={reply.author.createdAt}
                                     />
                                   ) : (
                                     <>

@@ -99,11 +99,22 @@ export async function POST(
         if (post && post.authorId !== session.user.id) {
           const prefs = await getUserNotifPrefs(post.authorId);
           if (prefs.notifyLike) {
+            // 첫 좋아요 여부 판정 (작성자가 받은 누적 좋아요 = 1, 본인 셀프 제외)
+            const receivedLikesTotal = await prisma.postLike.count({
+              where: {
+                post: { authorId: post.authorId, deletedAt: null },
+                NOT: { userId: post.authorId },
+              },
+            });
+            const isFirstReceivedLike = receivedLikesTotal === 1;
+
             await prisma.notification.create({
               data: {
                 userId: post.authorId,
-                title: "추천",
-                message: `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 반응했습니다`,
+                title: isFirstReceivedLike ? "🎉 첫 좋아요를 받았어요!" : "추천",
+                message: isFirstReceivedLike
+                  ? `축하합니다! "${post.title}" 글에 첫 좋아요가 달렸어요.`
+                  : `${session.user.name || "누군가"}님이 "${post.title}" 게시글에 반응했습니다`,
                 link: `/community/${id}`,
               },
             }).catch(() => {});

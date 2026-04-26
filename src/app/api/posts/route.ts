@@ -207,11 +207,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 첫 글 여부 (방금 만든 글까지 포함해 1개면 첫 글)
+    const userPostCount = await prisma.post.count({
+      where: { authorId: session.user.id, deletedAt: null },
+    });
+    const isFirstPost = userPostCount === 1;
+
     return NextResponse.json(
       {
         ...post,
         authorName: post.author.name || "익명",
         author: undefined,
+        isFirstPost,
       },
       { status: 201 }
     );

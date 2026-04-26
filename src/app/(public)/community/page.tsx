@@ -105,7 +105,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
         isAnonymous: true,
         isHidden: true,
         author: {
-          select: { id: true, name: true, role: true, isActive: true },
+          select: { id: true, name: true, role: true, isActive: true, createdAt: true },
         },
         _count: {
           select: {
@@ -273,6 +273,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                         currentRole={post.author.role}
                         isAdmin={isAdmin}
                         isUserActive={post.author.isActive}
+                        userCreatedAt={post.author.createdAt}
                       />
                     ) : (
                       <span>
@@ -372,6 +373,7 @@ export default async function CommunityPage({ searchParams }: PageProps) {
                             currentRole={post.author.role}
                             isAdmin={isAdmin}
                             isUserActive={post.author.isActive}
+                            userCreatedAt={post.author.createdAt}
                           />
                         ) : (
                           post.isAnonymous

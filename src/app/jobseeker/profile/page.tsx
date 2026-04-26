@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, FileText, Heart, MessageSquare, Bell, ClipboardList } from "lucide-react";
+import { ChevronRight, FileText, Heart, MessageSquare, Bell, ClipboardList, Sparkles } from "lucide-react";
 import EditProfileSection from "@/components/EditProfileSection";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 import DeleteAccountSection from "@/components/DeleteAccountSection";
@@ -41,16 +41,24 @@ export default async function ProfilePage() {
   const userId = session.user.id;
 
   // Query counts
-  const [scrapCount, reviewCount, applicationCount, resume, user] = await Promise.all([
+  const [scrapCount, reviewCount, applicationCount, resume, user, postCount, commentCount, receivedLikes] = await Promise.all([
     prisma.scrap.count({ where: { userId } }),
     prisma.review.count({ where: { userId } }),
     prisma.adApplication.count({ where: { userId } }),
     prisma.resume.findUnique({ where: { userId } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true, name: true, phone: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { hashedPassword: true, name: true, phone: true, createdAt: true } }),
+    prisma.post.count({ where: { authorId: userId, deletedAt: null } }),
+    prisma.comment.count({ where: { authorId: userId, deletedAt: null } }),
+    prisma.postLike.count({ where: { post: { authorId: userId, deletedAt: null } } }),
   ]);
 
   const resumeStatus = resume ? "등록됨" : "미등록";
   const hasPassword = !!user?.hashedPassword;
+
+  // 활동일수 (가입일로부터 며칠)
+  const daysSinceJoin = user?.createdAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (24 * 60 * 60 * 1000)))
+    : 1;
 
   return (
     <div className="mx-auto max-w-screen-lg px-4 py-6">
@@ -63,6 +71,39 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-4">
+        {/* 내 활동 위젯 */}
+        <Link href="/my/activity" className="block">
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 transition-shadow hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-primary" />
+                  <span className="text-sm font-bold text-primary">내 활동</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div>
+                  <div className="text-xl font-bold">{postCount.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">작성한 글</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{commentCount.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">작성한 댓글</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{receivedLikes.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">받은 좋아요</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{daysSinceJoin.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">활동일수</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
         {/* 내 이력서 */}
         <Link href="/jobseeker/my-resume" className="block">
           <Card className="transition-shadow hover:shadow-md">

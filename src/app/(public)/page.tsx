@@ -15,6 +15,7 @@ import { EXPERIENCE_LEVELS } from "@/lib/constants/resume";
 import { PARTNER_CATEGORIES } from "@/lib/constants/partners";
 import { HomeSearchBar } from "@/components/search/HomeSearchBar";
 import { TrustBlock } from "@/components/home/TrustBlock";
+import { TrustBlockGate } from "@/components/home/TrustBlockGate";
 import { HeroSubtitle } from "@/components/home/HeroSubtitle";
 import { getActiveEvent } from "@/lib/event";
 import type { PartnerCategory, Region } from "@/generated/prisma/client";
@@ -253,8 +254,10 @@ export default async function HomePage() {
       </section>
       <div className="hero-divider" />
 
-      {/* Trust Block - 사장님용 신뢰 신호 */}
-      <TrustBlock />
+      {/* Trust Block - 사장님용 신뢰 신호 (구직자에게는 숨김) */}
+      <TrustBlockGate>
+        <TrustBlock />
+      </TrustBlockGate>
 
       {/* Banner Slider - Premium Full Width */}
       {bannerAds.length > 0 && (

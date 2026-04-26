@@ -90,6 +90,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       id: true,
       title: true,
       content: true,
+      category: true,
       createdAt: true,
       viewCount: true,
       authorId: true,
@@ -140,6 +141,19 @@ export default async function PostDetailPage({ params }: PageProps) {
   if (!post) {
     notFound();
   }
+
+  // 같은 카테고리의 관련 글 (SEO + 내부링크 강화)
+  const relatedPosts = await prisma.post.findMany({
+    where: {
+      category: post.category,
+      id: { not: postId },
+      isHidden: false,
+      deletedAt: null,
+    },
+    select: { id: true, slug: true, title: true, viewCount: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
 
   // 현재 유저의 반응 및 전체 반응 통계 조회
   const allPostLikes = await prisma.postLike.findMany({
@@ -199,7 +213,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
     headline: post.title,
-    text: post.content.substring(0, 200),
+    text: post.content.substring(0, 5000),
     datePublished: post.createdAt.toISOString(),
     author: {
       "@type": "Person",
@@ -237,7 +251,8 @@ export default async function PostDetailPage({ params }: PageProps) {
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "홈", item: "https://yeosijob.com" },
             { "@type": "ListItem", position: 2, name: "커뮤니티", item: "https://yeosijob.com/community" },
-            { "@type": "ListItem", position: 3, name: post.title },
+            { "@type": "ListItem", position: 3, name: post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문톡" : post.category === "WORK" ? "가게톡" : "수다톡", item: `https://yeosijob.com/community?category=${post.category}` },
+            { "@type": "ListItem", position: 4, name: post.title },
           ],
         }).replace(/</g, "\\u003c") }}
       />
@@ -246,6 +261,18 @@ export default async function PostDetailPage({ params }: PageProps) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
+              <nav aria-label="breadcrumb" className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Link href="/" className="hover:text-foreground hover:underline">홈</Link>
+                <span>›</span>
+                <Link href="/community" className="hover:text-foreground hover:underline">커뮤니티</Link>
+                <span>›</span>
+                <Link
+                  href={`/community?category=${post.category}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {post.category === "BEAUTY" ? "뷰티톡" : post.category === "QNA" ? "질문톡" : post.category === "WORK" ? "가게톡" : "수다톡"}
+                </Link>
+              </nav>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{post.title}</h1>
                 {post.isHidden && (
@@ -296,35 +323,30 @@ export default async function PostDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <>
-              {/* 마크다운 렌더링 — preview 모드는 300자까지 */}
-              {accessLevel === "preview" && post.content.length > 300 ? (
-                <>
-                  <div
-                    className="prose prose-sm max-w-none dark:prose-invert"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content.substring(0, 300) + "…") }}
-                  />
-                  <div className="mt-4 rounded-lg border border-[#D4A853]/30 bg-gradient-to-b from-[#D4A853]/10 to-transparent p-5 text-center">
-                    <p className="mb-1 text-sm font-semibold">
-                      📖 나머지 {(post.content.length - 300).toLocaleString()}자 더 있어요
-                    </p>
-                    <p className="mb-4 text-xs text-muted-foreground">
-                      회원가입하고 전체 글과 댓글을 확인하세요
-                    </p>
-                    <div className="flex justify-center gap-2">
-                      <Link href="/register">
-                        <Button size="sm">회원가입</Button>
-                      </Link>
-                      <Link href="/login">
-                        <Button size="sm" variant="outline">로그인</Button>
-                      </Link>
-                    </div>
+              {/* 본문은 비회원에게도 전체 공개 (SEO + 콘텐츠 발견) */}
+              <div
+                className="prose prose-sm max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+              />
+
+              {/* 비회원/일부 회원에게는 댓글 가입 CTA 노출 */}
+              {accessLevel === "preview" && commentCount > 0 && (
+                <div className="mt-6 rounded-lg border border-[#D4A853]/30 bg-gradient-to-b from-[#D4A853]/10 to-transparent p-5 text-center">
+                  <p className="mb-1 text-sm font-semibold">
+                    💬 댓글 {commentCount.toLocaleString()}개 더 있어요
+                  </p>
+                  <p className="mb-4 text-xs text-muted-foreground">
+                    회원가입하고 다른 언니들의 진짜 이야기를 확인하세요
+                  </p>
+                  <div className="flex justify-center gap-2">
+                    <Link href="/register">
+                      <Button size="sm">회원가입</Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button size="sm" variant="outline">로그인</Button>
+                    </Link>
                   </div>
-                </>
-              ) : (
-                <div
-                  className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-                />
+                </div>
               )}
 
               {/* 이미지 갤러리 */}
@@ -390,6 +412,30 @@ export default async function PostDetailPage({ params }: PageProps) {
           <Link href="/community">
             <Button variant="outline">목록으로</Button>
           </Link>
+        </div>
+      )}
+
+      {/* 관련 글 (SEO 내부링크 + 콘텐츠 깊이) */}
+      {!(post.isHidden && !isAuthor && !isAdmin) && relatedPosts.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-lg font-bold">
+            {post.category === "BEAUTY" ? "뷰티톡 인기글" : post.category === "QNA" ? "질문톡 인기글" : post.category === "WORK" ? "가게톡 인기글" : "수다톡 인기글"}
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border bg-card">
+            {relatedPosts.map((rp) => (
+              <li key={rp.id}>
+                <Link
+                  href={`/community/${rp.slug || rp.id}`}
+                  className="flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-accent"
+                >
+                  <span className="line-clamp-1 flex-1 pr-3">{rp.title}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    조회 {rp.viewCount.toLocaleString()}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

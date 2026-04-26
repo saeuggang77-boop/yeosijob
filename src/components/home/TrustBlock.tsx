@@ -28,10 +28,10 @@ export function TrustBlock() {
             </span>
             <span className="relative min-w-0 flex-1">
               <span className="block text-[13px] font-bold leading-tight text-primary">
-                거짓말 아닙니다, 직접 보세요
+                네이버 카페 직접 확인
               </span>
               <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                밤여시 카페 실시간 공개
+                밤여시 카페 회원 실시간 공개
               </span>
             </span>
             <span className="relative text-lg font-bold text-primary opacity-60 transition-opacity group-hover:opacity-100">

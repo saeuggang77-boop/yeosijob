@@ -213,7 +213,7 @@ export default function WelcomeBusinessPage() {
             <div className={styles.cafeVerifyBadge}>N</div>
             <div className={styles.cafeVerifyText}>
               <div className={styles.cafeVerifyTitle}>
-                거짓말 아닙니다. 직접 보세요
+                네이버 카페 직접 확인
               </div>
               <div className={styles.cafeVerifyDesc}>
                 밤여시 카페 회원 수·신규 가입 현황 실시간 공개

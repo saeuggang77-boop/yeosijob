@@ -25,7 +25,7 @@ export default function WelcomeBusinessPage() {
             </span>
           </div>
           <div className={styles.heroSub}>
-            현직 여성 전용 카페 회원 <strong>20,538명</strong>
+            밤여시 카페 회원 <strong>20,538명</strong>
             <br />
             매달 수백 명씩 새로운 구직자가 유입됩니다
             <br />
@@ -42,7 +42,7 @@ export default function WelcomeBusinessPage() {
           <div className={styles.trustHeader}>
             <div className={styles.trustIcon}>🤝</div>
             <div className={styles.trustTitle}>
-              현직 여성 회원 2만+ 커뮤니티 단독 제휴
+              밤여시 카페 회원 2만+ 단독 제휴
             </div>
           </div>
           <div className={styles.trustStats}>
@@ -52,7 +52,7 @@ export default function WelcomeBusinessPage() {
             </div>
             <div className={styles.trustStat}>
               <div className={styles.trustStatNum}>8,825</div>
-              <div className={styles.trustStatLabel}>일 평균 방문</div>
+              <div className={styles.trustStatLabel}>일 평균 조회수</div>
             </div>
             <div className={styles.trustStat}>
               <div className={styles.trustStatNum}>614명</div>
@@ -236,10 +236,10 @@ export default function WelcomeBusinessPage() {
             <div className={styles.benefitIconBox}>💎</div>
             <div className={styles.benefitContent}>
               <div className={styles.benefitTitle}>
-                현직 여성 회원 2만+ 전용 커뮤니티 단독 제휴
+                밤여시 카페 회원 2만+ 단독 제휴
               </div>
               <div className={styles.benefitDesc}>
-                <strong>현직 여성만 가입할 수 있는 전용 카페</strong>
+                <strong>밤여시 회원만 가입할 수 있는 카페</strong>
                 (회원 <strong>20,538명</strong>, 월 평균 <strong>614명 신규 가입</strong>,
                 최근 13개월 <strong>+8,207명 성장</strong>)와 단독 제휴하고 있습니다.
                 이 커뮤니티에서 구직을 원하는 여성들이 여시잡으로 유입됩니다.
@@ -460,7 +460,7 @@ export default function WelcomeBusinessPage() {
           <div className={styles.faqItem}>
             <div className={styles.faqQ}>구직자는 얼마나 있나요?</div>
             <div className={styles.faqA}>
-              여시잡은 현직 여성 전용 커뮤니티(회원 20,538명, 월 평균 614명 신규 가입)와 단독 제휴하고 있습니다. 이 커뮤니티 구직자들이 여시잡을 통해 공고를 확인하고 사장님께 직접 연락드리는 구조입니다.
+              여시잡은 밤여시 카페(회원 20,538명, 월 평균 614명 신규 가입)와 단독 제휴하고 있습니다. 이 커뮤니티 구직자들이 여시잡을 통해 공고를 확인하고 사장님께 직접 연락드리는 구조입니다.
             </div>
           </div>
         </div>
@@ -473,7 +473,7 @@ export default function WelcomeBusinessPage() {
             광고 올려보세요
           </div>
           <div className={styles.bottomCtaSub}>
-            현직 여성 회원 2만+ 커뮤니티 단독 제휴
+            밤여시 카페 회원 2만+ 단독 제휴
             <br />
             무료부터 시작 · 언제든 상위 상품으로 업그레이드
           </div>

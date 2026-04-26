@@ -7,13 +7,13 @@ export function TrustBlock() {
             🤝 단독 제휴
           </span>
           <p className="text-sm font-bold text-foreground md:text-base">
-            현직 여성 회원 <span className="text-primary">2만+</span> 전용 커뮤니티 단독 제휴
+            밤여시 카페 회원 <span className="text-primary">2만+</span> 단독 제휴
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
           <StatCard num="20,538" label="카페 회원" />
-          <StatCard num="8,825" label="일 평균 방문" />
+          <StatCard num="8,825" label="일 평균 조회수" />
           <StatCard num="614명" label="월 평균 가입" />
 
           <a

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 const baseUrl = process.env.AUTH_URL || "https://yeosijob.com";
 
+export const revalidate = 1800;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 
   if (!partner) {
-    return { title: "제휴업체를 찾을 수 없습니다" };
+    notFound();
   }
 
   const categoryInfo = PARTNER_CATEGORIES[partner.category];

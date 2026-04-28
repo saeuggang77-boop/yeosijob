@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 
   if (!notice) {
-    return { title: "공지사항" };
+    notFound();
   }
 
   const description = notice.content.slice(0, 160).replace(/\n/g, " ");

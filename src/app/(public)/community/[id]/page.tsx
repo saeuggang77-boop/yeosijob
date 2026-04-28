@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps) {
   const post = await findPostByIdOrSlug(idOrSlug);
 
   if (!post) {
-    return { title: "게시글을 찾을 수 없습니다" };
+    notFound();
   }
 
   const description = post.content.substring(0, 155).replace(/\n/g, ' ');

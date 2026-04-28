@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 
   if (!ad) {
-    return { title: "채용정보를 찾을 수 없습니다" };
+    notFound();
   }
 
   const regionLabels = ad.regions
@@ -141,22 +141,7 @@ export default async function JobDetailPage({ params }: PageProps) {
   }
 
   if (ad.status !== "ACTIVE") {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-        <p className="text-6xl font-bold text-muted-foreground">404</p>
-        <h1 className="mt-4 text-xl font-bold">삭제된 공고입니다</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          해당 채용공고는 게시가 종료되었거나 삭제되었습니다.
-        </p>
-        <div className="mt-6 flex gap-3">
-          <a href="/jobs">
-            <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-              다른 채용정보 보기
-            </button>
-          </a>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   // Check if user has scraped this ad
